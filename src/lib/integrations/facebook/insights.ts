@@ -1,10 +1,11 @@
 import { createLogger } from '@/lib/logging'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { makeRequest, GRAPH_API_BASE_URL, FacebookApiError } from './client'
 import type { FacebookInsightsResponse, FacebookInsight } from './types'
 
 const log = createLogger('facebook-insights')
 
-const INSIGHTS_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const INSIGHTS_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const INSIGHTS_DAYS = 28
 
 // Metrics that use 'day' period

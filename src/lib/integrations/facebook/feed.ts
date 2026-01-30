@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/logging'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { makeRequest, GRAPH_API_BASE_URL } from './client'
 import type { FacebookFeedResponse, FacebookPost } from './types'
 
@@ -6,7 +7,7 @@ const log = createLogger('facebook-feed')
 
 const MAX_FEED_POSTS = parseInt(process.env.MAX_FEED_POSTS || '300', 10)
 const MAX_FEED_PAGES = parseInt(process.env.MAX_FEED_PAGES || '5', 10)
-const FEED_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const FEED_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const FEED_DAYS = 90
 
 // Fields to request for each post

@@ -70,7 +70,7 @@ export function TopRecommendations({ triggers, maxRecommendations = 5 }: TopReco
       <CardContent>
         <ol className="space-y-4">
           {scored.map(({ trigger }, index) => (
-            <li key={trigger.id} className="flex gap-4 rounded-lg border p-4">
+            <li key={trigger.id} className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row">
               <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-semibold">
                 {index + 1}
               </div>

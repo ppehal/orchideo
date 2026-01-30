@@ -1,4 +1,7 @@
+import type { ZodType } from 'zod'
 import { createLogger } from '@/lib/logging'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { isFacebookError } from '@/lib/validators/facebook'
 import type {
   FacebookErrorResponse,
   FacebookMeAccountsResponse,
@@ -12,7 +15,7 @@ const log = createLogger('facebook-api')
 export const GRAPH_API_VERSION = 'v19.0'
 export const GRAPH_API_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
 
-const DEFAULT_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const DEFAULT_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const MAX_RETRIES = 3
 const INITIAL_RETRY_DELAY_MS = 1000
 
@@ -59,10 +62,12 @@ export class FacebookApiError extends Error {
   }
 }
 
-export interface RequestOptions {
+export interface RequestOptions<T = unknown> {
   timeoutMs?: number
   maxRetries?: number
   retryDelayMs?: number
+  /** Optional Zod schema for response validation */
+  schema?: ZodType<T>
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -101,9 +106,9 @@ export async function makeRequest<T>(
       const data = await response.json()
 
       if (!response.ok) {
-        const errorResponse = data as FacebookErrorResponse
-        if (errorResponse.error) {
-          const fbError = FacebookApiError.fromResponse(errorResponse.error)
+        // Check for Facebook API error format
+        if (isFacebookError(data)) {
+          const fbError = FacebookApiError.fromResponse(data.error)
 
           log.warn(
             {
@@ -128,6 +133,19 @@ export async function makeRequest<T>(
           throw fbError
         }
         throw new Error(`Facebook API error: ${response.status} ${response.statusText}`)
+      }
+
+      // Validate response with Zod schema if provided
+      if (options.schema) {
+        const result = options.schema.safeParse(data)
+        if (!result.success) {
+          log.warn(
+            { url: url.split('?')[0], errors: result.error.issues },
+            'Facebook API response validation failed'
+          )
+          // Return data anyway but log the validation error
+          // This prevents breaking changes while adding observability
+        }
       }
 
       return data as T

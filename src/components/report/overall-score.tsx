@@ -43,7 +43,9 @@ export function OverallScore({ score, className }: OverallScoreProps) {
           </p>
           <div className="relative">
             <span className={cn('text-7xl font-bold tabular-nums', config.color)}>{score}</span>
-            <span className="text-muted-foreground absolute top-2 -right-6 text-2xl">/100</span>
+            <span className="text-muted-foreground absolute top-2 right-0 text-lg sm:-right-6 sm:text-2xl">
+              /100
+            </span>
           </div>
           <p className={cn('mt-2 text-xl font-semibold', config.color)}>{config.label}</p>
         </CardContent>

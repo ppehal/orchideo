@@ -1,4 +1,7 @@
 import type { TriggerRule, TriggerCategory } from './types'
+import { createLogger } from '@/lib/logging'
+
+const log = createLogger('triggers')
 
 // Registry of all trigger rules
 const triggerRegistry: Map<string, TriggerRule> = new Map()
@@ -8,7 +11,7 @@ const triggerRegistry: Map<string, TriggerRule> = new Map()
  */
 export function registerTrigger(rule: TriggerRule): void {
   if (triggerRegistry.has(rule.id)) {
-    console.warn(`Trigger ${rule.id} is already registered, overwriting`)
+    log.warn({ triggerId: rule.id }, 'Trigger already registered, overwriting')
   }
   triggerRegistry.set(rule.id, rule)
 }

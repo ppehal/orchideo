@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/logging'
+import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 const log = createLogger('email')
 
@@ -43,7 +44,7 @@ async function sendEmail(
         'X-Postmark-Server-Token': apiToken,
       },
       body: JSON.stringify(request),
-      signal: AbortSignal.timeout(10000), // 10s timeout
+      signal: AbortSignal.timeout(EMAIL_TIMEOUT_MS),
     })
 
     const data = (await response.json()) as PostmarkEmailResponse

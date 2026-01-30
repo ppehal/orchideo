@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 import type { AnalysisStatus } from '@/generated/prisma/enums'
 
 interface AnalysisProgressClientProps {
@@ -50,7 +51,9 @@ export function AnalysisProgressClient({
 
   const pollStatus = useCallback(async () => {
     try {
-      const response = await fetch(`/api/analysis/${analysisId}/status`)
+      const response = await fetch(`/api/analysis/${analysisId}/status`, {
+        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
+      })
       const data = await response.json()
 
       if (response.ok) {

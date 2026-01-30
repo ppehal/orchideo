@@ -55,16 +55,23 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       log.error({ analysisId: analysis.id, error: result.error }, 'Failed to send report email')
 
-      // Log analytics event for failure
-      await prisma.analyticsEvent.create({
-        data: {
-          event_type: 'email_send_error',
-          analysisId: analysis.id,
-          metadata: {
-            error: result.error,
+      // Log analytics event for failure (non-critical, don't fail the request)
+      try {
+        await prisma.analyticsEvent.create({
+          data: {
+            event_type: 'email_send_error',
+            analysisId: analysis.id,
+            metadata: {
+              error: result.error,
+            },
           },
-        },
-      })
+        })
+      } catch (dbError) {
+        log.error(
+          { error: dbError, analysisId: analysis.id },
+          'Failed to log email error analytics'
+        )
+      }
 
       return NextResponse.json(
         { error: result.error || 'Nepodařilo se odeslat email' },
@@ -72,27 +79,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update analysis with email recipient
-    await prisma.analysis.update({
-      where: { id: analysis.id },
-      data: { email_sent_to: email },
-    })
+    // Update analysis with email recipient (non-critical, don't fail the request)
+    try {
+      await prisma.analysis.update({
+        where: { id: analysis.id },
+        data: { email_sent_to: email },
+      })
+    } catch (dbError) {
+      log.error({ error: dbError, analysisId: analysis.id }, 'Failed to update email_sent_to')
+    }
 
-    // Log analytics events
-    await prisma.analyticsEvent.createMany({
-      data: [
-        {
-          event_type: 'email_submitted',
-          analysisId: analysis.id,
-          metadata: { email_domain: email.split('@')[1] },
-        },
-        {
-          event_type: 'email_send_success',
-          analysisId: analysis.id,
-          metadata: { message_id: result.messageId },
-        },
-      ],
-    })
+    // Log analytics events (non-critical, don't fail the request)
+    try {
+      await prisma.analyticsEvent.createMany({
+        data: [
+          {
+            event_type: 'email_submitted',
+            analysisId: analysis.id,
+            metadata: { email_domain: email.split('@')[1] },
+          },
+          {
+            event_type: 'email_send_success',
+            analysisId: analysis.id,
+            metadata: { message_id: result.messageId },
+          },
+        ],
+      })
+    } catch (dbError) {
+      log.error(
+        { error: dbError, analysisId: analysis.id },
+        'Failed to log email success analytics'
+      )
+    }
 
     log.info({ analysisId: analysis.id, email }, 'Report email sent successfully')
 

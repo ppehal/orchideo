@@ -80,7 +80,7 @@ export function UrlInputForm({ pages, onUrlParsed, disabled }: UrlInputFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           type="text"
           placeholder="https://facebook.com/vase-stranka"
@@ -89,7 +89,12 @@ export function UrlInputForm({ pages, onUrlParsed, disabled }: UrlInputFormProps
           disabled={disabled}
           className="flex-1"
         />
-        <Button type="submit" variant="secondary" disabled={disabled || !url.trim()}>
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={disabled || !url.trim()}
+          className="w-full sm:w-auto"
+        >
           Najít
         </Button>
       </div>

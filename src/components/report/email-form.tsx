@@ -7,6 +7,7 @@ import { Mail } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { isValidEmail } from '@/lib/validators/email'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 interface EmailFormProps {
   analysisToken: string
@@ -40,6 +41,7 @@ export function EmailForm({ analysisToken }: EmailFormProps) {
             email: email.toLowerCase().trim(),
             analysisToken,
           }),
+          signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
         })
 
         const data = await response.json()

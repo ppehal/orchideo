@@ -11,6 +11,7 @@ import { FbConnectButton } from './fb-connect-button'
 import { IndustrySelector } from './industry-selector'
 import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
 import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { toast } from 'sonner'
 
 interface AnalyzeFormProps {
@@ -66,6 +67,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
           pageId: selectedPage.id,
           industryCode: selectedIndustry,
         }),
+        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
       })
 
       const data = await response.json()
@@ -166,7 +168,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
             <CardDescription>Vyberte obor pro porovnání s oborovým benchmarkem</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-muted/30 flex items-center gap-4 rounded-lg border p-4">
+            <div className="bg-muted/30 flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <p className="font-medium">{selectedPage.name}</p>
                 {selectedPage.category && (
@@ -188,6 +190,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
                 loading={isSubmitting}
                 loadingText="Spouštím analýzu..."
                 size="lg"
+                className="w-full sm:w-auto"
               >
                 Spustit analýzu
               </LoadingButton>
