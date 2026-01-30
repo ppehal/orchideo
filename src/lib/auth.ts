@@ -47,7 +47,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     signOut(message) {
       if ('session' in message && message.session) {
-        log.info({ session_token: message.session.sessionToken }, 'User signed out')
+        const tokenPrefix = message.session.sessionToken.slice(0, 8) + '...'
+        log.info({ session_token_prefix: tokenPrefix }, 'User signed out')
       }
     },
   },

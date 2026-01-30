@@ -52,7 +52,8 @@ export async function GET(_request: Request, { params }: Props) {
       data: {
         status: analysis.status,
         progress: STATUS_PROGRESS[analysis.status],
-        errorMessage: analysis.error_message,
+        // Return generic error message to client, details stay in server logs
+        errorMessage: analysis.status === 'FAILED' ? 'Analýza selhala. Prosím zkuste znovu.' : null,
         publicToken: analysis.public_token,
       },
     })

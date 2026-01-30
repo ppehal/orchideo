@@ -112,7 +112,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    log.info({ analysisId: analysis.id, email }, 'Report email sent successfully')
+    const maskedEmail = email.replace(/(.{2}).*@/, '$1***@')
+    log.info({ analysisId: analysis.id, email: maskedEmail }, 'Report email sent successfully')
 
     return NextResponse.json({ success: true })
   } catch (error) {

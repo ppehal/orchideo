@@ -83,8 +83,6 @@ export async function makeRequest<T>(
   const maxRetries = options.maxRetries ?? MAX_RETRIES
   const initialRetryDelay = options.retryDelayMs ?? INITIAL_RETRY_DELAY_MS
 
-  const urlWithToken = `${url}${url.includes('?') ? '&' : '?'}access_token=${accessToken}`
-
   let lastError: Error | null = null
   let attempt = 0
 
@@ -95,10 +93,11 @@ export async function makeRequest<T>(
         'Making Facebook API request'
       )
 
-      const response = await fetch(urlWithToken, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         signal: AbortSignal.timeout(timeoutMs),
       })
