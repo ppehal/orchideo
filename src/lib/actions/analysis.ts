@@ -9,6 +9,7 @@ import {
 } from '@/lib/integrations/facebook'
 import { encrypt } from '@/lib/utils/encryption'
 import { createLogger } from '@/lib/logging'
+import { startAnalysisInBackground } from '@/lib/services/analysis/runner'
 import { type AnalysisStatus } from '../../generated/prisma/enums'
 
 const log = createLogger('action-analysis')
@@ -27,7 +28,10 @@ export interface CreateAnalysisResult {
   publicToken: string
 }
 
-export async function createAnalysis(pageId: string): Promise<ActionResult<CreateAnalysisResult>> {
+export async function createAnalysis(
+  pageId: string,
+  industryCode: string = 'DEFAULT'
+): Promise<ActionResult<CreateAnalysisResult>> {
   const session = await auth()
 
   if (!session?.user?.id) {
@@ -103,7 +107,7 @@ export async function createAnalysis(pageId: string): Promise<ActionResult<Creat
         page_name: pageMetadata.name,
         page_picture: pageMetadata.picture_url,
         page_fan_count: pageMetadata.fan_count,
-        industry_code: 'DEFAULT', // Will be updated if user selects industry
+        industry_code: industryCode,
         expires_at: expiresAt,
         userId,
         fb_page_id: facebookPage.id,
@@ -119,6 +123,7 @@ export async function createAnalysis(pageId: string): Promise<ActionResult<Creat
           fb_page_id: pageId,
           page_name: pageMetadata.name,
           fan_count: pageMetadata.fan_count,
+          industry_code: industryCode,
         },
       },
     })
@@ -127,6 +132,9 @@ export async function createAnalysis(pageId: string): Promise<ActionResult<Creat
       { user_id: userId, analysis_id: analysis.id, fb_page_id: pageId },
       'Analysis created successfully'
     )
+
+    // Start the analysis in the background
+    startAnalysisInBackground(analysis.id)
 
     return {
       success: true,

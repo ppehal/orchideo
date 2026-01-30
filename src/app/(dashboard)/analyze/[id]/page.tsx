@@ -1,69 +1,121 @@
-import { notFound, redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { AnalysisProgressClient } from './client'
+'use client'
 
-interface Props {
-  params: Promise<{ id: string }>
-}
+import { useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { useAnalysisStatus } from '@/hooks/use-analysis-status'
 
-export async function generateMetadata({ params }: Props) {
-  const { id } = await params
+const STATUS_MESSAGES = {
+  PENDING: {
+    title: 'Analýza se připravuje',
+    description: 'Připravujeme analýzu vaší Facebook stránky...',
+  },
+  COLLECTING_DATA: {
+    title: 'Sbíráme data',
+    description: 'Stahujeme příspěvky a statistiky z vaší stránky...',
+  },
+  ANALYZING: {
+    title: 'Analyzujeme',
+    description: 'Vyhodnocujeme výkon vaší stránky...',
+  },
+  COMPLETED: {
+    title: 'Hotovo!',
+    description: 'Analýza je dokončena. Přesměrováváme na report...',
+  },
+  FAILED: {
+    title: 'Analýza selhala',
+    description: 'Při analýze nastala chyba.',
+  },
+} as const
 
-  const analysis = await prisma.analysis.findUnique({
-    where: { id },
-    select: { page_name: true },
+type StatusKey = keyof typeof STATUS_MESSAGES
+
+export default function AnalysisProgressPage() {
+  const params = useParams()
+  const router = useRouter()
+  const analysisId = params.id as string
+
+  const { status, progress, isLoading, error } = useAnalysisStatus(analysisId, {
+    pollingInterval: 2500,
+    onComplete: () => {
+      // Will redirect when we get the public token
+    },
   })
 
-  return {
-    title: analysis?.page_name ? `Analýza: ${analysis.page_name}` : 'Analýza',
-  }
-}
+  // Redirect to report when completed
+  useEffect(() => {
+    if (status === 'COMPLETED') {
+      // Fetch the public token and redirect
+      fetch(`/api/analysis/${analysisId}/status`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data.publicToken) {
+            router.push(`/report/${data.data.publicToken}`)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [status, analysisId, router])
 
-export default async function AnalysisProgressPage({ params }: Props) {
-  const { id } = await params
-  const session = await auth()
+  const statusKey = status && status in STATUS_MESSAGES ? (status as StatusKey) : 'PENDING'
+  const statusInfo = STATUS_MESSAGES[statusKey]
 
-  if (!session?.user?.id) {
-    redirect('/login')
-  }
-
-  const analysis = await prisma.analysis.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      status: true,
-      public_token: true,
-      page_name: true,
-      page_picture: true,
-      error_message: true,
-    },
-  })
-
-  if (!analysis) {
-    notFound()
-  }
-
-  // If already completed, redirect to report
-  if (analysis.status === 'COMPLETED') {
-    redirect(`/report/${analysis.public_token}`)
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
-    <div className="container py-12">
-      <div className="mx-auto max-w-xl">
-        <AnalysisProgressClient
-          analysisId={analysis.id}
-          pageName={analysis.page_name}
-          pagePicture={analysis.page_picture}
-          initialStatus={analysis.status}
-          errorMessage={analysis.error_message}
-          publicToken={analysis.public_token}
-        />
-      </div>
+    <div className="container mx-auto max-w-2xl py-12">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4">
+            {status === 'FAILED' ? (
+              <AlertCircle className="text-destructive h-12 w-12" />
+            ) : status === 'COMPLETED' ? (
+              <CheckCircle2 className="h-12 w-12 text-green-500" />
+            ) : (
+              <Loader2 className="text-primary h-12 w-12 animate-spin" />
+            )}
+          </div>
+          <CardTitle className="text-2xl">{statusInfo.title}</CardTitle>
+          <CardDescription>{statusInfo.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {status !== 'FAILED' && (
+            <div className="space-y-2">
+              <div className="text-muted-foreground flex justify-between text-sm">
+                <span>Průběh</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
+
+          {status === 'FAILED' && (
+            <div className="space-y-4">
+              {error && <p className="text-destructive text-center text-sm">{error}</p>}
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={() => router.push('/analyze')}>
+                  Zkusit znovu
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {status !== 'FAILED' && status !== 'COMPLETED' && (
+            <p className="text-muted-foreground text-center text-sm">
+              Prosím nevypínejte tuto stránku. Analýza obvykle trvá 1-2 minuty.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

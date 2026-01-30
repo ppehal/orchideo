@@ -85,3 +85,116 @@ export interface PageListItem {
   picture_url: string | null
   tasks: string[]
 }
+
+// Feed Types
+export interface FacebookAttachmentMedia {
+  image?: {
+    height: number
+    width: number
+    src: string
+  }
+  source?: string // Video URL
+}
+
+export interface FacebookAttachment {
+  media?: FacebookAttachmentMedia
+  media_type?: string // photo, video, link, etc.
+  type?: string
+  url?: string
+  title?: string
+  description?: string
+  target?: {
+    id: string
+    url: string
+  }
+  subattachments?: {
+    data: FacebookAttachment[]
+  }
+}
+
+export interface FacebookReactionsSummary {
+  total_count: number
+  viewer_reaction?: string
+}
+
+export interface FacebookCommentsSummary {
+  total_count: number
+  can_comment?: boolean
+}
+
+export interface FacebookShares {
+  count: number
+}
+
+export interface FacebookPost {
+  id: string
+  created_time: string
+  message?: string
+  story?: string
+  type?: string // link, status, photo, video, offer
+  status_type?: string
+  permalink_url?: string
+  full_picture?: string
+  attachments?: {
+    data: FacebookAttachment[]
+  }
+  reactions?: {
+    summary: FacebookReactionsSummary
+  }
+  comments?: {
+    summary: FacebookCommentsSummary
+  }
+  shares?: FacebookShares
+  is_published?: boolean
+  is_hidden?: boolean
+  // Insights (if available)
+  insights?: {
+    data: Array<{
+      name: string
+      period: string
+      values: Array<{
+        value: number | Record<string, number>
+      }>
+    }>
+  }
+}
+
+export interface FacebookFeedResponse {
+  data: FacebookPost[]
+  paging?: FacebookPaging
+}
+
+// Insights Types
+export interface FacebookInsightValue {
+  value: number | Record<string, number>
+  end_time?: string
+}
+
+export interface FacebookInsight {
+  name: string
+  period: string
+  values: FacebookInsightValue[]
+  title?: string
+  description?: string
+  id: string
+}
+
+export interface FacebookInsightsResponse {
+  data: FacebookInsight[]
+  paging?: FacebookPaging
+}
+
+// Post insights
+export interface FacebookPostInsight {
+  name: string
+  period: string
+  values: Array<{
+    value: number | Record<string, number>
+  }>
+}
+
+export interface FacebookPostWithInsights extends FacebookPost {
+  insights?: {
+    data: FacebookPostInsight[]
+  }
+}

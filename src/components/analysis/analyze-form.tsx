@@ -8,7 +8,9 @@ import { LoadingButton } from '@/components/ui/loading-button'
 import { PageSelector } from './page-selector'
 import { UrlInputForm } from './url-input-form'
 import { FbConnectButton } from './fb-connect-button'
+import { IndustrySelector } from './industry-selector'
 import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
+import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
 import { toast } from 'sonner'
 
 interface AnalyzeFormProps {
@@ -22,6 +24,8 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
   const [selectedPage, setSelectedPage] = React.useState<FacebookPageItem | null>(null)
   const [highlightedPageId, setHighlightedPageId] = React.useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [selectedIndustry, setSelectedIndustry] = React.useState<IndustryCode>('DEFAULT')
+  const [suggestedIndustry, setSuggestedIndustry] = React.useState<IndustryCode>('DEFAULT')
 
   // Handle URL-based page highlighting
   const handleUrlParsed = React.useCallback((pageId: string | null) => {
@@ -36,6 +40,11 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
   const handleSelectPage = React.useCallback((page: FacebookPageItem) => {
     setSelectedPage(page)
     setHighlightedPageId(null)
+
+    // Auto-detect industry from FB category
+    const detectedIndustry = getIndustryFromFbCategory(page.category)
+    setSuggestedIndustry(detectedIndustry)
+    setSelectedIndustry(detectedIndustry)
   }, [])
 
   // Handle form submission
@@ -55,6 +64,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
         },
         body: JSON.stringify({
           pageId: selectedPage.id,
+          industryCode: selectedIndustry,
         }),
       })
 
@@ -73,7 +83,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
     } finally {
       setIsSubmitting(false)
     }
-  }, [selectedPage, router])
+  }, [selectedPage, selectedIndustry, router])
 
   // Not connected to Facebook
   if (!hasFacebookAccount || errorCode === 'FACEBOOK_NOT_CONNECTED') {
@@ -150,22 +160,38 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
       </Card>
 
       {selectedPage && (
-        <Card className="bg-muted/50">
-          <CardContent className="flex items-center justify-between p-4">
-            <div>
-              <p className="font-medium">Vybraná stránka: {selectedPage.name}</p>
-              {selectedPage.category && (
-                <p className="text-muted-foreground text-sm">{selectedPage.category}</p>
-              )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Nastavení analýzy</CardTitle>
+            <CardDescription>Vyberte obor pro porovnání s oborovým benchmarkem</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-muted/30 flex items-center gap-4 rounded-lg border p-4">
+              <div className="flex-1">
+                <p className="font-medium">{selectedPage.name}</p>
+                {selectedPage.category && (
+                  <p className="text-muted-foreground text-sm">{selectedPage.category}</p>
+                )}
+              </div>
             </div>
-            <LoadingButton
-              onClick={handleSubmit}
-              loading={isSubmitting}
-              loadingText="Spouštím..."
-              size="lg"
-            >
-              Spustit analýzu
-            </LoadingButton>
+
+            <IndustrySelector
+              value={selectedIndustry}
+              onChange={setSelectedIndustry}
+              suggestedIndustry={suggestedIndustry}
+              disabled={isSubmitting}
+            />
+
+            <div className="flex justify-end">
+              <LoadingButton
+                onClick={handleSubmit}
+                loading={isSubmitting}
+                loadingText="Spouštím analýzu..."
+                size="lg"
+              >
+                Spustit analýzu
+              </LoadingButton>
+            </div>
           </CardContent>
         </Card>
       )}

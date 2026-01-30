@@ -36,13 +36,19 @@ export async function GET(_request: Request, { params }: Props) {
   })
 
   if (!analysis) {
-    return NextResponse.json({ error: 'Analýza nenalezena' }, { status: 404 })
+    return NextResponse.json(
+      { success: false, error: 'Analýza nenalezena', code: 'NOT_FOUND' },
+      { status: 404 }
+    )
   }
 
   return NextResponse.json({
-    status: analysis.status,
-    progress: STATUS_PROGRESS[analysis.status],
-    errorMessage: analysis.error_message,
-    publicToken: analysis.public_token,
+    success: true,
+    data: {
+      status: analysis.status,
+      progress: STATUS_PROGRESS[analysis.status],
+      errorMessage: analysis.error_message,
+      publicToken: analysis.public_token,
+    },
   })
 }

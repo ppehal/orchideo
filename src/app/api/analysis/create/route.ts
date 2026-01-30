@@ -7,6 +7,7 @@ const log = createLogger('api-analysis-create')
 
 const requestSchema = z.object({
   pageId: z.string().min(1, 'ID stránky je povinné'),
+  industryCode: z.string().optional().default('DEFAULT'),
 })
 
 export async function POST(request: Request) {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await createAnalysis(parsed.data.pageId)
+    const result = await createAnalysis(parsed.data.pageId, parsed.data.industryCode)
 
     if (!result.success) {
       const statusCode =

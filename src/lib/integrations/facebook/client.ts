@@ -9,10 +9,12 @@ import type {
 
 const log = createLogger('facebook-api')
 
-const GRAPH_API_VERSION = 'v19.0'
-const GRAPH_API_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
+export const GRAPH_API_VERSION = 'v19.0'
+export const GRAPH_API_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
 
 const DEFAULT_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const MAX_RETRIES = 3
+const INITIAL_RETRY_DELAY_MS = 1000
 
 export class FacebookApiError extends Error {
   public readonly code: number
@@ -50,49 +52,111 @@ export class FacebookApiError extends Error {
   isPermissionDenied(): boolean {
     return this.code === 10 || this.code === 200 || this.code === 230
   }
+
+  isRetryable(): boolean {
+    // Rate limited or temporary server errors
+    return this.isRateLimited() || this.code === 1 || this.code === 2
+  }
 }
 
-interface RequestOptions {
+export interface RequestOptions {
   timeoutMs?: number
+  maxRetries?: number
+  retryDelayMs?: number
 }
 
-async function makeRequest<T>(
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export async function makeRequest<T>(
   url: string,
   accessToken: string,
   options: RequestOptions = {}
 ): Promise<T> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+  const maxRetries = options.maxRetries ?? MAX_RETRIES
+  const initialRetryDelay = options.retryDelayMs ?? INITIAL_RETRY_DELAY_MS
+
   const urlWithToken = `${url}${url.includes('?') ? '&' : '?'}access_token=${accessToken}`
 
-  log.debug({ url: url.split('?')[0], timeoutMs }, 'Making Facebook API request')
+  let lastError: Error | null = null
+  let attempt = 0
 
-  const response = await fetch(urlWithToken, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-    },
-    signal: AbortSignal.timeout(timeoutMs),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    const errorResponse = data as FacebookErrorResponse
-    if (errorResponse.error) {
-      log.warn(
-        {
-          code: errorResponse.error.code,
-          type: errorResponse.error.type,
-          message: errorResponse.error.message,
-        },
-        'Facebook API error'
+  while (attempt <= maxRetries) {
+    try {
+      log.debug(
+        { url: url.split('?')[0], timeoutMs, attempt: attempt + 1 },
+        'Making Facebook API request'
       )
-      throw FacebookApiError.fromResponse(errorResponse.error)
+
+      const response = await fetch(urlWithToken, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorResponse = data as FacebookErrorResponse
+        if (errorResponse.error) {
+          const fbError = FacebookApiError.fromResponse(errorResponse.error)
+
+          log.warn(
+            {
+              code: fbError.code,
+              type: fbError.type,
+              message: fbError.message,
+              attempt: attempt + 1,
+            },
+            'Facebook API error'
+          )
+
+          // Check if error is retryable
+          if (fbError.isRetryable() && attempt < maxRetries) {
+            lastError = fbError
+            const delay = initialRetryDelay * Math.pow(2, attempt)
+            log.info({ delay, attempt: attempt + 1 }, 'Retrying after delay')
+            await sleep(delay)
+            attempt++
+            continue
+          }
+
+          throw fbError
+        }
+        throw new Error(`Facebook API error: ${response.status} ${response.statusText}`)
+      }
+
+      return data as T
+    } catch (error) {
+      // Handle network errors and timeouts
+      if (error instanceof FacebookApiError) {
+        throw error
+      }
+
+      const isTimeout = error instanceof Error && error.name === 'TimeoutError'
+      const isNetworkError = error instanceof TypeError
+
+      if ((isTimeout || isNetworkError) && attempt < maxRetries) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        const delay = initialRetryDelay * Math.pow(2, attempt)
+        log.warn(
+          { error: lastError.message, delay, attempt: attempt + 1 },
+          'Request failed, retrying'
+        )
+        await sleep(delay)
+        attempt++
+        continue
+      }
+
+      throw error
     }
-    throw new Error(`Facebook API error: ${response.status} ${response.statusText}`)
   }
 
-  return data as T
+  throw lastError || new Error('Max retries exceeded')
 }
 
 export async function getManagedPages(accessToken: string): Promise<PageListItem[]> {
@@ -104,7 +168,7 @@ export async function getManagedPages(accessToken: string): Promise<PageListItem
     id: page.id,
     name: page.name,
     category: page.category ?? null,
-    picture_url: null, // Picture requires additional parsing from the response
+    picture_url: null,
     tasks: page.tasks ?? [],
   }))
 }
@@ -185,5 +249,3 @@ export async function getManagedPagesWithTokens(
     access_token: page.access_token,
   }))
 }
-
-export { GRAPH_API_VERSION, GRAPH_API_BASE_URL }
