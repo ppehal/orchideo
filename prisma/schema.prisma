@@ -1,0 +1,240 @@
+// Orchideo FB Triggers - Database Schema
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Auth.js Models (Required for @auth/prisma-adapter)
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  facebookPages FacebookPage[]
+  analyses      Analysis[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ============================================================================
+// Business Models
+// ============================================================================
+
+model FacebookPage {
+  id                String   @id @default(cuid())
+  fb_page_id        String   @unique
+  name              String
+  category          String?
+  fan_count         Int?
+  picture_url       String?
+  cover_url         String?
+  page_access_token String   // Encrypted with AES-256-GCM
+  token_expires_at  DateTime?
+
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  analyses Analysis[]
+
+  @@index([userId])
+}
+
+model Analysis {
+  id              String         @id @default(cuid())
+  status          AnalysisStatus @default(PENDING)
+  public_token    String         @unique @default(cuid())
+
+  // Page info snapshot
+  page_name       String?
+  page_picture    String?
+  page_fan_count  Int?
+
+  // Industry benchmark
+  industry_code   String         @default("DEFAULT")
+
+  // Results
+  overall_score   Int?           // 0-100
+  rawData         Json?          // Normalized posts + insights
+
+  // Email
+  email_sent_to   String?
+  email_sent_at   DateTime?
+
+  // Timing
+  started_at      DateTime?
+  completed_at    DateTime?
+  expires_at      DateTime?
+
+  // Error handling
+  error_message   String?
+  error_code      String?
+
+  // Relations
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fb_page_id      String?
+  facebookPage    FacebookPage?  @relation(fields: [fb_page_id], references: [id], onDelete: SetNull)
+
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  triggerResults  TriggerResult[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([public_token])
+  @@index([expires_at])
+}
+
+model TriggerResult {
+  id           String        @id @default(cuid())
+  trigger_code String        // e.g., "BASIC_001", "TECH_003"
+  category     TriggerCategory
+  score        Int           // 0-100
+  status       TriggerStatus
+
+  // Details
+  value        Float?        // Measured value
+  threshold    Float?        // Expected threshold
+  details      Json?         // Additional context (reason, recommendations, etc.)
+
+  analysisId   String
+  analysis     Analysis      @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  created_at   DateTime      @default(now())
+
+  @@unique([analysisId, trigger_code])
+  @@index([analysisId])
+  @@index([trigger_code])
+}
+
+model IndustryBenchmark {
+  id              String   @id @default(cuid())
+  industry_code   String   @unique
+  industry_name   String
+
+  // Engagement benchmarks
+  avg_engagement_rate     Float   // Average engagement per post per follower
+  reactions_pct           Float   // % of interactions that are reactions
+  comments_pct            Float   // % of interactions that are comments
+  shares_pct              Float   // % of interactions that are shares
+
+  // Content mix
+  ideal_engagement_pct    Float   @default(60)  // Engagement content %
+  ideal_sales_pct         Float   @default(15)  // Sales content %
+  ideal_brand_pct         Float   @default(25)  // Brand content %
+
+  // Posting frequency
+  ideal_posts_per_week    Float   @default(3)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  event_type String   // analysis_started, analysis_completed, report_viewed, etc.
+
+  // Context
+  analysisId String?
+  analysis   Analysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  metadata   Json?    // Additional event-specific data
+
+  // Tracking
+  ip_address String?
+  user_agent String?
+
+  created_at DateTime @default(now())
+
+  @@index([event_type])
+  @@index([analysisId])
+  @@index([created_at])
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum AnalysisStatus {
+  PENDING
+  COLLECTING_DATA
+  ANALYZING
+  COMPLETED
+  FAILED
+}
+
+enum TriggerCategory {
+  BASIC
+  CONTENT
+  TECHNICAL
+  TIMING
+  SHARING
+  PAGE_SETTINGS
+}
+
+enum TriggerStatus {
+  EXCELLENT      // 85-100
+  GOOD           // 70-84
+  NEEDS_IMPROVEMENT // 40-69
+  CRITICAL       // 0-39
+}
