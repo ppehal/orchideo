@@ -1,0 +1,48 @@
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import type { AnalysisStatus } from '@/generated/prisma/enums'
+
+interface Props {
+  params: Promise<{ id: string }>
+}
+
+const STATUS_PROGRESS: Record<AnalysisStatus, number> = {
+  PENDING: 5,
+  COLLECTING_DATA: 40,
+  ANALYZING: 75,
+  COMPLETED: 100,
+  FAILED: 100,
+}
+
+export async function GET(_request: Request, { params }: Props) {
+  const { id } = await params
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Nepřihlášen' }, { status: 401 })
+  }
+
+  const analysis = await prisma.analysis.findFirst({
+    where: {
+      id,
+      userId: session.user.id,
+    },
+    select: {
+      status: true,
+      error_message: true,
+      public_token: true,
+    },
+  })
+
+  if (!analysis) {
+    return NextResponse.json({ error: 'Analýza nenalezena' }, { status: 404 })
+  }
+
+  return NextResponse.json({
+    status: analysis.status,
+    progress: STATUS_PROGRESS[analysis.status],
+    errorMessage: analysis.error_message,
+    publicToken: analysis.public_token,
+  })
+}

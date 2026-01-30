@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
+import Facebook from 'next-auth/providers/facebook'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import { createLogger } from '@/lib/logging'
@@ -12,6 +13,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Facebook({
+      clientId: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      authorization: {
+        params: {
+          scope:
+            'email,public_profile,pages_show_list,pages_read_engagement,pages_read_user_content,read_insights',
+        },
+      },
     }),
   ],
   session: {
@@ -41,3 +52,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 })
+
+export async function getFacebookAccessToken(userId: string): Promise<string | null> {
+  const account = await prisma.account.findFirst({
+    where: {
+      userId,
+      provider: 'facebook',
+    },
+    select: {
+      access_token: true,
+    },
+  })
+
+  return account?.access_token ?? null
+}
+
+export async function hasFacebookAccount(userId: string): Promise<boolean> {
+  const count = await prisma.account.count({
+    where: {
+      userId,
+      provider: 'facebook',
+    },
+  })
+
+  return count > 0
+}
