@@ -17,10 +17,12 @@ export const CLIENT_FETCH_TIMEOUT_MS = 30_000
 // ============================================================================
 
 /** Timeout for Facebook Graph API calls */
-export const FB_API_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const fbApiParsed = parseInt(process.env.FEED_TIMEOUT_MS || '', 10)
+export const FB_API_TIMEOUT_MS = Number.isNaN(fbApiParsed) ? 10_000 : fbApiParsed
 
 /** Timeout for the full analysis process */
-export const ANALYSIS_TIMEOUT_MS = parseInt(process.env.ANALYSIS_TIMEOUT_MS || '60000', 10)
+const analysisParsed = parseInt(process.env.ANALYSIS_TIMEOUT_MS || '', 10)
+export const ANALYSIS_TIMEOUT_MS = Number.isNaN(analysisParsed) ? 60_000 : analysisParsed
 
 /** Timeout for email sending (Postmark) */
 export const EMAIL_TIMEOUT_MS = 10_000

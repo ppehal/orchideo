@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { createLogger } from '@/lib/logging'
+
+const log = createLogger('facebook-validators')
 
 // ============================================================================
 // Common schemas
@@ -241,7 +244,7 @@ export function safeParseFacebookResponse<T>(
 ): T | null {
   const result = schema.safeParse(data)
   if (!result.success) {
-    console.error(`[Facebook API] Invalid response${context ? ` (${context})` : ''}:`, result.error)
+    log.warn({ context, errors: result.error.issues }, 'Invalid Facebook API response')
     return null
   }
   return result.data
