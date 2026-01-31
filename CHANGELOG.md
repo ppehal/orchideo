@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Industry benchmark seed data (10 industries)
 
 - **Phase 1: Facebook OAuth & Page Selection**
-  - Facebook OAuth provider with required permissions (pages_show_list, pages_read_engagement, pages_read_user_content, read_insights)
+  - Business Portfolio pages support - getManagedPages now includes pages from `/me/businesses/{id}/owned_pages`
+  - Facebook OAuth provider with required permissions (pages_show_list, pages_read_engagement, pages_read_user_content, read_insights, business_management)
   - Token encryption utilities (AES-256-GCM) for secure page_access_token storage
   - Facebook Graph API client with timeout handling and custom error class
   - Facebook URL parser for extracting page username/ID from various URL formats
