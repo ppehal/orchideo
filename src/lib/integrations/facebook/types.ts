@@ -86,6 +86,20 @@ export interface PageListItem {
   tasks: string[]
 }
 
+// Business Portfolio Types
+export interface FacebookBusiness {
+  id: string
+  name: string
+}
+
+export interface FacebookBusinessesResponse {
+  data: FacebookBusiness[]
+  paging?: FacebookPaging
+}
+
+// owned_pages response has the same format as /me/accounts
+export type FacebookBusinessOwnedPagesResponse = FacebookMeAccountsResponse
+
 // Feed Types
 export interface FacebookAttachmentMedia {
   image?: {

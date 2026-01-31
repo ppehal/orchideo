@@ -3,8 +3,9 @@ import { createLogger } from '@/lib/logging'
 import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { isFacebookError } from '@/lib/validators/facebook'
 import type {
+  FacebookBusiness,
   FacebookErrorResponse,
-  FacebookMeAccountsResponse,
+  FacebookPaging,
   FacebookPageMetadataResponse,
   NormalizedFacebookPage,
   PageListItem,
@@ -176,18 +177,183 @@ export async function makeRequest<T>(
   throw lastError || new Error('Max retries exceeded')
 }
 
-export async function getManagedPages(accessToken: string): Promise<PageListItem[]> {
-  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture,tasks`
+// ============================================================================
+// Pagination Helper
+// ============================================================================
 
-  const response = await makeRequest<FacebookMeAccountsResponse>(url, accessToken)
+interface PaginatedResponse<T> {
+  data: T[]
+  paging?: FacebookPaging
+}
 
-  return response.data.map((page) => ({
+async function fetchAllPaginated<T>(
+  initialUrl: string,
+  accessToken: string,
+  maxPages: number = 10
+): Promise<T[]> {
+  const allData: T[] = []
+  let nextUrl: string | null = initialUrl
+  let pagesProcessed = 0
+
+  while (nextUrl && pagesProcessed < maxPages) {
+    const response: PaginatedResponse<T> = await makeRequest<PaginatedResponse<T>>(
+      nextUrl,
+      accessToken
+    )
+    if (response.data) {
+      allData.push(...response.data)
+    }
+    nextUrl = response.paging?.next ?? null
+    pagesProcessed++
+  }
+
+  if (pagesProcessed >= maxPages) {
+    log.warn({ pagesProcessed, maxPages }, 'Reached max pagination limit')
+  }
+
+  return allData
+}
+
+// ============================================================================
+// Business Portfolio Functions
+// ============================================================================
+
+async function getBusinesses(accessToken: string): Promise<FacebookBusiness[]> {
+  const url = `${GRAPH_API_BASE_URL}/me/businesses?fields=id,name`
+  try {
+    return await fetchAllPaginated<FacebookBusiness>(url, accessToken)
+  } catch (error) {
+    // Graceful degradation - business_management permission might not be granted
+    if (error instanceof FacebookApiError && error.isPermissionDenied()) {
+      log.info('business_management permission not granted, skipping Business Portfolio pages')
+      return []
+    }
+    log.warn({ error }, 'Could not fetch businesses')
+    return []
+  }
+}
+
+async function getBusinessOwnedPages(
+  businessId: string,
+  accessToken: string,
+  includeToken: boolean = false
+): Promise<Array<PageListItem & { access_token?: string }>> {
+  const fields = includeToken
+    ? 'id,name,category,picture.type(large),tasks,access_token'
+    : 'id,name,category,picture.type(large),tasks'
+  const url = `${GRAPH_API_BASE_URL}/${businessId}/owned_pages?fields=${fields}`
+
+  try {
+    const pages = await fetchAllPaginated<{
+      id: string
+      name: string
+      category?: string
+      picture?: { data: { url: string } }
+      tasks?: string[]
+      access_token?: string
+    }>(url, accessToken)
+
+    return pages.map((page) => ({
+      id: page.id,
+      name: page.name,
+      category: page.category ?? null,
+      picture_url: page.picture?.data?.url ?? null,
+      tasks: page.tasks ?? [],
+      ...(includeToken && page.access_token ? { access_token: page.access_token } : {}),
+    }))
+  } catch (error) {
+    log.warn({ businessId, error }, 'Could not fetch business owned pages')
+    return []
+  }
+}
+
+function deduplicatePages<T extends { id: string }>(pages: T[]): T[] {
+  const seen = new Set<string>()
+  return pages.filter((page) => {
+    if (seen.has(page.id)) return false
+    seen.add(page.id)
+    return true
+  })
+}
+
+// ============================================================================
+// Personal Pages Functions (internal)
+// ============================================================================
+
+async function getPersonalPages(accessToken: string): Promise<PageListItem[]> {
+  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks`
+  const pages = await fetchAllPaginated<{
+    id: string
+    name: string
+    category?: string
+    picture?: { data: { url: string } }
+    tasks?: string[]
+  }>(url, accessToken)
+
+  return pages.map((page) => ({
     id: page.id,
     name: page.name,
     category: page.category ?? null,
-    picture_url: null,
+    picture_url: page.picture?.data?.url ?? null,
     tasks: page.tasks ?? [],
   }))
+}
+
+async function getPersonalPagesWithTokens(
+  accessToken: string
+): Promise<Array<PageListItem & { access_token: string }>> {
+  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks,access_token`
+  const pages = await fetchAllPaginated<{
+    id: string
+    name: string
+    category?: string
+    picture?: { data: { url: string } }
+    tasks?: string[]
+    access_token: string
+  }>(url, accessToken)
+
+  return pages.map((page) => ({
+    id: page.id,
+    name: page.name,
+    category: page.category ?? null,
+    picture_url: page.picture?.data?.url ?? null,
+    tasks: page.tasks ?? [],
+    access_token: page.access_token,
+  }))
+}
+
+// ============================================================================
+// Public API - Aggregated Managed Pages
+// ============================================================================
+
+export async function getManagedPages(accessToken: string): Promise<PageListItem[]> {
+  // 1. Get personal pages
+  const personalPages = await getPersonalPages(accessToken)
+
+  // 2. Get Business Portfolios
+  const businesses = await getBusinesses(accessToken)
+
+  // 3. For each Business, get pages (parallel for performance)
+  const businessPagesArrays = await Promise.all(
+    businesses.map((b) => getBusinessOwnedPages(b.id, accessToken, false))
+  )
+  const businessPages = businessPagesArrays.flat()
+
+  // 4. Aggregate and deduplicate (personal pages have priority)
+  const allPages = [...personalPages, ...businessPages]
+  const uniquePages = deduplicatePages(allPages)
+
+  log.info(
+    {
+      personalPages: personalPages.length,
+      businesses: businesses.length,
+      businessPages: businessPages.length,
+      totalUnique: uniquePages.length,
+    },
+    'Aggregated managed pages'
+  )
+
+  return uniquePages
 }
 
 export async function getPageMetadata(
@@ -244,25 +410,33 @@ export async function getPageAccessToken(
 export async function getManagedPagesWithTokens(
   userAccessToken: string
 ): Promise<Array<PageListItem & { access_token: string }>> {
-  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks,access_token`
+  // 1. Get personal pages with tokens
+  const personalPages = await getPersonalPagesWithTokens(userAccessToken)
 
-  const response = await makeRequest<{
-    data: Array<{
-      id: string
-      name: string
-      category?: string
-      picture?: { data: { url: string } }
-      tasks?: string[]
-      access_token: string
-    }>
-  }>(url, userAccessToken)
+  // 2. Get Business Portfolios
+  const businesses = await getBusinesses(userAccessToken)
 
-  return response.data.map((page) => ({
-    id: page.id,
-    name: page.name,
-    category: page.category ?? null,
-    picture_url: page.picture?.data?.url ?? null,
-    tasks: page.tasks ?? [],
-    access_token: page.access_token,
-  }))
+  // 3. For each Business, get pages with tokens (parallel)
+  const businessPagesArrays = await Promise.all(
+    businesses.map((b) => getBusinessOwnedPages(b.id, userAccessToken, true))
+  )
+  const businessPages = businessPagesArrays
+    .flat()
+    .filter((p): p is PageListItem & { access_token: string } => !!p.access_token)
+
+  // 4. Aggregate and deduplicate
+  const allPages = [...personalPages, ...businessPages]
+  const uniquePages = deduplicatePages(allPages)
+
+  log.info(
+    {
+      personalPages: personalPages.length,
+      businesses: businesses.length,
+      businessPages: businessPages.length,
+      totalUnique: uniquePages.length,
+    },
+    'Aggregated managed pages with tokens'
+  )
+
+  return uniquePages
 }
