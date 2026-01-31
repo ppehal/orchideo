@@ -1,1 +1,5 @@
+export * from './color-schemes'
 export * from './fb-category-map'
+export * from './versions'
+export * from './pdf'
+export * from './comparison-metrics'
