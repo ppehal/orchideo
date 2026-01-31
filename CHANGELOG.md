@@ -9,6 +9,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 2: Historical Trends, PDF Export, Competitor Comparison**
+  - **Historical Trends**
+    - `AnalysisSnapshot` model - denormalized metrics for trend calculations
+    - `TrendAlert` model with 6 alert types (score drop/improvement, engagement drop/improvement, posting frequency changes)
+    - Snapshot service - automatic snapshot creation after analysis completion
+    - Trend service - calculates trends with reliability assessment
+    - Alert service - detects significant changes and creates alerts
+    - Integration into analysis runner
+    - API: `GET /api/pages/[pageId]/trends` - get trend data for a page
+    - API: `GET /api/user/alerts` - list user alerts with pagination
+    - API: `PATCH /api/user/alerts` - mark all alerts as read
+    - API: `PATCH /api/user/alerts/[id]` - mark single alert as read
+    - Backfill script for existing analyses (`scripts/backfill-snapshots.ts`)
+
+  - **PDF Export**
+    - `ReportArtifact` model for PDF caching
+    - Analysis branding fields (company_name, custom_logo_url, hide_orchideo_branding)
+    - PDF service with Puppeteer + @sparticuz/chromium
+    - Semaphore utility for concurrency control
+    - Rate limiting (3 requests/hour per token)
+    - Print CSS styles in globals.css
+    - Report page print mode support with `data-pdf-ready` attribute
+    - API: `POST /api/report/[token]/pdf` - generate/retrieve cached PDF
+    - Docker Chromium configuration
+
+  - **Competitor Comparison**
+    - `CompetitorGroup` model - groups for comparison
+    - `CompetitorPage` model - competitors in a group
+    - `CompetitorComparison` model - saved comparison snapshots
+    - Comparison service with dense ranking algorithm
+    - Reliability assessment for comparisons
+    - API: `GET/POST /api/competitor-groups` - list/create groups
+    - API: `GET/DELETE /api/competitor-groups/[id]` - get/delete group
+    - API: `GET /api/competitor-groups/[id]/comparison` - compute comparison (read-only)
+    - API: `POST /api/competitor-groups/[id]/comparison` - save comparison snapshot
+
+### Fixed
+
+- Duplicate competitor page IDs are now deduplicated in group creation
+- Rate limit memory leak - expired entries are now cleaned up hourly
+- PDF generation orphan files - files are cleaned up on database errors
+
 - **Phase 0: Project Setup & Infrastructure**
   - Next.js 16 with React 19, TypeScript strict mode, Tailwind CSS 4
   - Prisma 6 with PostgreSQL 16 (Docker)
