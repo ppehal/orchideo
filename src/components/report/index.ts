@@ -1,5 +1,6 @@
 export * from './copy-link-button'
 export * from './overall-score'
+export * from './pdf-export-button'
 export * from './report-disclaimer'
 export * from './report-header'
 export * from './score-badge'

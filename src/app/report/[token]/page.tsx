@@ -7,6 +7,7 @@ import {
   TriggerSection,
   ReportDisclaimer,
   CopyLinkButton,
+  PdfExportButton,
   type TriggerCategory,
 } from '@/components/report'
 import { EmailForm } from '@/components/report/email-form'
@@ -151,7 +152,8 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
         {/* Actions - hidden in print mode */}
         {!isPrintMode && (
-          <div className="no-print flex justify-end">
+          <div className="no-print flex justify-end gap-2">
+            <PdfExportButton token={token} />
             <CopyLinkButton />
           </div>
         )}
