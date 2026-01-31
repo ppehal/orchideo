@@ -16,8 +16,10 @@ interface Props {
 
 /**
  * GET - Compute comparison without saving (read-only)
+ * Query params:
+ *   - ?history=true - returns historical snapshots instead
  */
-export async function GET(_request: Request, { params }: Props) {
+export async function GET(request: Request, { params }: Props) {
   try {
     const session = await auth()
 
@@ -26,6 +28,12 @@ export async function GET(_request: Request, { params }: Props) {
     }
 
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+
+    // Handle history query param
+    if (searchParams.get('history') === 'true') {
+      return getComparisonHistoryHandler(id, session.user.id)
+    }
 
     // Verify ownership
     const group = await prisma.competitorGroup.findFirst({
@@ -119,24 +127,30 @@ export async function POST(_request: Request, { params }: Props) {
  * GET /history - Get historical comparisons
  * Using query param: ?history=true
  */
-export async function getComparisonHistoryHandler(
-  groupId: string,
-  userId: string
-): Promise<NextResponse> {
-  // Verify ownership
-  const group = await prisma.competitorGroup.findFirst({
-    where: {
-      id: groupId,
-      userId,
-    },
-    select: { id: true },
-  })
+async function getComparisonHistoryHandler(groupId: string, userId: string): Promise<NextResponse> {
+  try {
+    // Verify ownership
+    const group = await prisma.competitorGroup.findFirst({
+      where: {
+        id: groupId,
+        userId,
+      },
+      select: { id: true },
+    })
 
-  if (!group) {
-    return NextResponse.json({ error: 'Skupina nenalezena', code: 'NOT_FOUND' }, { status: 404 })
+    if (!group) {
+      return NextResponse.json({ error: 'Skupina nenalezena', code: 'NOT_FOUND' }, { status: 404 })
+    }
+
+    const history = await getComparisonHistory(groupId)
+
+    return NextResponse.json({ history })
+  } catch (error) {
+    log.error({ error, groupId }, 'Failed to fetch comparison history')
+
+    return NextResponse.json(
+      { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
+      { status: 500 }
+    )
   }
-
-  const history = await getComparisonHistory(groupId)
-
-  return NextResponse.json({ history })
 }
