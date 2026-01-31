@@ -61,3 +61,9 @@ logs/
 *.sqlite
 
 /src/generated/prisma
+
+# VPS setup documentation (server-specific)
+VPS-SETUP-COMPLETE.md
+QUICK-START.sh
+VALIDATION-REPORT.md
+*.bak

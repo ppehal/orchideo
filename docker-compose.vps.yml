@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: orchideo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orchideo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: orchideo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U orchideo']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orchideo_internal
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: orchideo-app
+    restart: unless-stopped
+    command: npm run dev
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://orchideo:${POSTGRES_PASSWORD}@postgres:5432/orchideo
+      - NEXTAUTH_URL=https://orchideo.ppsys.eu
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
+      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+      - NEXT_PUBLIC_APP_URL=https://orchideo.ppsys.eu
+      - LOG_LEVEL=debug
+    volumes:
+      # DŮLEŽITÉ: Source code volume mount pro hot reload
+      - ./:/app:cached
+      # Exclude node_modules a build artifacts (použij container's)
+      - /app/node_modules
+      - /app/.next
+      - /app/src/generated
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - orchideo_internal
+      - srv_default
+    labels:
+      # Traefik enable
+      - traefik.enable=true
+      - traefik.docker.network=srv_default
+      - traefik.http.services.orchideo-dev.loadbalancer.server.port=3000
+
+      # Router
+      - traefik.http.routers.orchideo-dev.rule=Host(`orchideo.ppsys.eu`)
+      - traefik.http.routers.orchideo-dev.entrypoints=websecure
+      - traefik.http.routers.orchideo-dev.tls=true
+      - traefik.http.routers.orchideo-dev.tls.certresolver=letscloudflare
+      - traefik.http.routers.orchideo-dev.service=orchideo-dev
+
+      # Security headers
+      - traefik.http.middlewares.orchideo-dev-sec.headers.stsSeconds=31536000
+      - traefik.http.middlewares.orchideo-dev-sec.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.orchideo-dev-sec.headers.frameDeny=true
+      - traefik.http.middlewares.orchideo-dev-sec.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.orchideo-dev-sec.headers.referrerPolicy=strict-origin-when-cross-origin
+
+      # X-Robots (dev/staging only)
+      - traefik.http.middlewares.orchideo-dev-xrobots.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow
+
+      # Compression
+      - traefik.http.middlewares.orchideo-dev-compress.compress=true
+
+      # Middleware chain
+      - traefik.http.middlewares.orchideo-dev-chain.chain.middlewares=orchideo-dev-xrobots,orchideo-dev-sec,orchideo-dev-compress
+      - traefik.http.routers.orchideo-dev.middlewares=orchideo-dev-chain@docker
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  orchideo_internal:
+    driver: bridge
+  srv_default:
+    external: true
+
+volumes:
+  postgres_data:
+    name: orchideo-postgres-data
