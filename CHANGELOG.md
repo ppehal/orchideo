@@ -50,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - API: `GET/DELETE /api/competitor-groups/[id]` - get/delete group
     - API: `GET /api/competitor-groups/[id]/comparison` - compute comparison (read-only)
     - API: `POST /api/competitor-groups/[id]/comparison` - save comparison snapshot
+    - API: `GET /api/competitor-groups/[id]/comparison?history=true` - get historical snapshots
+    - HistorySelector component for browsing saved comparison snapshots
+    - Historical comparison banner with date display and "back to current" action
+    - Save snapshot button in ComparisonView
 
 ### Fixed
 
