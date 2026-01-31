@@ -98,6 +98,27 @@ npm run ci                  # Full CI pipeline
 
 ---
 
+## Git Workflow
+
+```
+feature-branch → stage → (PR) → main
+```
+
+| Větev   | Účel                                     |
+| ------- | ---------------------------------------- |
+| `main`  | Production-ready kód, pouze přes PR      |
+| `stage` | Integrační větev pro testování           |
+| `fix/*` | Feature/fix branches, vychází ze `stage` |
+
+**Pravidla:**
+
+1. NIKDY nepushovat přímo do `main`
+2. Nové změny commitovat do feature branch
+3. PR mergovat do `stage` (nebo `main` pro hotfixy)
+4. `stage` → `main` pouze přes PR s review
+
+---
+
 ## Coding Standards
 
 ### TypeScript
