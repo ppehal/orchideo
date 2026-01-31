@@ -79,10 +79,15 @@ function extractDailyValues(insight: FacebookInsight): Array<{ date: string; val
     }))
 }
 
+function isReactionBreakdown(value: unknown): value is Record<string, number> {
+  if (typeof value !== 'object' || value === null) return false
+  return Object.values(value).every((v) => typeof v === 'number')
+}
+
 function extractReactionBreakdown(insight: FacebookInsight): Record<string, number> | null {
   const lastValue = insight.values[insight.values.length - 1]
-  if (lastValue && typeof lastValue.value === 'object') {
-    return lastValue.value as Record<string, number>
+  if (lastValue && isReactionBreakdown(lastValue.value)) {
+    return lastValue.value
   }
   return null
 }

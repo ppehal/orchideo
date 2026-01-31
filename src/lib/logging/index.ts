@@ -1,8 +1,17 @@
 import pino, { type Logger, type LoggerOptions } from 'pino'
 
-type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
+const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'] as const
+type LogLevel = (typeof VALID_LOG_LEVELS)[number]
 
-const LOG_LEVEL = (process.env.LOG_LEVEL || 'info') as LogLevel
+function getLogLevel(): LogLevel {
+  const envLevel = process.env.LOG_LEVEL?.toLowerCase()
+  if (envLevel && VALID_LOG_LEVELS.includes(envLevel as LogLevel)) {
+    return envLevel as LogLevel
+  }
+  return 'info'
+}
+
+const LOG_LEVEL = getLogLevel()
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
