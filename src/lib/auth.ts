@@ -27,13 +27,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           override_default_response_type: 'true',
         },
       },
-      // Allow linking new Facebook app account to existing user with same email
-      allowDangerousEmailAccountLinking: true,
     }),
   ],
   session: {
     strategy: 'database',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge:
+      process.env.NODE_ENV === 'production'
+        ? 7 * 24 * 60 * 60 // 7 days in production
+        : 30 * 24 * 60 * 60, // 30 days in development
   },
   pages: {
     signIn: '/login',
