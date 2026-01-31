@@ -2,8 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies for native modules
-RUN apk add --no-cache libc6-compat
+# Install dependencies for native modules and Chromium
+RUN apk add --no-cache \
+    libc6-compat \
+    # Chromium dependencies
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    # Additional libraries for @sparticuz/chromium
+    libstdc++
 
 # Copy package files
 COPY package*.json ./
