@@ -8,6 +8,7 @@ import { Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const NAV_LINKS = [
   { href: '/analyze', label: 'Analýza' },
@@ -53,6 +54,10 @@ export function MobileNav() {
             </Link>
           ))}
         </nav>
+        <div className="border-border mt-4 flex items-center justify-between border-t pt-4">
+          <span className="text-muted-foreground text-sm">Motiv</span>
+          <ThemeToggle />
+        </div>
       </SheetContent>
     </Sheet>
   )

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { MobileNav } from './mobile-nav'
 import { AlertsDropdown } from './alerts-dropdown'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 interface HeaderProps {
   isAuthenticated?: boolean
@@ -52,6 +53,7 @@ export function Header({ isAuthenticated, userName }: HeaderProps) {
 
         {/* Right side */}
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <ThemeToggle />
           {isAuthenticated ? (
             <div className="flex items-center gap-2 sm:gap-4">
               <AlertsDropdown />
