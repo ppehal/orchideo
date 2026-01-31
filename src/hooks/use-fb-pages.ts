@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 export interface FacebookPageItem {
   id: string
@@ -30,7 +31,9 @@ export function useFbPages(): UseFbPagesResult {
     setErrorCode(null)
 
     try {
-      const response = await fetch('/api/facebook/pages')
+      const response = await fetch('/api/facebook/pages', {
+        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
+      })
       const data = await response.json()
 
       if (!response.ok) {

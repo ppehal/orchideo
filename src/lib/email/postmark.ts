@@ -1,4 +1,6 @@
+import { z } from 'zod'
 import { createLogger } from '@/lib/logging'
+import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 const log = createLogger('email')
 
@@ -13,13 +15,13 @@ interface PostmarkEmailRequest {
   MessageStream?: string
 }
 
-interface PostmarkEmailResponse {
-  To: string
-  SubmittedAt: string
-  MessageID: string
-  ErrorCode: number
-  Message: string
-}
+const PostmarkResponseSchema = z.object({
+  To: z.string(),
+  SubmittedAt: z.string(),
+  MessageID: z.string(),
+  ErrorCode: z.number(),
+  Message: z.string(),
+})
 
 /**
  * Send email via Postmark API
@@ -43,10 +45,18 @@ async function sendEmail(
         'X-Postmark-Server-Token': apiToken,
       },
       body: JSON.stringify(request),
-      signal: AbortSignal.timeout(10000), // 10s timeout
+      signal: AbortSignal.timeout(EMAIL_TIMEOUT_MS),
     })
 
-    const data = (await response.json()) as PostmarkEmailResponse
+    const json = await response.json()
+    const parsed = PostmarkResponseSchema.safeParse(json)
+
+    if (!parsed.success) {
+      log.error({ error: parsed.error.flatten() }, 'Invalid Postmark response format')
+      return { success: false, error: 'Neočekávaná odpověď od email služby' }
+    }
+
+    const data = parsed.data
 
     if (!response.ok || data.ErrorCode !== 0) {
       log.error({ errorCode: data.ErrorCode, message: data.Message }, 'Postmark API error')

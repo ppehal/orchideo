@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 import type { AnalysisStatus } from '@/generated/prisma/enums'
 
 interface AnalysisStatusData {
@@ -42,7 +43,9 @@ export function useAnalysisStatus(
     if (!analysisId) return
 
     try {
-      const response = await fetch(`/api/analysis/${analysisId}/status`)
+      const response = await fetch(`/api/analysis/${analysisId}/status`, {
+        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
+      })
       const data = await response.json()
 
       if (!data.success) {

@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { useAnalysisStatus } from '@/hooks/use-analysis-status'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 const STATUS_MESSAGES = {
   PENDING: {
@@ -49,7 +50,9 @@ export default function AnalysisProgressPage() {
   useEffect(() => {
     if (status === 'COMPLETED') {
       // Fetch the public token and redirect
-      fetch(`/api/analysis/${analysisId}/status`)
+      fetch(`/api/analysis/${analysisId}/status`, {
+        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data.publicToken) {

@@ -1,17 +1,17 @@
 import { prisma } from '@/lib/prisma'
 import { createLogger, withContext } from '@/lib/logging'
 import { decrypt } from '@/lib/utils/encryption'
+import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { collectAnalysisData } from './collector'
 import { normalizeCollectedData } from './normalizer'
+import { updateAnalysisStatus, logAnalysisCompleted, logAnalysisFailed } from './status-manager'
 import { evaluateAll } from '@/lib/triggers'
 import type { TriggerInput, TriggerEvaluation } from '@/lib/triggers'
-import type { AnalysisRawData, IndustryBenchmarkData } from './types'
+import type { IndustryBenchmarkData } from './types'
 import type { TriggerCategory, TriggerStatus } from '@/generated/prisma/enums'
 import type { Logger } from 'pino'
 
 const baseLog = createLogger('analysis-runner')
-
-const ANALYSIS_TIMEOUT_MS = parseInt(process.env.ANALYSIS_TIMEOUT_MS || '60000', 10)
 
 // Default benchmark when no industry-specific benchmark exists
 function getDefaultBenchmark(): IndustryBenchmarkData {
@@ -74,39 +74,6 @@ export interface RunnerResult {
   analysisId: string
   error?: string
   errorCode?: string
-}
-
-async function updateAnalysisStatus(
-  analysisId: string,
-  status: 'PENDING' | 'COLLECTING_DATA' | 'ANALYZING' | 'COMPLETED' | 'FAILED',
-  additionalData?: {
-    rawData?: AnalysisRawData
-    overall_score?: number
-    error_message?: string
-    error_code?: string
-    started_at?: Date
-    completed_at?: Date
-  }
-) {
-  // Build update data, handling rawData JSON serialization separately
-  const updateData: Parameters<typeof prisma.analysis.update>[0]['data'] = {
-    status,
-    overall_score: additionalData?.overall_score,
-    error_message: additionalData?.error_message,
-    error_code: additionalData?.error_code,
-    started_at: additionalData?.started_at,
-    completed_at: additionalData?.completed_at,
-  }
-
-  // Prisma Json type requires explicit serialization
-  if (additionalData?.rawData) {
-    updateData.rawData = JSON.parse(JSON.stringify(additionalData.rawData))
-  }
-
-  await prisma.analysis.update({
-    where: { id: analysisId },
-    data: updateData,
-  })
 }
 
 export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
@@ -273,19 +240,13 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
     })
 
     // Log analytics event
-    await prisma.analyticsEvent.create({
-      data: {
-        event_type: 'analysis_completed',
-        analysisId,
-        metadata: {
-          elapsed_ms: elapsedMs,
-          posts_collected: normalizedData.posts90d.length,
-          insights_available: !!normalizedData.insights28d,
-          partial_success: collectionResult.partialSuccess,
-          overall_score: evaluationResult.overallScore,
-          triggers_evaluated: evaluationResult.evaluations.length,
-        },
-      },
+    await logAnalysisCompleted(analysisId, {
+      elapsed_ms: elapsedMs,
+      posts_collected: normalizedData.posts90d.length,
+      insights_available: !!normalizedData.insights28d,
+      partial_success: collectionResult.partialSuccess,
+      overall_score: evaluationResult.overallScore,
+      triggers_evaluated: evaluationResult.evaluations.length,
     })
 
     log.info(
@@ -320,16 +281,10 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
     })
 
     // Log analytics event
-    await prisma.analyticsEvent.create({
-      data: {
-        event_type: 'analysis_failed',
-        analysisId,
-        metadata: {
-          elapsed_ms: elapsedMs,
-          error_message: errorMessage,
-          error_code: errorCode,
-        },
-      },
+    await logAnalysisFailed(analysisId, {
+      elapsed_ms: elapsedMs,
+      error_message: errorMessage,
+      error_code: errorCode,
     })
 
     return {

@@ -16,7 +16,7 @@ export const emailSchema = z
  */
 export const sendReportEmailSchema = z.object({
   email: emailSchema,
-  analysisToken: z.string().min(1, 'Token analýzy je povinný'),
+  analysisToken: z.string().min(1, 'Token analýzy je povinný').max(100, 'Token je příliš dlouhý'),
 })
 
 export type SendReportEmailInput = z.infer<typeof sendReportEmailSchema>

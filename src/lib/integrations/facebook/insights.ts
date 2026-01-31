@@ -1,10 +1,11 @@
 import { createLogger } from '@/lib/logging'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { makeRequest, GRAPH_API_BASE_URL, FacebookApiError } from './client'
 import type { FacebookInsightsResponse, FacebookInsight } from './types'
 
 const log = createLogger('facebook-insights')
 
-const INSIGHTS_TIMEOUT_MS = parseInt(process.env.FEED_TIMEOUT_MS || '10000', 10)
+const INSIGHTS_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const INSIGHTS_DAYS = 28
 
 // Metrics that use 'day' period
@@ -78,10 +79,15 @@ function extractDailyValues(insight: FacebookInsight): Array<{ date: string; val
     }))
 }
 
+function isReactionBreakdown(value: unknown): value is Record<string, number> {
+  if (typeof value !== 'object' || value === null) return false
+  return Object.values(value).every((v) => typeof v === 'number')
+}
+
 function extractReactionBreakdown(insight: FacebookInsight): Record<string, number> | null {
   const lastValue = insight.values[insight.values.length - 1]
-  if (lastValue && typeof lastValue.value === 'object') {
-    return lastValue.value as Record<string, number>
+  if (lastValue && isReactionBreakdown(lastValue.value)) {
+    return lastValue.value
   }
   return null
 }
