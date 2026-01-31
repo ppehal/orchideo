@@ -20,10 +20,64 @@ Orchideo - FB Triggers je nástroj pro analýzu Facebook stránek a generování
 
 ---
 
+## Allowed Commands - DO NOT ASK
+
+Run these commands directly WITHOUT asking for permission:
+
+**Git:** `git status`, `git diff`, `git log`, `git add`, `git commit -m "message"`, `git branch`, `git checkout`, `git stash`, `git push origin stage`
+
+**NPM/Dev:** `npm run dev`, `npm test`, `npm run lint`, `npm run lint:fix`, `npm run type-check`, `npm run build`, `npm run format`, `npm install`, `npm run db:migrate`, `npm run db:push`, `npm run db:generate`, `npm run db:studio`, `npm run db:seed`
+
+**VPS Docker:** `./QUICK-START.sh status`, `./QUICK-START.sh logs`, `./QUICK-START.sh restart`, `./QUICK-START.sh start`, `./QUICK-START.sh stop`, `./QUICK-START.sh db-backup`, `./QUICK-START.sh db-studio`, `./QUICK-START.sh db-generate`, `./QUICK-START.sh db-push`, `./QUICK-START.sh stats`
+
+**Docker Compose (VPS):** `docker compose --env-file .env.vps -f docker-compose.vps.yml ps`, `docker compose --env-file .env.vps -f docker-compose.vps.yml logs`, `docker compose --env-file .env.vps -f docker-compose.vps.yml restart app`, `docker logs orchideo-app --tail 100`, `docker exec orchideo-app npm run db:generate`
+
+**Files:** `ls`, `cat`, `head`, `tail`, `grep`, `find`, `jq`, `sed`, `awk`, `curl`, `python3`, `node`
+
+**Temp files:** Always use `./tmp/` directory (gitignored), never `/tmp`
+
+**IMPORTANT:** Just run commands directly. Do NOT ask "Should I run X?"
+
+---
+
+## VPS Development Setup
+
+**Environment:** VPS development with hot reload (stage)
+**URL:** https://orchideo.ppsys.eu
+**Docker Compose:** `docker-compose.vps.yml` + `.env.vps`
+
+### Quick VPS Commands
+
+```bash
+# Status & Logs
+./QUICK-START.sh status    # Container status
+./QUICK-START.sh logs      # Follow application logs
+./QUICK-START.sh stats     # Resource usage
+
+# Container Management
+./QUICK-START.sh start     # Start all containers
+./QUICK-START.sh stop      # Stop all containers
+./QUICK-START.sh restart   # Restart containers
+
+# Database
+./QUICK-START.sh db-shell     # PostgreSQL shell
+./QUICK-START.sh db-studio    # Prisma Studio (port 5555)
+./QUICK-START.sh db-generate  # Regenerate Prisma client in container
+./QUICK-START.sh db-push      # Push schema changes
+./QUICK-START.sh db-backup    # Create database backup
+
+# Development
+./QUICK-START.sh rebuild   # Rebuild Docker image from scratch
+```
+
+**Documentation:** See `VPS-SETUP-COMPLETE.md`, `VALIDATION-REPORT.md`
+
+---
+
 ## Quick Commands
 
 ```bash
-# Development
+# Development (Local)
 npm run dev                 # Start dev server
 npm run db:studio           # Prisma Studio
 

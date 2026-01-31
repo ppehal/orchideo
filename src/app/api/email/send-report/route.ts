@@ -4,11 +4,36 @@ import { prisma } from '@/lib/prisma'
 import { createLogger } from '@/lib/logging'
 import { sendReportEmail } from '@/lib/email'
 import { sendReportEmailSchema } from '@/lib/validators/email'
+import { getRateLimiter } from '@/lib/utils/rate-limiter'
 
 const log = createLogger('api:email:send-report')
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting by IP address
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+    const limiter = getRateLimiter(`email-send-${ip}`, {
+      maxRequests: 5,
+      windowMs: 60 * 60 * 1000,
+    })
+
+    if (!limiter.canProceed()) {
+      const stats = limiter.getStats()
+      log.warn({ ip }, 'Email send rate limit exceeded')
+      return NextResponse.json(
+        { error: 'Příliš mnoho požadavků. Zkuste to prosím později.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil(stats.windowMs / 1000)),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      )
+    }
+
+    await limiter.acquire()
+
     const body = await request.json()
 
     // Validate input

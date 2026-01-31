@@ -106,7 +106,7 @@ model FacebookPage {
 model Analysis {
   id              String         @id @default(cuid())
   status          AnalysisStatus @default(PENDING)
-  public_token    String         @unique @default(cuid())
+  public_token    String         @unique
 
   // Page info snapshot
   page_name       String?
