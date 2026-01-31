@@ -275,7 +275,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Controller } from 'react-hook-form'
-
 ;<Controller
   control={control}
   name="industryCode"
@@ -301,7 +300,6 @@ import { Controller } from 'react-hook-form'
 ```tsx
 import { Checkbox } from '@/components/ui/checkbox'
 import { Controller } from 'react-hook-form'
-
 ;<Controller
   control={control}
   name="agree"

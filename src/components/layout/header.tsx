@@ -21,15 +21,6 @@ export function Header({ isAuthenticated, userName }: HeaderProps) {
             <span className="text-primary text-xl font-bold">🌸 Orchideo</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link
-              href="/"
-              className={cn(
-                'hover:text-foreground/80 transition-colors',
-                pathname === '/' ? 'text-foreground' : 'text-foreground/60'
-              )}
-            >
-              Domů
-            </Link>
             {isAuthenticated && (
               <Link
                 href="/analyze"
