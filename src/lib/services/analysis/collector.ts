@@ -30,13 +30,13 @@ export interface CollectorError {
 }
 
 function convertToRawPost(post: FacebookPost): RawPost {
+  // Note: type and status_type are not mapped as they're deprecated in Graph API v3.3+
+  // Post type is derived from attachments.media_type in the normalizer
   return {
     id: post.id,
     created_time: post.created_time,
     message: post.message,
     story: post.story,
-    type: post.type,
-    status_type: post.status_type,
     permalink_url: post.permalink_url,
     full_picture: post.full_picture,
     attachments: post.attachments,

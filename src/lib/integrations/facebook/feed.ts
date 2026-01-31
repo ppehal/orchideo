@@ -11,13 +11,13 @@ const FEED_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const FEED_DAYS = 90
 
 // Fields to request for each post
+// Note: 'type' and 'status_type' were deprecated in Graph API v3.3
+// Post type is now derived from attachments.media_type in the normalizer
 const POST_FIELDS = [
   'id',
   'created_time',
   'message',
   'story',
-  'type',
-  'status_type',
   'permalink_url',
   'full_picture',
   'attachments{media,media_type,type,url,title,description,target,subattachments}',

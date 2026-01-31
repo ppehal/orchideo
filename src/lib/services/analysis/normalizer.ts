@@ -49,21 +49,19 @@ function isYouTubeLink(text: string | null, attachmentUrl: string | null): boole
 }
 
 function isSharedPost(post: RawPost): boolean {
-  // Check if it's a shared post based on type or presence of target
-  if (post.status_type === 'shared_story') return true
-  if (post.type === 'link' && post.attachments?.data?.[0]?.target) return true
+  // Check if it's a shared post based on attachment properties
+  // Note: status_type and type fields are deprecated in Graph API v3.3+
+  const attachment = post.attachments?.data?.[0]
+  if (attachment?.type === 'share') return true
+  if (attachment?.target) return true
   return false
 }
 
 function isReel(post: RawPost): boolean {
-  // Check if it's a reel based on type or attachment
+  // Check if it's a reel based on attachment properties
+  // Note: status_type is deprecated in Graph API v3.3+
   const attachment = post.attachments?.data?.[0]
   if (attachment?.media_type === 'reel' || attachment?.type === 'reel') return true
-  // Also check status_type
-  if (post.status_type === 'added_video' && attachment?.media?.source) {
-    // Could be a reel if it's a vertical video - but we can't always tell
-    // For now, we'll just mark it as video
-  }
   return false
 }
 
@@ -73,13 +71,19 @@ function determinePostType(
   if (isSharedPost(post)) return 'shared'
   if (isReel(post)) return 'reel'
 
-  const fbType = post.type?.toLowerCase()
+  // Derive type from attachments (type/status_type deprecated in Graph API v3.3+)
   const attachment = post.attachments?.data?.[0]
 
-  if (fbType === 'photo' || attachment?.media_type === 'photo') return 'photo'
-  if (fbType === 'video' || attachment?.media_type === 'video') return 'video'
-  if (fbType === 'link') return 'link'
-  if (fbType === 'status' || !attachment) return 'status'
+  if (attachment?.media_type === 'photo' || attachment?.type === 'photo') return 'photo'
+  if (attachment?.media_type === 'video' || attachment?.type === 'video') return 'video'
+  if (attachment?.media_type === 'album') return 'photo' // Albums are treated as photos
+  if (attachment?.media_type === 'link' || attachment?.type === 'link') return 'link'
+
+  // No attachment = text-only status
+  if (!attachment) return 'status'
+
+  // Fallback: check if there's a full_picture (indicates media)
+  if (post.full_picture) return 'photo'
 
   return 'other'
 }
