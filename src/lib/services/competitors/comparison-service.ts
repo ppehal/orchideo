@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createLogger } from '@/lib/logging'
 import { SCORING_VERSION, BENCHMARK_VERSION } from '@/lib/constants/versions'
@@ -60,6 +61,50 @@ export interface ComparisonResult {
     calculatedAt: string
   }
 }
+
+/**
+ * Zod schema for validating ComparisonResult from database JSON
+ */
+const RankEntrySchema = z.object({
+  pageId: z.string(),
+  value: z.number().nullable(),
+  rank: z.number(),
+  percentile: z.number(),
+})
+
+const MetricRankSchema = z.object({
+  metricKey: z.string(),
+  ranks: z.array(RankEntrySchema),
+})
+
+const PageMetricsSchema = z.object({
+  pageId: z.string(),
+  pageName: z.string(),
+  isPrimary: z.boolean(),
+  snapshotDate: z.string().nullable(),
+  metrics: z.record(z.string(), z.number().nullable()),
+})
+
+const ReliabilityInfoSchema = z.object({
+  level: z.enum(['high', 'medium', 'low', 'insufficient']),
+  pageCount: z.number(),
+  pagesWithSnapshots: z.number(),
+  scoringVersionConsistent: z.boolean(),
+  message: z.string(),
+})
+
+const ComparisonResultSchema = z.object({
+  groupId: z.string(),
+  groupName: z.string(),
+  reliability: ReliabilityInfoSchema,
+  pages: z.array(PageMetricsSchema),
+  rankings: z.array(MetricRankSchema),
+  meta: z.object({
+    scoringVersion: z.string(),
+    benchmarkVersion: z.string(),
+    calculatedAt: z.string(),
+  }),
+})
 
 /**
  * Compute dense rank - handles ties by giving same rank.
@@ -312,10 +357,12 @@ export async function saveComparisonSnapshot(
   groupId: string,
   comparisonData: ComparisonResult
 ): Promise<string> {
+  // Validate before saving, then cast for Prisma's Json type
+  const validated = ComparisonResultSchema.parse(comparisonData)
   const comparison = await prisma.competitorComparison.create({
     data: {
       group_id: groupId,
-      comparison_data: comparisonData as unknown as object,
+      comparison_data: validated as unknown as object,
       scoring_version: SCORING_VERSION,
       benchmark_version: BENCHMARK_VERSION,
     },
@@ -345,9 +392,20 @@ export async function getComparisonHistory(
     take: limit,
   })
 
-  return comparisons.map((c) => ({
-    id: c.id,
-    createdAt: c.created_at.toISOString(),
-    data: c.comparison_data as unknown as ComparisonResult,
-  }))
+  return comparisons.map((c) => {
+    // Validate and parse JSON data from database
+    const parsed = ComparisonResultSchema.safeParse(c.comparison_data)
+    if (!parsed.success) {
+      log.warn(
+        { comparisonId: c.id, error: parsed.error.message },
+        'Invalid comparison data in database'
+      )
+      throw new Error(`Invalid comparison data: ${c.id}`)
+    }
+    return {
+      id: c.id,
+      createdAt: c.created_at.toISOString(),
+      data: parsed.data as ComparisonResult,
+    }
+  })
 }

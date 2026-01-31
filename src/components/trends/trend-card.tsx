@@ -2,35 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NullValue } from '@/components/ui/null-value'
+import { METRIC_LABELS, formatMetricValue } from '@/lib/constants/metrics'
 import { TrendIndicator } from './trend-indicator'
 import { TrendChart } from './trend-chart'
 import type { TrendData } from '@/types/trends'
 
-const METRIC_LABELS: Record<string, string> = {
-  overallScore: 'Celkové skóre',
-  engagementRate: 'Engagement Rate',
-  postsPerWeek: 'Příspěvky/týden',
-  avgReactions: 'Prům. reakce',
-  avgComments: 'Prům. komentáře',
-  avgShares: 'Prům. sdílení',
-}
-
 interface TrendCardProps {
   metricKey: string
   data: TrendData
-}
-
-function formatMetricValue(key: string, value: number): string {
-  if (key === 'engagementRate') {
-    return `${value.toFixed(2)}%`
-  }
-  if (key === 'overallScore') {
-    return `${Math.round(value)}`
-  }
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k`
-  }
-  return value.toFixed(1)
 }
 
 export function TrendCard({ metricKey, data }: TrendCardProps) {

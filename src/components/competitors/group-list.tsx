@@ -60,16 +60,23 @@ export function GroupList({ pages }: GroupListProps) {
   }, [fetchGroups])
 
   const handleDelete = React.useCallback(async (id: string) => {
-    const res = await fetch(`/api/competitor-groups/${id}`, {
-      method: 'DELETE',
-      signal: AbortSignal.timeout(10000),
-    })
+    try {
+      const res = await fetch(`/api/competitor-groups/${id}`, {
+        method: 'DELETE',
+        signal: AbortSignal.timeout(10000),
+      })
 
-    if (!res.ok) {
-      throw new Error('Failed to delete group')
+      if (!res.ok) {
+        toast.error('Nepodařilo se smazat skupinu')
+        return
+      }
+
+      setGroups((prev) => prev.filter((g) => g.id !== id))
+      toast.success('Skupina byla smazána')
+    } catch (error) {
+      console.error('[GroupList] delete failed', error)
+      toast.error('Nepodařilo se smazat skupinu')
     }
-
-    setGroups((prev) => prev.filter((g) => g.id !== id))
   }, [])
 
   if (isLoading) {

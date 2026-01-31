@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { NullValue } from '@/components/ui/null-value'
+import { METRIC_LABELS_SHORT, METRIC_KEYS, formatMetricValue } from '@/lib/constants/metrics'
 import { RankBadge } from './rank-badge'
 
 interface PageMetrics {
@@ -29,39 +30,6 @@ interface PageMetrics {
 interface RankingTableProps {
   pages: PageMetrics[]
   sortBy: keyof PageMetrics['metrics']
-}
-
-const METRIC_LABELS: Record<string, string> = {
-  overallScore: 'Skóre',
-  engagementRate: 'Engagement',
-  postsPerWeek: 'Příspěvky/týden',
-  avgReactions: 'Reakce',
-  avgComments: 'Komentáře',
-  avgShares: 'Sdílení',
-}
-
-const METRIC_KEYS = [
-  'overallScore',
-  'engagementRate',
-  'postsPerWeek',
-  'avgReactions',
-  'avgComments',
-  'avgShares',
-] as const
-
-function formatMetricValue(key: string, value: number | null): string {
-  if (value === null) return ''
-
-  if (key === 'engagementRate') {
-    return `${value.toFixed(2)}%`
-  }
-  if (key === 'overallScore') {
-    return `${Math.round(value)}`
-  }
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k`
-  }
-  return value.toFixed(1)
 }
 
 export function RankingTable({ pages, sortBy }: RankingTableProps) {
@@ -94,7 +62,7 @@ export function RankingTable({ pages, sortBy }: RankingTableProps) {
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {METRIC_KEYS.map((key) => (
                   <div key={key} className="flex justify-between">
-                    <span className="text-muted-foreground">{METRIC_LABELS[key]}</span>
+                    <span className="text-muted-foreground">{METRIC_LABELS_SHORT[key]}</span>
                     <span className="font-medium">
                       {page.metrics[key] !== null ? (
                         formatMetricValue(key, page.metrics[key])
@@ -119,7 +87,7 @@ export function RankingTable({ pages, sortBy }: RankingTableProps) {
               <TableHead className="min-w-[180px]">Stránka</TableHead>
               {METRIC_KEYS.map((key) => (
                 <TableHead key={key} className="w-24 text-right">
-                  {METRIC_LABELS[key]}
+                  {METRIC_LABELS_SHORT[key]}
                 </TableHead>
               ))}
             </TableRow>
