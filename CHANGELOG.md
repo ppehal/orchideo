@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Dark/Light Theme Support**
+  - ThemeProvider integration using next-themes (system/light/dark modes)
+  - Theme toggle dropdown in header (visible for all users)
+  - Theme toggle in mobile navigation menu
+  - Persistence via localStorage
+
 - **Phase 2: Historical Trends, PDF Export, Competitor Comparison**
   - **Historical Trends**
     - `AnalysisSnapshot` model - denormalized metrics for trend calculations
