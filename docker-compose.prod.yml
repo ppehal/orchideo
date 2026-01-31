@@ -4,27 +4,79 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://orchidea.ppsys.eu}
-    container_name: orchideo-app
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://orchideo.ppsys.eu}
+    container_name: orchideo-app-prod
     restart: unless-stopped
     ports:
       - '3000:3000'
     environment:
+      # Node.js Environment
+      - NODE_ENV=production
+      - NEXT_PUBLIC_ENV=production
+
+      # Database
       - DATABASE_URL=${DATABASE_URL}
+
+      # NextAuth
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://orchideo.ppsys.eu}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://orchidea.ppsys.eu}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      # Facebook OAuth
       - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
       - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
-      - POSTMARK_API_TOKEN=${POSTMARK_API_TOKEN}
-      - POSTMARK_FROM_EMAIL=${POSTMARK_FROM_EMAIL:-noreply@ppsys.eu}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://orchidea.ppsys.eu}
+      - FACEBOOK_CONFIG_ID=${FACEBOOK_CONFIG_ID}
+
+      # Google OAuth (optional)
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      # App Config
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://orchideo.ppsys.eu}
+      - REPORT_EXPIRATION_DAYS=${REPORT_EXPIRATION_DAYS:-30}
+
+      # Security
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+
+      # Analysis Configuration
+      - MAX_FEED_POSTS=${MAX_FEED_POSTS:-300}
+      - MAX_FEED_PAGES=${MAX_FEED_PAGES:-5}
+      - FEED_TIMEOUT_MS=${FEED_TIMEOUT_MS:-10000}
+      - ANALYSIS_TIMEOUT_MS=${ANALYSIS_TIMEOUT_MS:-60000}
+
+      # Email
+      - POSTMARK_API_TOKEN=${POSTMARK_API_TOKEN}
+      - POSTMARK_FROM_EMAIL=${POSTMARK_FROM_EMAIL:-noreply@invix.cz}
+
+      # Storage
+      - STORAGE_TYPE=${STORAGE_TYPE:-local}
+      - STORAGE_LOCAL_PATH=${STORAGE_LOCAL_PATH:-./storage}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
+
+      # Logging
       - LOG_LEVEL=${LOG_LEVEL:-info}
+
+      # Monitoring (optional)
+      - SENTRY_DSN=${SENTRY_DSN}
+
+    volumes:
+      # Local storage for PDF artifacts (if STORAGE_TYPE=local)
+      - ./storage:/app/storage
+
     depends_on:
       postgres:
         condition: service_healthy
+
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   postgres:
     image: postgres:16-alpine

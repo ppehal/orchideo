@@ -26,14 +26,45 @@ services:
     command: npm run dev
     working_dir: /app
     environment:
+      # Node.js Environment
       - NODE_ENV=development
+      - NEXT_PUBLIC_ENV=development
+
+      # Database
       - DATABASE_URL=postgresql://orchideo:${POSTGRES_PASSWORD}@postgres:5432/orchideo
+
+      # NextAuth
       - NEXTAUTH_URL=https://orchideo.ppsys.eu
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
-      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+
+      # Facebook OAuth
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
+      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
+      - FACEBOOK_CONFIG_ID=${FACEBOOK_CONFIG_ID}
+
+      # App Config
       - NEXT_PUBLIC_APP_URL=https://orchideo.ppsys.eu
-      - LOG_LEVEL=debug
+      - REPORT_EXPIRATION_DAYS=${REPORT_EXPIRATION_DAYS:-30}
+
+      # Security
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+
+      # Analysis Configuration
+      - MAX_FEED_POSTS=${MAX_FEED_POSTS:-300}
+      - MAX_FEED_PAGES=${MAX_FEED_PAGES:-5}
+      - FEED_TIMEOUT_MS=${FEED_TIMEOUT_MS:-10000}
+      - ANALYSIS_TIMEOUT_MS=${ANALYSIS_TIMEOUT_MS:-60000}
+
+      # Email
+      - POSTMARK_API_TOKEN=${POSTMARK_API_TOKEN}
+      - POSTMARK_FROM_EMAIL=${POSTMARK_FROM_EMAIL}
+
+      # Storage
+      - STORAGE_TYPE=${STORAGE_TYPE:-local}
+      - STORAGE_LOCAL_PATH=${STORAGE_LOCAL_PATH:-./storage}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
     volumes:
       # DŮLEŽITÉ: Source code volume mount pro hot reload
       - ./:/app:cached
@@ -51,7 +82,7 @@ services:
       # Traefik enable
       - traefik.enable=true
       - traefik.docker.network=srv_default
-      - traefik.http.services.orchideo-dev.loadbalancer.server.port=3000
+      - traefik.http.services.orchideo-dev.loadbalancer.server.port=3001
 
       # Router
       - traefik.http.routers.orchideo-dev.rule=Host(`orchideo.ppsys.eu`)
