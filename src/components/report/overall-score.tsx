@@ -41,11 +41,9 @@ export function OverallScore({ score, className }: OverallScoreProps) {
           <p className="text-muted-foreground mb-2 text-sm font-medium tracking-wide uppercase">
             Celkové skóre
           </p>
-          <div className="relative">
+          <div className="flex items-start gap-1">
             <span className={cn('text-7xl font-bold tabular-nums', config.color)}>{score}</span>
-            <span className="text-muted-foreground absolute top-2 right-0 text-lg sm:-right-6 sm:text-2xl">
-              /100
-            </span>
+            <span className="text-muted-foreground mt-2 text-lg sm:text-2xl">/100</span>
           </div>
           <p className={cn('mt-2 text-xl font-semibold', config.color)}>{config.label}</p>
         </CardContent>
