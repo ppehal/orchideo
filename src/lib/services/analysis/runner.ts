@@ -6,6 +6,8 @@ import { collectAnalysisData } from './collector'
 import { normalizeCollectedData } from './normalizer'
 import { updateAnalysisStatus, logAnalysisCompleted, logAnalysisFailed } from './status-manager'
 import { evaluateAll } from '@/lib/triggers'
+import { createOrUpdateSnapshot } from '@/lib/services/snapshots'
+import { checkAndCreateAlerts } from '@/lib/services/alerts'
 import type { TriggerInput, TriggerEvaluation } from '@/lib/triggers'
 import type { IndustryBenchmarkData } from './types'
 import type { TriggerCategory, TriggerStatus } from '@/generated/prisma/enums'
@@ -248,6 +250,14 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
       overall_score: evaluationResult.overallScore,
       triggers_evaluated: evaluationResult.evaluations.length,
     })
+
+    // Create snapshot for trend tracking
+    await createOrUpdateSnapshot(analysisId)
+
+    // Check for significant changes and create alerts
+    if (analysis.facebookPage?.id) {
+      await checkAndCreateAlerts(analysisId, analysis.facebookPage.id)
+    }
 
     log.info(
       {

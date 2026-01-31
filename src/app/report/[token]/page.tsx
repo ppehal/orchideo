@@ -14,6 +14,7 @@ import type { TriggerResult } from '@/components/report/trigger-card'
 
 interface Props {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ print?: string; hideBranding?: string; company?: string }>
 }
 
 interface TriggerDetails {
@@ -78,8 +79,13 @@ function groupTriggersByCategory(
   return grouped
 }
 
-export default async function ReportPage({ params }: Props) {
+export default async function ReportPage({ params, searchParams }: Props) {
   const { token } = await params
+  const { print, hideBranding, company } = await searchParams
+
+  const isPrintMode = print === 'true'
+  const shouldHideBranding = hideBranding === 'true'
+  const companyName = company
 
   const analysis = await prisma.analysis.findUnique({
     where: { public_token: token },
@@ -127,12 +133,15 @@ export default async function ReportPage({ params }: Props) {
   const daysOfData = rawData?.collectionMetadata?.daysOfData ?? 90
 
   return (
-    <div className="bg-muted/30 min-h-screen">
+    <div
+      className={`bg-muted/30 min-h-screen ${isPrintMode ? 'print-mode' : ''}`}
+      data-pdf-ready="true"
+    >
       <div className="container mx-auto max-w-5xl space-y-6 px-4 py-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <ReportHeader
-            pageName={analysis.page_name ?? 'Facebook stránka'}
+            pageName={companyName || analysis.page_name || 'Facebook stránka'}
             pagePicture={analysis.page_picture}
             fanCount={analysis.page_fan_count}
             createdAt={analysis.created_at}
@@ -140,10 +149,12 @@ export default async function ReportPage({ params }: Props) {
           />
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end">
-          <CopyLinkButton />
-        </div>
+        {/* Actions - hidden in print mode */}
+        {!isPrintMode && (
+          <div className="no-print flex justify-end">
+            <CopyLinkButton />
+          </div>
+        )}
 
         {/* Overall Score */}
         <OverallScore score={overallScore} />
@@ -170,18 +181,22 @@ export default async function ReportPage({ params }: Props) {
           daysOfData={daysOfData}
         />
 
-        {/* Email Form */}
-        <div className="bg-card rounded-lg border p-6">
-          <EmailForm analysisToken={token} />
-        </div>
+        {/* Email Form - hidden in print mode */}
+        {!isPrintMode && (
+          <div className="no-print bg-card rounded-lg border p-6">
+            <EmailForm analysisToken={token} />
+          </div>
+        )}
 
         {/* Footer */}
-        <footer className="text-muted-foreground border-t pt-6 text-center text-sm">
-          <p>
-            Vygenerováno nástrojem{' '}
-            <span className="text-foreground font-medium">Orchideo FB Triggers</span>
-          </p>
-        </footer>
+        {!shouldHideBranding && (
+          <footer className="text-muted-foreground border-t pt-6 text-center text-sm">
+            <p>
+              Vygenerováno nástrojem{' '}
+              <span className="text-foreground font-medium">Orchideo FB Triggers</span>
+            </p>
+          </footer>
+        )}
       </div>
     </div>
   )
