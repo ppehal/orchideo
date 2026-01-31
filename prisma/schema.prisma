@@ -24,10 +24,12 @@ model User {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  facebookPages FacebookPage[]
-  analyses      Analysis[]
+  accounts         Account[]
+  sessions         Session[]
+  facebookPages    FacebookPage[]
+  analyses         Analysis[]
+  trendAlerts      TrendAlert[]
+  competitorGroups CompetitorGroup[]
 }
 
 model Account {
@@ -90,7 +92,13 @@ model FacebookPage {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  analyses Analysis[]
+  analyses   Analysis[]
+  snapshots  AnalysisSnapshot[]
+  trendAlerts TrendAlert[]
+
+  // Competitor comparison relations
+  primaryForGroups CompetitorGroup[] @relation("PrimaryPage")
+  competitorIn     CompetitorPage[]  @relation("CompetitorPages")
 
   @@index([userId])
 }
@@ -111,6 +119,11 @@ model Analysis {
   // Results
   overall_score   Int?           // 0-100
   rawData         Json?          // Normalized posts + insights
+
+  // Branding options for PDF export
+  company_name        String?
+  custom_logo_url     String?
+  hide_orchideo_branding Boolean @default(false)
 
   // Email
   email_sent_to   String?
@@ -137,6 +150,8 @@ model Analysis {
 
   triggerResults  TriggerResult[]
   analyticsEvents AnalyticsEvent[]
+  snapshot        AnalysisSnapshot?
+  reportArtifacts ReportArtifact[]
 
   @@index([userId])
   @@index([status])
@@ -237,4 +252,171 @@ enum TriggerStatus {
   GOOD           // 70-84
   NEEDS_IMPROVEMENT // 40-69
   CRITICAL       // 0-39
+}
+
+enum TrendAlertType {
+  SCORE_DROP_SIGNIFICANT    // Overall score dropped significantly
+  SCORE_IMPROVEMENT         // Overall score improved significantly
+  ENGAGEMENT_DROP           // Engagement rate dropped
+  ENGAGEMENT_IMPROVEMENT    // Engagement rate improved
+  POSTING_FREQUENCY_DROP    // Posting frequency decreased
+  POSTING_FREQUENCY_INCREASE // Posting frequency increased
+}
+
+// ============================================================================
+// Historical Trends Models
+// ============================================================================
+
+model AnalysisSnapshot {
+  id                String   @id @default(cuid())
+
+  // Metrics (denormalized for trend calculations)
+  overall_score     Int
+  engagement_rate   Float?
+  avg_reactions     Float?
+  avg_comments      Float?
+  avg_shares        Float?
+  posts_per_week    Float?
+  fan_count         Int?
+
+  // Versioning for data comparability
+  scoring_version   String   @default("1.0")
+  benchmark_version String   @default("1.0")
+
+  // Relations
+  analysisId        String   @unique
+  analysis          Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  fb_page_id        String
+  facebookPage      FacebookPage @relation(fields: [fb_page_id], references: [id], onDelete: Cascade)
+
+  created_at        DateTime @default(now())
+
+  @@index([fb_page_id])
+  @@index([created_at])
+  @@index([fb_page_id, created_at])
+}
+
+model TrendAlert {
+  id           String         @id @default(cuid())
+  type         TrendAlertType
+  severity     Int            // 1-3 (1=info, 2=warning, 3=critical)
+
+  // Values
+  previous_value Float
+  current_value  Float
+  change_pct     Float
+
+  // Context
+  message      String
+  is_read      Boolean        @default(false)
+
+  // Relations
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fb_page_id   String
+  facebookPage FacebookPage   @relation(fields: [fb_page_id], references: [id], onDelete: Cascade)
+
+  created_at   DateTime       @default(now())
+
+  @@index([userId])
+  @@index([fb_page_id])
+  @@index([userId, is_read])
+  @@index([created_at])
+}
+
+// ============================================================================
+// PDF Export Models
+// ============================================================================
+
+model ReportArtifact {
+  id            String   @id @default(cuid())
+
+  // Cache key based on params hash
+  params_hash   String
+
+  // File location
+  file_path     String
+  file_size     Int
+  mime_type     String   @default("application/pdf")
+
+  // Versioning
+  pdf_version   String
+
+  // Relation
+  analysisId    String
+  analysis      Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  created_at    DateTime @default(now())
+
+  @@unique([analysisId, params_hash])
+  @@index([analysisId])
+  @@index([created_at])
+}
+
+// ============================================================================
+// Competitor Comparison Models
+// ============================================================================
+
+model CompetitorGroup {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+
+  // Owner
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Primary page being compared (must be owned by user)
+  primary_page_id String
+  primaryPage     FacebookPage @relation("PrimaryPage", fields: [primary_page_id], references: [id], onDelete: Cascade)
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Competitor pages in this group
+  competitorPages CompetitorPage[]
+  comparisons     CompetitorComparison[]
+
+  @@index([userId])
+  @@index([primary_page_id])
+}
+
+model CompetitorPage {
+  id               String          @id @default(cuid())
+
+  // Reference to owned Facebook page used as competitor
+  fb_page_id       String
+  facebookPage     FacebookPage    @relation("CompetitorPages", fields: [fb_page_id], references: [id], onDelete: Cascade)
+
+  // Group this competitor belongs to
+  group_id         String
+  group            CompetitorGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  created_at       DateTime        @default(now())
+
+  @@unique([group_id, fb_page_id])
+  @@index([group_id])
+  @@index([fb_page_id])
+}
+
+model CompetitorComparison {
+  id               String          @id @default(cuid())
+
+  // Snapshot of comparison results
+  comparison_data  Json
+
+  // Versioning
+  scoring_version  String
+  benchmark_version String
+
+  // Group this comparison belongs to
+  group_id         String
+  group            CompetitorGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  created_at       DateTime        @default(now())
+
+  @@index([group_id])
+  @@index([created_at])
 }

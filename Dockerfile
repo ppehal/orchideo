@@ -5,8 +5,20 @@
 # ============================================================================
 FROM node:20-alpine AS base
 
-# Install dependencies for Prisma
-RUN apk add --no-cache libc6-compat openssl
+# Install dependencies for Prisma and Chromium
+RUN apk add --no-cache \
+    libc6-compat \
+    openssl \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Set Puppeteer to use installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
 
@@ -59,6 +71,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -78,6 +92,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/src/generated ./src/generated
+
+# Create storage directory for PDF artifacts
+RUN mkdir -p /app/storage/reports && chown -R nextjs:nodejs /app/storage
 
 USER nextjs
 

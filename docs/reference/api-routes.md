@@ -217,6 +217,286 @@ curl -X POST http://localhost:3000/api/email/send-report \
 
 ---
 
+## Trends & Alerts Endpoints
+
+### GET /api/pages/[pageId]/trends
+
+Get historical trend data for a Facebook page.
+
+**Path parameters:**
+
+- `pageId` - Internal Facebook page ID
+
+**Response (success):**
+
+```typescript
+{
+  pageId: string
+  pageName: string
+  reliability: {
+    level: 'high' | 'medium' | 'low' | 'insufficient'
+    snapshotCount: number
+    oldestSnapshotDate: string | null
+    newestSnapshotDate: string | null
+    scoringVersionConsistent: boolean
+    message: string
+  }
+  trends: {
+    overallScore: TrendData
+    engagementRate: TrendData
+    postsPerWeek: TrendData
+    avgReactions: TrendData
+    avgComments: TrendData
+    avgShares: TrendData
+  }
+  meta: {
+    scoringVersion: string
+    benchmarkVersion: string
+    calculatedAt: string
+  }
+}
+```
+
+---
+
+### GET /api/user/alerts
+
+Get alerts for the current user.
+
+**Query parameters:**
+
+- `limit` - Max alerts to return (default: 50, max: 100)
+- `includeRead` - Include read alerts (default: true)
+
+**Response:**
+
+```typescript
+{
+  alerts: Array<{
+    id: string
+    type: string
+    severity: number // 1=info, 2=warning, 3=critical
+    previousValue: number
+    currentValue: number
+    changePct: number
+    message: string
+    isRead: boolean
+    pageName: string
+    pageId: string
+    createdAt: string
+  }>
+  unreadCount: number
+  total: number
+}
+```
+
+---
+
+### PATCH /api/user/alerts
+
+Mark all alerts as read.
+
+**Request:**
+
+```typescript
+{
+  markAllRead: true
+}
+```
+
+**Response:**
+
+```typescript
+{
+  success: true,
+  markedCount: number
+}
+```
+
+---
+
+### PATCH /api/user/alerts/[id]
+
+Mark a single alert as read.
+
+**Request:**
+
+```typescript
+{
+  is_read: true
+}
+```
+
+---
+
+## PDF Export Endpoints
+
+### POST /api/report/[token]/pdf
+
+Generate or retrieve cached PDF for a report.
+
+**Path parameters:**
+
+- `token` - Public analysis token
+
+**Request (optional):**
+
+```typescript
+{
+  includeBranding?: boolean  // Include Orchideo branding (default: from analysis settings)
+  companyName?: string       // Custom company name for report
+}
+```
+
+**Response (success):**
+
+- Status: 200
+- Content-Type: application/pdf
+- Headers:
+  - `X-Cache`: "HIT" or "MISS"
+  - `X-RateLimit-Remaining`: remaining requests
+  - `X-RateLimit-Reset`: reset timestamp
+
+**Error codes:**
+
+| Code             | Status | Description                |
+| ---------------- | ------ | -------------------------- |
+| RATE_LIMITED     | 429    | Too many requests (3/hour) |
+| NOT_FOUND        | 404    | Report not found           |
+| EXPIRED          | 410    | Report has expired         |
+| NOT_READY        | 400    | Analysis not completed     |
+| BUSY             | 503    | Server busy, try later     |
+| GENERATION_ERROR | 500    | PDF generation failed      |
+
+---
+
+## Competitor Comparison Endpoints
+
+### GET /api/competitor-groups
+
+List all competitor groups for the current user.
+
+**Response:**
+
+```typescript
+{
+  groups: Array<{
+    id: string
+    name: string
+    description: string | null
+    primaryPage: { id: string; name: string; picture_url: string | null }
+    competitors: Array<{ id: string; name: string; picture_url: string | null }>
+    comparisonsCount: number
+    createdAt: string
+    updatedAt: string
+  }>
+}
+```
+
+---
+
+### POST /api/competitor-groups
+
+Create a new competitor group.
+
+**Request:**
+
+```typescript
+{
+  name: string                    // Group name (required, max 100)
+  description?: string            // Description (max 500)
+  primaryPageId: string           // ID of primary page to compare
+  competitorPageIds: string[]     // IDs of competitor pages (1-10, duplicates removed)
+}
+```
+
+**Response:**
+
+```typescript
+{
+  id: string // Created group ID
+}
+```
+
+**Error codes:**
+
+| Code           | Status | Description                       |
+| -------------- | ------ | --------------------------------- |
+| INVALID_PAGES  | 400    | Some pages not found or not owned |
+| DUPLICATE_PAGE | 400    | Primary page in competitors list  |
+
+---
+
+### GET /api/competitor-groups/[id]
+
+Get details of a competitor group.
+
+---
+
+### DELETE /api/competitor-groups/[id]
+
+Delete a competitor group.
+
+---
+
+### GET /api/competitor-groups/[id]/comparison
+
+Compute comparison without saving (read-only).
+
+**Response:**
+
+```typescript
+{
+  groupId: string
+  groupName: string
+  reliability: {
+    level: 'high' | 'medium' | 'low' | 'insufficient'
+    pageCount: number
+    pagesWithSnapshots: number
+    scoringVersionConsistent: boolean
+    message: string
+  }
+  pages: Array<{
+    pageId: string
+    pageName: string
+    isPrimary: boolean
+    snapshotDate: string | null
+    metrics: Record<string, number | null>
+  }>
+  rankings: Array<{
+    metricKey: string
+    ranks: Array<{
+      pageId: string
+      value: number | null
+      rank: number // 1-based, 0 for unranked
+      percentile: number
+    }>
+  }>
+  meta: {
+    scoringVersion: string
+    benchmarkVersion: string
+    calculatedAt: string
+  }
+}
+```
+
+---
+
+### POST /api/competitor-groups/[id]/comparison
+
+Save a comparison snapshot.
+
+**Response:**
+
+```typescript
+{
+  id: string           // Snapshot ID
+  comparison: {...}    // Full comparison result
+}
+```
+
+---
+
 ## Authentication
 
 ### GET/POST /api/auth/[...nextauth]
@@ -291,7 +571,9 @@ if (!session?.user?.id) {
 
 ## Rate Limiting
 
-No built-in rate limiting. Consider adding:
+**PDF Export:** 3 requests per hour per token (in-memory rate limiter with hourly cleanup).
+
+Consider adding:
 
 - Per-user limits for analysis creation
 - Per-IP limits for email sending

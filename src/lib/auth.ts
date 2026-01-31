@@ -18,11 +18,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
       authorization: {
+        url: 'https://www.facebook.com/v21.0/dialog/oauth',
         params: {
-          scope:
-            'email,public_profile,pages_show_list,pages_read_engagement,pages_read_user_content,read_insights',
+          // Facebook Login for Business - uses config_id instead of scope
+          // Config includes: email, pages_show_list, pages_read_engagement, pages_read_user_content, read_insights
+          config_id: process.env.FACEBOOK_CONFIG_ID,
+          response_type: 'code',
+          override_default_response_type: 'true',
         },
       },
+      // Allow linking new Facebook app account to existing user with same email
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   session: {

@@ -16,9 +16,11 @@ interface PostmarkEmailRequest {
 }
 
 const PostmarkResponseSchema = z.object({
-  To: z.string(),
-  SubmittedAt: z.string(),
-  MessageID: z.string(),
+  // These fields are only present on successful sends
+  To: z.string().optional(),
+  SubmittedAt: z.string().optional(),
+  MessageID: z.string().optional(),
+  // These are always present
   ErrorCode: z.number(),
   Message: z.string(),
 })
@@ -52,7 +54,10 @@ async function sendEmail(
     const parsed = PostmarkResponseSchema.safeParse(json)
 
     if (!parsed.success) {
-      log.error({ error: parsed.error.flatten() }, 'Invalid Postmark response format')
+      log.error(
+        { error: parsed.error.flatten(), response: json, status: response.status },
+        'Invalid Postmark response format'
+      )
       return { success: false, error: 'Neočekávaná odpověď od email služby' }
     }
 

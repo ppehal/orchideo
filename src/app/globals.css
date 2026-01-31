@@ -122,4 +122,76 @@
   body {
     @apply bg-background text-foreground;
   }
+  .container {
+    margin-inline: auto;
+  }
+}
+
+/* ============================================================================
+   Print Styles for PDF Export
+   ============================================================================ */
+
+@media print {
+  /* Reset backgrounds for better print */
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide elements not needed in print */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .print-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .print-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .print-break-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Keep card content together */
+  .bg-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure borders are visible */
+  .border {
+    border-width: 1px !important;
+  }
+}
+
+/* Print mode class for Puppeteer rendering */
+.print-mode {
+  /* Remove any interactive states */
+  *:hover,
+  *:focus,
+  *:active {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide interactive elements */
+  button:not(.print-visible),
+  .cursor-pointer:not(.print-visible) {
+    pointer-events: none;
+  }
+
+  /* Ensure all colors print correctly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

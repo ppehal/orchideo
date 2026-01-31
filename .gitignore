@@ -67,3 +67,6 @@ VPS-SETUP-COMPLETE.md
 QUICK-START.sh
 VALIDATION-REPORT.md
 *.bak
+
+# Storage for generated artifacts (PDFs, etc.)
+/storage/

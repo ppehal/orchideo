@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/>
+      <stop offset="100%" style="stop-color:#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="flowerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9a8d4"/>
+      <stop offset="50%" style="stop-color:#e879f9"/>
+      <stop offset="100%" style="stop-color:#c084fc"/>
+    </linearGradient>
+    <linearGradient id="leafGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="100%" style="stop-color:#4ade80"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circle -->
+  <circle cx="512" cy="480" r="280" fill="rgba(255,255,255,0.1)"/>
+
+  <!-- Stem -->
+  <path d="M512 700 Q512 580 512 500 Q500 420 520 350"
+        stroke="url(#leafGradient)" stroke-width="24" fill="none" stroke-linecap="round"/>
+
+  <!-- Leaves -->
+  <ellipse cx="440" cy="580" rx="60" ry="25" fill="url(#leafGradient)" transform="rotate(-30 440 580)"/>
+  <ellipse cx="584" cy="560" rx="55" ry="22" fill="url(#leafGradient)" transform="rotate(25 584 560)"/>
+
+  <!-- Orchid petals - back -->
+  <ellipse cx="420" cy="320" rx="70" ry="45" fill="url(#flowerGradient)" transform="rotate(-45 420 320)" opacity="0.9"/>
+  <ellipse cx="604" cy="320" rx="70" ry="45" fill="url(#flowerGradient)" transform="rotate(45 604 320)" opacity="0.9"/>
+  <ellipse cx="380" cy="400" rx="65" ry="40" fill="url(#flowerGradient)" transform="rotate(-75 380 400)" opacity="0.85"/>
+  <ellipse cx="644" cy="400" rx="65" ry="40" fill="url(#flowerGradient)" transform="rotate(75 644 400)" opacity="0.85"/>
+
+  <!-- Orchid petals - front -->
+  <ellipse cx="512" cy="280" rx="55" ry="80" fill="url(#flowerGradient)"/>
+
+  <!-- Center lip (labellum) -->
+  <path d="M512 340 Q470 380 480 430 Q500 460 512 460 Q524 460 544 430 Q554 380 512 340"
+        fill="#fbbf24"/>
+  <circle cx="512" cy="380" r="15" fill="#f59e0b"/>
+
+  <!-- Highlights -->
+  <ellipse cx="490" cy="300" rx="12" ry="20" fill="rgba(255,255,255,0.3)"/>
+  <ellipse cx="430" cy="330" rx="8" ry="15" fill="rgba(255,255,255,0.25)" transform="rotate(-45 430 330)"/>
+
+  <!-- Text "O" stylized -->
+  <text x="512" y="850" font-family="Arial, sans-serif" font-size="120" font-weight="bold"
+        fill="white" text-anchor="middle" opacity="0.95">ORCHIDEO</text>
+</svg>
