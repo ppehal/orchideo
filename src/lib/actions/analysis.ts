@@ -8,6 +8,7 @@ import {
   FacebookApiError,
 } from '@/lib/integrations/facebook'
 import { encrypt } from '@/lib/utils/encryption'
+import { generateSecureToken } from '@/lib/utils/tokens'
 import { createLogger } from '@/lib/logging'
 import { startAnalysisInBackground } from '@/lib/services/analysis/runner'
 import { type AnalysisStatus } from '../../generated/prisma/enums'
@@ -91,6 +92,7 @@ export async function createAnalysis(
         // Create the Analysis record
         const analysis = await prisma.analysis.create({
           data: {
+            public_token: generateSecureToken(),
             status: 'PENDING' as AnalysisStatus,
             page_name: pageMetadata.name,
             page_picture: pageMetadata.picture_url,

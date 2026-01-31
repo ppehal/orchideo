@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { createAnalysis } from '@/lib/actions/analysis'
 import { createLogger } from '@/lib/logging'
+import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import { z } from 'zod'
 
 const log = createLogger('api-analysis-create')
@@ -12,6 +14,34 @@ const requestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    // Check authentication for rate limiting
+    const session = await auth()
+    if (session?.user?.id) {
+      // Rate limiting per user: 10 analyses per hour
+      const userId = session.user.id
+      const limiter = getRateLimiter(`analysis-create-${userId}`, {
+        maxRequests: 10,
+        windowMs: 60 * 60 * 1000, // 1 hour
+      })
+
+      if (!limiter.canProceed()) {
+        const stats = limiter.getStats()
+        log.warn({ user_id: userId }, 'Analysis creation rate limit exceeded')
+        return NextResponse.json(
+          { error: 'Příliš mnoho požadavků. Zkuste to prosím později.', code: 'RATE_LIMITED' },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(Math.ceil(stats.windowMs / 1000)),
+              'X-RateLimit-Remaining': '0',
+            },
+          }
+        )
+      }
+
+      await limiter.acquire()
+    }
+
     const body = await request.json()
 
     const parsed = requestSchema.safeParse(body)
