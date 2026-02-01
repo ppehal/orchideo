@@ -55,6 +55,33 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: BASIC_001_RECOMMENDATIONS,
       }
     }
+    case 'BASIC_002': {
+      const { BASIC_002_INTRO, BASIC_002_DIMENSIONS, BASIC_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/basic-002')
+      return {
+        intro: BASIC_002_INTRO,
+        dimensions: BASIC_002_DIMENSIONS,
+        recommendations: BASIC_002_RECOMMENDATIONS,
+      }
+    }
+    case 'BASIC_003': {
+      const { BASIC_003_INTRO, BASIC_003_DIMENSIONS, BASIC_003_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/basic-003')
+      return {
+        intro: BASIC_003_INTRO,
+        dimensions: BASIC_003_DIMENSIONS,
+        recommendations: BASIC_003_RECOMMENDATIONS,
+      }
+    }
+    case 'BASIC_004': {
+      const { BASIC_004_INTRO, BASIC_004_DIMENSIONS, BASIC_004_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/basic-004')
+      return {
+        intro: BASIC_004_INTRO,
+        dimensions: BASIC_004_DIMENSIONS,
+        recommendations: BASIC_004_RECOMMENDATIONS,
+      }
+    }
     case 'BASIC_005': {
       const { BASIC_005_INTRO, BASIC_005_DIMENSIONS, BASIC_005_RECOMMENDATIONS } =
         await import('@/lib/constants/trigger-categories/basic-005')

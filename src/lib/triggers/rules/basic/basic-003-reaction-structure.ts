@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/basic-003'
 
 const TRIGGER_ID = 'BASIC_003'
 const TRIGGER_NAME = 'Struktura reakcí'
@@ -108,6 +109,31 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Zvyšte emotivní engagement tvorbou obsahu, který lidi překvapí nebo pobaví'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(totalReactions, likePct, angryPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalReactions',
+      label: 'Celkem reakcí',
+      value: totalReactions.toLocaleString('cs-CZ'),
+    },
+    { key: 'totalLike', label: 'Like reakcí', value: totalLike.toLocaleString('cs-CZ') },
+    { key: 'totalLove', label: 'Love reakcí', value: totalLove.toLocaleString('cs-CZ') },
+    { key: 'totalHaha', label: 'Haha reakcí', value: totalHaha.toLocaleString('cs-CZ') },
+    { key: 'totalWow', label: 'Wow reakcí', value: totalWow.toLocaleString('cs-CZ') },
+    { key: 'totalSad', label: 'Sad reakcí', value: totalSad.toLocaleString('cs-CZ') },
+    { key: 'totalAngry', label: 'Angry reakcí', value: totalAngry.toLocaleString('cs-CZ') },
+    { key: 'likePct', label: 'Podíl liků', value: formatPercent(likePct, 1) },
+    { key: 'angryPct', label: 'Podíl angry', value: formatPercent(angryPct, 1) },
+    {
+      key: 'emotionalPositivePct',
+      label: 'Podíl pozitivních emocí',
+      value: formatPercent(emotionalPositivePct, 1),
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -128,6 +154,13 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         sadPct: Number(sadPct.toFixed(1)),
         angryPct: Number(angryPct.toFixed(1)),
         emotionalPositivePct: Number(emotionalPositivePct.toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `likePct = totalLike / totalReactions * 100
+angryPct = totalAngry / totalReactions * 100
+emotionalPositivePct = (love + wow + haha) / totalReactions * 100
+Kategorie: liků ≥90% → HIGH, angry ≥15% → HIGH`,
+        _categoryKey: categoryKey,
       },
     },
   }

@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/basic-004'
 
 const TRIGGER_ID = 'BASIC_004'
 const TRIGGER_NAME = 'Kvalita nových fanoušků'
@@ -127,6 +128,31 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Ztrácíte fanoušky. Analyzujte důvody a zlepšete obsah'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(fanAdds, qualityRatio)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'currentFans',
+      label: 'Aktuální počet fanoušků',
+      value: currentFans.toLocaleString('cs-CZ'),
+    },
+    { key: 'fanAdds', label: 'Noví fanoušci (28d)', value: fanAdds.toLocaleString('cs-CZ') },
+    {
+      key: 'fanRemoves',
+      label: 'Ztracení fanoušci (28d)',
+      value: (fanRemoves ?? 0).toLocaleString('cs-CZ'),
+    },
+    { key: 'netFanGrowth', label: 'Čistý růst', value: netFanGrowth.toLocaleString('cs-CZ') },
+    {
+      key: 'engagementMetric',
+      label: 'Engagement metrika (28d)',
+      value: engagementMetric.toLocaleString('cs-CZ'),
+    },
+    { key: 'qualityRatio', label: 'Poměr kvality', value: qualityRatio.toFixed(2) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -145,6 +171,13 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         netFanGrowth,
         engagementMetric,
         qualityRatio: Number(qualityRatio.toFixed(2)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `fanGrowthRate = netFanGrowth / currentFans
+engagementRate = engagementMetric / currentFans
+qualityRatio = engagementRate / fanGrowthRate
+Kategorie: fanAdds <10 → LOW, ratio ≥0.5 → GOOD, jinak BAD`,
+        _categoryKey: categoryKey,
       },
     },
   }

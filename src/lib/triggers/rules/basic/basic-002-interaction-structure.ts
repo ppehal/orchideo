@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/basic-002'
 
 const TRIGGER_ID = 'BASIC_002'
 const TRIGGER_NAME = 'Struktura interakcí'
@@ -75,6 +76,55 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Struktura interakcí se liší od oborového benchmarku'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(
+    totalEngagement,
+    reactionsPct,
+    commentsPct,
+    sharesPct,
+    industryBenchmark.reactions_pct,
+    industryBenchmark.comments_pct,
+    industryBenchmark.shares_pct
+  )
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalReactions',
+      label: 'Celkem reakcí',
+      value: totalReactions.toLocaleString('cs-CZ'),
+    },
+    {
+      key: 'totalComments',
+      label: 'Celkem komentářů',
+      value: totalComments.toLocaleString('cs-CZ'),
+    },
+    { key: 'totalShares', label: 'Celkem sdílení', value: totalShares.toLocaleString('cs-CZ') },
+    {
+      key: 'totalEngagement',
+      label: 'Celkem interakcí',
+      value: totalEngagement.toLocaleString('cs-CZ'),
+    },
+    { key: 'reactionsPct', label: 'Podíl reakcí', value: formatPercent(reactionsPct, 1) },
+    { key: 'commentsPct', label: 'Podíl komentářů', value: formatPercent(commentsPct, 1) },
+    { key: 'sharesPct', label: 'Podíl sdílení', value: formatPercent(sharesPct, 1) },
+    {
+      key: 'benchmarkReactions',
+      label: 'Benchmark reakcí',
+      value: formatPercent(industryBenchmark.reactions_pct, 1),
+    },
+    {
+      key: 'benchmarkComments',
+      label: 'Benchmark komentářů',
+      value: formatPercent(industryBenchmark.comments_pct, 1),
+    },
+    {
+      key: 'benchmarkShares',
+      label: 'Benchmark sdílení',
+      value: formatPercent(industryBenchmark.shares_pct, 1),
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -92,6 +142,13 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         commentsPct: Number(commentsPct.toFixed(1)),
         sharesPct: Number(sharesPct.toFixed(1)),
         avgDeviation: Number(avgDeviation.toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `reactionsPct = totalReactions / totalEngagement * 100
+commentsPct = totalComments / totalEngagement * 100
+sharesPct = totalShares / totalEngagement * 100
+Porovnání: hodnota >= benchmark → ABOVE, jinak BELOW`,
+        _categoryKey: categoryKey,
       },
     },
   }
