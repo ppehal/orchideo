@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-002'
 
 const TRIGGER_ID = 'TECH_002'
 const TRIGGER_NAME = 'Typ souboru'
@@ -56,6 +57,26 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   const pngPercentage = (pngCount / postsWithFormat.length) * 100
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(postsWithFormat.length, goodPercentage)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalAnalyzed',
+      label: 'Analyzovaných obrázků',
+      value: postsWithFormat.length.toString(),
+    },
+    { key: 'pngCount', label: 'PNG formát', value: pngCount.toString() },
+    { key: 'jpegCount', label: 'JPEG formát', value: jpegCount.toString() },
+    {
+      key: 'otherCount',
+      label: 'Ostatní formáty',
+      value: (postsWithFormat.length - goodFormatsCount).toString(),
+    },
+    { key: 'goodPct', label: 'Podíl PNG/JPEG', value: formatPercent(goodPercentage, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -73,6 +94,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         pngCount,
         jpegCount,
         otherCount: postsWithFormat.length - goodFormatsCount,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `goodPercentage = (pngCount + jpegCount) / total * 100
+Kategorie: ≥90% → EXCELLENT, ≥80% → GOOD, ≥60% → FAIR`,
+        _categoryKey: categoryKey,
       },
     },
   }

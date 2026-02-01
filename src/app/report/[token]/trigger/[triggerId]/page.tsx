@@ -145,6 +145,69 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: CONT_006_RECOMMENDATIONS,
       }
     }
+    case 'TECH_001': {
+      const { TECH_001_INTRO, TECH_001_DIMENSIONS, TECH_001_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-001')
+      return {
+        intro: TECH_001_INTRO,
+        dimensions: TECH_001_DIMENSIONS,
+        recommendations: TECH_001_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_002': {
+      const { TECH_002_INTRO, TECH_002_DIMENSIONS, TECH_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-002')
+      return {
+        intro: TECH_002_INTRO,
+        dimensions: TECH_002_DIMENSIONS,
+        recommendations: TECH_002_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_003': {
+      const { TECH_003_INTRO, TECH_003_DIMENSIONS, TECH_003_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-003')
+      return {
+        intro: TECH_003_INTRO,
+        dimensions: TECH_003_DIMENSIONS,
+        recommendations: TECH_003_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_004': {
+      const { TECH_004_INTRO, TECH_004_DIMENSIONS, TECH_004_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-004')
+      return {
+        intro: TECH_004_INTRO,
+        dimensions: TECH_004_DIMENSIONS,
+        recommendations: TECH_004_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_005': {
+      const { TECH_005_INTRO, TECH_005_DIMENSIONS, TECH_005_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-005')
+      return {
+        intro: TECH_005_INTRO,
+        dimensions: TECH_005_DIMENSIONS,
+        recommendations: TECH_005_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_006': {
+      const { TECH_006_INTRO, TECH_006_DIMENSIONS, TECH_006_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-006')
+      return {
+        intro: TECH_006_INTRO,
+        dimensions: TECH_006_DIMENSIONS,
+        recommendations: TECH_006_RECOMMENDATIONS,
+      }
+    }
+    case 'TECH_007': {
+      const { TECH_007_INTRO, TECH_007_DIMENSIONS, TECH_007_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/tech-007')
+      return {
+        intro: TECH_007_INTRO,
+        dimensions: TECH_007_DIMENSIONS,
+        recommendations: TECH_007_RECOMMENDATIONS,
+      }
+    }
     // Additional triggers will be added here
     default:
       return null

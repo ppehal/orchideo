@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-006'
 
 const TRIGGER_ID = 'TECH_006'
 const TRIGGER_NAME = 'Emotikony'
@@ -77,6 +78,23 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Zvyšte používání emotikonů na průměrně 2-4 na příspěvek'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(
+    postsWithText.length,
+    avgEmojis,
+    noEmojiPercentage,
+    tooManyPercentage
+  )
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Příspěvků s textem', value: postsWithText.length.toString() },
+    { key: 'avgEmojis', label: 'Průměrný počet emoji', value: avgEmojis.toFixed(1) },
+    { key: 'noEmojiCount', label: 'Bez emoji', value: noEmojiCount.toString() },
+    { key: 'idealCount', label: 'Ideální počet (2-4)', value: idealCount.toString() },
+    { key: 'tooManyCount', label: 'Příliš emoji (7+)', value: tooManyCount.toString() },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -94,6 +112,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         noEmojiCount,
         idealCount,
         tooManyCount,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `Ideální: 2-4 emoji na příspěvek
+Kategorie: noEmoji >50% → TOO_FEW, tooMany >30% → TOO_MANY, jinak IDEAL`,
+        _categoryKey: categoryKey,
       },
     },
   }

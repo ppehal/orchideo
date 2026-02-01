@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-003'
 
 const TRIGGER_ID = 'TECH_003'
 const TRIGGER_NAME = 'Délka textů'
@@ -79,6 +80,19 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     score = Math.min(score, 50)
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(total, shortPct, longPct, avgDeviation)
+
+  // Extended data for detail page
+  const avgLength = Math.round(postsWithText.reduce((sum, p) => sum + p.message_length, 0) / total)
+  const inputParams = [
+    { key: 'totalPosts', label: 'Příspěvků s textem', value: total.toString() },
+    { key: 'shortCount', label: 'Krátké (do 80 znaků)', value: shortCount.toString() },
+    { key: 'mediumCount', label: 'Střední (80-200)', value: mediumCount.toString() },
+    { key: 'longCount', label: 'Dlouhé (200+)', value: longCount.toString() },
+    { key: 'avgLength', label: 'Průměrná délka', value: `${avgLength} znaků` },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -96,7 +110,12 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         shortCount,
         mediumCount,
         longCount,
-        avgLength: Math.round(postsWithText.reduce((sum, p) => sum + p.message_length, 0) / total),
+        avgLength,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `Ideální: 30% krátké, 50% střední, 20% dlouhé
+Kategorie: odchylka ≤20% → BALANCED, shortPct >70% → TOO_SHORT, longPct >50% → TOO_LONG`,
+        _categoryKey: categoryKey,
       },
     },
   }

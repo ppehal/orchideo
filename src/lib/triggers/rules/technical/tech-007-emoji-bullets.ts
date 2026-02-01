@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-007'
 
 const TRIGGER_ID = 'TECH_007'
 const TRIGGER_NAME = 'Odrážkování'
@@ -45,6 +46,24 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     score = 40
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(longPosts.length, bulletPercentage)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalLongPosts',
+      label: 'Delších příspěvků (100+)',
+      value: longPosts.length.toString(),
+    },
+    {
+      key: 'postsWithBullets',
+      label: 'S emoji odrážkami',
+      value: postsWithBullets.length.toString(),
+    },
+    { key: 'bulletPct', label: 'Podíl s odrážkami', value: formatPercent(bulletPercentage, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -63,6 +82,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       metrics: {
         postsWithBullets: postsWithBullets.length,
         totalLongPosts: longPosts.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `bulletPct = postsWithBullets / totalLongPosts * 100
+Kategorie: ≥30% → EXCELLENT, ≥20% → GOOD, ≥10% → FAIR`,
+        _categoryKey: categoryKey,
       },
     },
   }

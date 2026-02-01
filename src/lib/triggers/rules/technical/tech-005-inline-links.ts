@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-005'
 
 const TRIGGER_ID = 'TECH_005'
 const TRIGGER_NAME = 'Odkazy v textu'
@@ -46,6 +47,20 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     score = 30
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(postsWithText.length, inlineLinkPercentage)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Příspěvků s textem', value: postsWithText.length.toString() },
+    {
+      key: 'postsWithLinks',
+      label: 'S inline odkazy',
+      value: postsWithInlineLinks.length.toString(),
+    },
+    { key: 'linkPct', label: 'Podíl s odkazy', value: formatPercent(inlineLinkPercentage, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -64,6 +79,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       metrics: {
         postsWithInlineLinks: postsWithInlineLinks.length,
         totalPosts: postsWithText.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `inlineLinkPct = postsWithInlineLinks / totalPosts * 100
+Kategorie: ≤5% → EXCELLENT, ≤15% → GOOD, ≤30% → FAIR (nižší = lepší)`,
+        _categoryKey: categoryKey,
       },
     },
   }

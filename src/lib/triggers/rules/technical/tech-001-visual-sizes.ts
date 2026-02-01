@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-001'
 
 const TRIGGER_ID = 'TECH_001'
 const TRIGGER_NAME = 'Velikosti vizuálů'
@@ -72,6 +73,22 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     score = 35
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(postsWithDimensions.length, idealPercentage, goodPercentage)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalAnalyzed',
+      label: 'Analyzovaných obrázků',
+      value: postsWithDimensions.length.toString(),
+    },
+    { key: 'idealCount', label: 'Ideální rozměry', value: idealCount.toString() },
+    { key: 'goodCount', label: 'Dobrý poměr stran', value: goodCount.toString() },
+    { key: 'idealPct', label: 'Podíl ideálních', value: formatPercent(idealPercentage, 1) },
+    { key: 'goodPct', label: 'Podíl dobrých', value: formatPercent(goodPercentage, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -91,6 +108,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         idealCount,
         goodCount,
         totalAnalyzed: postsWithDimensions.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `Ideální: ${IDEAL_WIDTH}×${IDEAL_HEIGHT}px (±10%)
+Kategorie: ≥80% ideálních → EXCELLENT, ≥50% → GOOD, ≥40% dobrých → FAIR`,
+        _categoryKey: categoryKey,
       },
     },
   }

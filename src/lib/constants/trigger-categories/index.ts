@@ -103,3 +103,59 @@ export {
   CONT_006_RECOMMENDATIONS,
   getCategoryKey as getCont006CategoryKey,
 } from './cont-006'
+
+// TECH_001
+export {
+  TECH_001_INTRO,
+  TECH_001_DIMENSIONS,
+  TECH_001_RECOMMENDATIONS,
+  getCategoryKey as getTech001CategoryKey,
+} from './tech-001'
+
+// TECH_002
+export {
+  TECH_002_INTRO,
+  TECH_002_DIMENSIONS,
+  TECH_002_RECOMMENDATIONS,
+  getCategoryKey as getTech002CategoryKey,
+} from './tech-002'
+
+// TECH_003
+export {
+  TECH_003_INTRO,
+  TECH_003_DIMENSIONS,
+  TECH_003_RECOMMENDATIONS,
+  getCategoryKey as getTech003CategoryKey,
+} from './tech-003'
+
+// TECH_004
+export {
+  TECH_004_INTRO,
+  TECH_004_DIMENSIONS,
+  TECH_004_RECOMMENDATIONS,
+  getCategoryKey as getTech004CategoryKey,
+} from './tech-004'
+
+// TECH_005
+export {
+  TECH_005_INTRO,
+  TECH_005_DIMENSIONS,
+  TECH_005_RECOMMENDATIONS,
+  getCategoryKey as getTech005CategoryKey,
+} from './tech-005'
+
+// TECH_006
+export {
+  TECH_006_INTRO,
+  TECH_006_DIMENSIONS,
+  TECH_006_RECOMMENDATIONS,
+  getCategoryKey as getTech006CategoryKey,
+} from './tech-006'
+
+// TECH_007
+export {
+  TECH_007_INTRO,
+  TECH_007_DIMENSIONS,
+  TECH_007_RECOMMENDATIONS,
+  getCategoryKey as getTech007CategoryKey,
+} from './tech-007'

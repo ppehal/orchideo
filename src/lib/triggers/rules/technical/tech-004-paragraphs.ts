@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/tech-004'
 
 const TRIGGER_ID = 'TECH_004'
 const TRIGGER_NAME = 'Práce s odstavci'
@@ -47,6 +48,28 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     score = 35
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(longPosts.length, paragraphPercentage)
+
+  // Extended data for detail page
+  const inputParams = [
+    {
+      key: 'totalLongPosts',
+      label: 'Delších příspěvků (100+)',
+      value: longPosts.length.toString(),
+    },
+    {
+      key: 'postsWithParagraphs',
+      label: 'S odstavci',
+      value: postsWithParagraphs.length.toString(),
+    },
+    {
+      key: 'paragraphPct',
+      label: 'Podíl s odstavci',
+      value: formatPercent(paragraphPercentage, 1),
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -65,6 +88,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       metrics: {
         postsWithParagraphs: postsWithParagraphs.length,
         totalLongPosts: longPosts.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `paragraphPct = postsWithParagraphs / totalLongPosts * 100
+Kategorie: ≥80% → EXCELLENT, ≥60% → GOOD, ≥40% → FAIR`,
+        _categoryKey: categoryKey,
       },
     },
   }
