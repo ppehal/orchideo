@@ -74,6 +74,14 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   ).length
   const bestHoursPct = (postsInBestHours / posts90d.length) * 100
 
+  // Get top 3 posts published in best hours by engagement
+  const postsInBestHoursArray = posts90d
+    .filter((p) => bestHourSet.has(new Date(p.created_time).getHours()))
+    .sort((a, b) => b.total_engagement - a.total_engagement)
+    .slice(0, 3)
+
+  const bestHourPostIds = postsInBestHoursArray.map((p) => p.id)
+
   // Score based on posting in optimal times
   let score: number
   if (bestHoursPct >= 50) {
@@ -133,6 +141,7 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         overallAvgEngagement: Number(overallAvg.toFixed(1)),
         hoursAnalyzed: validHours.length,
         // Extended for detail page
+        _bestHourPostIds: JSON.stringify(bestHourPostIds),
         _inputParams: JSON.stringify(inputParams),
         _formula: `bestHoursPct = postsInBestHours / totalPosts * 100
 Kategorie: ≥50% → EXCELLENT, ≥30% → GOOD, ≥15% → FAIR`,

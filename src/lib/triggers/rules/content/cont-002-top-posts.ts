@@ -29,6 +29,9 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   const topCount = Math.max(1, Math.ceil(posts90d.length * 0.1))
   const topPosts = sortedPosts.slice(0, topCount)
 
+  // Get top 3 post IDs for display
+  const topPostIds = topPosts.slice(0, 3).map((p) => p.id)
+
   // Calculate average engagement of top posts
   const avgTopEngagement =
     topPosts.reduce((sum, p) => sum + p.total_engagement, 0) / topPosts.length
@@ -120,6 +123,7 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         hasMediaPct: (hasMedia / topCount) * 100,
         avgMessageLength: Number(avgMessageLength.toFixed(0)),
         // Extended for detail page
+        _topPostIds: JSON.stringify(topPostIds),
         _inputParams: JSON.stringify(inputParams),
         _formula: `topToAvgRatio = avgTopEngagement / overallAvg
 Kategorie: ≥3× → EXCELLENT, 2-3× → HIGH, 1.5-2× → MEDIUM, <1.5× → LOW`,

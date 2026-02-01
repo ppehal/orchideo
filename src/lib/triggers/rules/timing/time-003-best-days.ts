@@ -106,12 +106,28 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   ).length
   const bestDaysPct = (postsInBestDays / posts90d.length) * 100
 
+  // Get top 3 posts from best days by engagement
+  const postsInBestDaysArray = posts90d
+    .filter((p) => bestDaySet.has(new Date(p.created_time).getDay()))
+    .sort((a, b) => b.total_engagement - a.total_engagement)
+    .slice(0, 3)
+
+  const bestDayPostIds = postsInBestDaysArray.map((p) => p.id)
+
   // Check if user is avoiding worst days
   const worstDaySet = new Set(worstDays.map((d) => d.day))
   const postsInWorstDays = posts90d.filter((p) =>
     worstDaySet.has(new Date(p.created_time).getDay())
   ).length
   const worstDaysPct = (postsInWorstDays / posts90d.length) * 100
+
+  // Get top 3 posts from worst days by engagement (yes, top - chceme vidět i v worst days nejlepší posty)
+  const postsInWorstDaysArray = posts90d
+    .filter((p) => worstDaySet.has(new Date(p.created_time).getDay()))
+    .sort((a, b) => b.total_engagement - a.total_engagement)
+    .slice(0, 3)
+
+  const worstDayPostIds = postsInWorstDaysArray.map((p) => p.id)
 
   // Score based on day optimization
   let score: number
@@ -174,6 +190,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         postsInWorstDaysPct: Number(worstDaysPct.toFixed(1)),
         overallAvgEngagement: Number(overallAvg.toFixed(1)),
         // Extended for detail page
+        _bestDayPostIds: JSON.stringify(bestDayPostIds),
+        _worstDayPostIds: JSON.stringify(worstDayPostIds),
         _inputParams: JSON.stringify(inputParams),
         _formula: `bestDaysPct = postsInBestDays / totalPosts * 100
 worstDaysPct = postsInWorstDays / totalPosts * 100

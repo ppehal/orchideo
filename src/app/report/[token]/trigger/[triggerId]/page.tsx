@@ -9,8 +9,12 @@ import {
   FormulaCard,
   IntroText,
   CategoryDisplay,
+  PostListCard,
+  LegacyAnalysisBanner,
   type InputParameter,
 } from '@/components/report/trigger-detail'
+import { getPostIdsFromMetrics, getPostsByIds } from '@/lib/utils/post-utils'
+import type { NormalizedPost } from '@/lib/services/analysis/types'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { TriggerStatus } from '@/lib/triggers/types'
@@ -348,6 +352,38 @@ export default async function TriggerDetailPage({ params }: Props) {
   // 7. Load category definition for this trigger
   const categoryDefinition = await getCategoryDefinition(triggerId)
 
+  // 8. Parse posts from rawData and get post examples
+  const rawData = analysis.rawData as { posts90d?: NormalizedPost[] } | null
+  const posts90d = rawData?.posts90d ?? []
+
+  // Get post IDs from metrics
+  const topPostIds = getPostIdsFromMetrics(metrics, '_topPostIds')
+  const bottomPostIds = getPostIdsFromMetrics(metrics, '_bottomPostIds')
+  const bestHourPostIds = getPostIdsFromMetrics(metrics, '_bestHourPostIds')
+  const bestDayPostIds = getPostIdsFromMetrics(metrics, '_bestDayPostIds')
+  const worstDayPostIds = getPostIdsFromMetrics(metrics, '_worstDayPostIds')
+  const photoExampleIds = getPostIdsFromMetrics(metrics, '_photoExampleIds')
+  const videoExampleIds = getPostIdsFromMetrics(metrics, '_videoExampleIds')
+
+  // Fetch actual posts by IDs
+  const topPosts = getPostsByIds(posts90d, topPostIds)
+  const bottomPosts = getPostsByIds(posts90d, bottomPostIds)
+  const bestHourPosts = getPostsByIds(posts90d, bestHourPostIds)
+  const bestDayPosts = getPostsByIds(posts90d, bestDayPostIds)
+  const worstDayPosts = getPostsByIds(posts90d, worstDayPostIds)
+  const photoExamples = getPostsByIds(posts90d, photoExampleIds)
+  const videoExamples = getPostsByIds(posts90d, videoExampleIds)
+
+  // Check if ANY post examples exist (for legacy banner)
+  const hasAnyPostExamples =
+    topPosts.length > 0 ||
+    bottomPosts.length > 0 ||
+    bestHourPosts.length > 0 ||
+    bestDayPosts.length > 0 ||
+    worstDayPosts.length > 0 ||
+    photoExamples.length > 0 ||
+    videoExamples.length > 0
+
   return (
     <div className="bg-muted/30 min-h-screen">
       <div className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
@@ -381,6 +417,79 @@ export default async function TriggerDetailPage({ params }: Props) {
         {/* Categories */}
         {categoryDefinition && categoryKey && (
           <CategoryDisplay definition={categoryDefinition} currentKey={categoryKey} />
+        )}
+
+        {/* Legacy banner if no post examples exist */}
+        {!hasAnyPostExamples && posts90d.length > 0 && <LegacyAnalysisBanner />}
+
+        {/* Top Posts (CONT_002) */}
+        {topPosts.length > 0 && (
+          <PostListCard
+            title="Nejsilnější posty"
+            description="Příklady postů s nejvyšším engagementem"
+            posts={topPosts}
+            variant="top"
+          />
+        )}
+
+        {/* Bottom Posts (CONT_003) */}
+        {bottomPosts.length > 0 && (
+          <PostListCard
+            title="Nejslabší posty"
+            description="Příklady postů s nejnižším engagementem"
+            posts={bottomPosts}
+            variant="bottom"
+          />
+        )}
+
+        {/* Best Hour Posts (TIME_001) */}
+        {bestHourPosts.length > 0 && (
+          <PostListCard
+            title="Posty v nejlepších hodinách"
+            description="Příklady úspěšných postů publikovaných v optimálních časech"
+            posts={bestHourPosts}
+            variant="top"
+          />
+        )}
+
+        {/* Best Day Posts (TIME_003) */}
+        {bestDayPosts.length > 0 && (
+          <PostListCard
+            title="Posty v nejlepších dnech"
+            description="Příklady úspěšných postů publikovaných v optimálních dnech"
+            posts={bestDayPosts}
+            variant="top"
+          />
+        )}
+
+        {/* Worst Day Posts (TIME_003) */}
+        {worstDayPosts.length > 0 && (
+          <PostListCard
+            title="Posty v nejslabších dnech"
+            description="Příklady postů publikovaných ve dnech s nižším engagementem"
+            posts={worstDayPosts}
+            variant="bottom"
+          />
+        )}
+
+        {/* Photo Examples (CONT_005) */}
+        {photoExamples.length > 0 && (
+          <PostListCard
+            title="Příklady fotografií"
+            description="Nejúspěšnější fotografie z vašich příspěvků"
+            posts={photoExamples}
+            variant="default"
+          />
+        )}
+
+        {/* Video Examples (CONT_005) */}
+        {videoExamples.length > 0 && (
+          <PostListCard
+            title="Příklady videí"
+            description="Nejúspěšnější videa a Reels z vašich příspěvků"
+            posts={videoExamples}
+            variant="default"
+          />
         )}
 
         {/* Fallback reason if no category data */}

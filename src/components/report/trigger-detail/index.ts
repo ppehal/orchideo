@@ -3,3 +3,6 @@ export { InputParametersCard, type InputParameter } from './input-parameters-car
 export { FormulaCard } from './formula-card'
 export { IntroText } from './intro-text'
 export { CategoryDisplay } from './category-display'
+export { PostCard } from './post-card'
+export { PostListCard } from './post-list-card'
+export { LegacyAnalysisBanner } from './legacy-banner'

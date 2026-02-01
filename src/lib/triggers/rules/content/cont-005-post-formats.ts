@@ -61,6 +61,20 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   const videoTotalPct = videoPct + reelPct // Combined video content
 
+  // Get top 2 examples of each format type
+  const photoExamples = posts90d
+    .filter((p) => p.type === 'photo')
+    .sort((a, b) => b.total_engagement - a.total_engagement)
+    .slice(0, 2)
+
+  const videoExamples = posts90d
+    .filter((p) => p.type === 'video' || p.type === 'reel')
+    .sort((a, b) => b.total_engagement - a.total_engagement)
+    .slice(0, 2)
+
+  const photoExampleIds = photoExamples.map((p) => p.id)
+  const videoExampleIds = videoExamples.map((p) => p.id)
+
   // Calculate diversity score
   const activeFormats = Object.values(formatCounts).filter((c) => c > 0).length
   const diversityScore = Math.min(100, activeFormats * 15)
@@ -154,6 +168,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         sharedPct: Number(sharedPct.toFixed(1)),
         activeFormats,
         // Extended for detail page
+        _photoExampleIds: JSON.stringify(photoExampleIds),
+        _videoExampleIds: JSON.stringify(videoExampleIds),
         _inputParams: JSON.stringify(inputParams),
         _formula: `Diverzita: 5+ formátů → HIGH, 3-4 → MEDIUM, 1-2 → LOW
 Balance: foto ≤70%, sdílené ≤20%, text ≤20% → BALANCED`,

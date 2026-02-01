@@ -29,6 +29,9 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   const bottomCount = Math.max(1, Math.ceil(posts90d.length * 0.1))
   const bottomPosts = sortedPosts.slice(0, bottomCount)
 
+  // Get bottom 3 post IDs for display
+  const bottomPostIds = bottomPosts.slice(0, 3).map((p) => p.id)
+
   // Calculate average engagement of bottom posts
   const avgBottomEngagement =
     bottomPosts.reduce((sum, p) => sum + p.total_engagement, 0) / bottomPosts.length
@@ -141,6 +144,7 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         sharedPostPct: (isSharedPost / bottomCount) * 100,
         inlineLinksPct: (hasInlineLinks / bottomCount) * 100,
         // Extended for detail page
+        _bottomPostIds: JSON.stringify(bottomPostIds),
         _inputParams: JSON.stringify(inputParams),
         _formula: `bottomToAvgRatio = avgBottomEngagement / overallAvg
 Kategorie: ≥50% → GOOD, 30-50% → MEDIUM, 15-30% → BAD, <15% → VERY_BAD`,
