@@ -26,10 +26,6 @@ const STATUS_MESSAGES = {
     title: 'Hotovo!',
     description: 'Analýza je dokončena. Přesměrováváme na report...',
   },
-  FAILED: {
-    title: 'Analýza selhala',
-    description: 'Při analýze nastala chyba.',
-  },
 } as const
 
 type StatusKey = keyof typeof STATUS_MESSAGES
@@ -39,7 +35,7 @@ export default function AnalysisProgressPage() {
   const router = useRouter()
   const analysisId = params.id as string
 
-  const { status, progress, isLoading, error } = useAnalysisStatus(analysisId, {
+  const { status, progress, isLoading, error, errorTitle } = useAnalysisStatus(analysisId, {
     pollingInterval: 2500,
     onComplete: () => {
       // Will redirect when we get the public token
@@ -63,8 +59,15 @@ export default function AnalysisProgressPage() {
     }
   }, [status, analysisId, router])
 
+  // For failed status, use error messages from API
   const statusKey = status && status in STATUS_MESSAGES ? (status as StatusKey) : 'PENDING'
-  const statusInfo = STATUS_MESSAGES[statusKey]
+  const statusInfo =
+    status === 'FAILED'
+      ? {
+          title: errorTitle || 'Analýza selhala',
+          description: error || 'Při analýze nastala chyba.',
+        }
+      : STATUS_MESSAGES[statusKey]
 
   if (isLoading) {
     return (
@@ -102,13 +105,11 @@ export default function AnalysisProgressPage() {
           )}
 
           {status === 'FAILED' && (
-            <div className="space-y-4">
-              {error && <p className="text-destructive text-center text-sm">{error}</p>}
-              <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={() => router.push('/analyze')}>
-                  Zkusit znovu
-                </Button>
-              </div>
+            <div className="flex justify-center gap-4">
+              <Button variant="outline" onClick={() => router.push('/analyze')}>
+                Zkusit jinou stránku
+              </Button>
+              <Button onClick={() => window.location.reload()}>Zkusit znovu</Button>
             </div>
           )}
 

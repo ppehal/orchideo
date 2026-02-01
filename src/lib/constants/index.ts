@@ -1,4 +1,5 @@
 export * from './analysis-progress'
+export * from './analysis-errors'
 export * from './color-schemes'
 export * from './fb-category-map'
 export * from './versions'

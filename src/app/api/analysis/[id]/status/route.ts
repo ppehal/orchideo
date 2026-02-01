@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createLogger, logError } from '@/lib/logging'
-import { ANALYSIS_STATUS_PROGRESS } from '@/lib/constants'
+import { ANALYSIS_STATUS_PROGRESS, getAnalysisErrorMessage } from '@/lib/constants'
 
 const log = createLogger('api-analysis-status')
 
@@ -27,6 +27,7 @@ export async function GET(_request: Request, { params }: Props) {
       },
       select: {
         status: true,
+        error_code: true,
         error_message: true,
         public_token: true,
       },
@@ -39,13 +40,18 @@ export async function GET(_request: Request, { params }: Props) {
       )
     }
 
+    // Get user-friendly error message if analysis failed
+    const errorInfo =
+      analysis.status === 'FAILED' ? getAnalysisErrorMessage(analysis.error_code) : null
+
     return NextResponse.json({
       success: true,
       data: {
         status: analysis.status,
         progress: ANALYSIS_STATUS_PROGRESS[analysis.status],
-        // Return generic error message to client, details stay in server logs
-        errorMessage: analysis.status === 'FAILED' ? 'Analýza selhala. Prosím zkuste znovu.' : null,
+        errorCode: analysis.error_code,
+        errorTitle: errorInfo?.title ?? null,
+        errorMessage: errorInfo?.description ?? null,
         publicToken: analysis.public_token,
       },
     })

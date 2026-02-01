@@ -7,6 +7,9 @@ import type { AnalysisStatus } from '@/generated/prisma/enums'
 interface AnalysisStatusData {
   status: AnalysisStatus
   progress?: number
+  errorCode?: string | null
+  errorTitle?: string | null
+  errorMessage?: string | null
 }
 
 interface UseAnalysisStatusOptions {
@@ -25,6 +28,7 @@ interface UseAnalysisStatusReturn {
   progress: number
   isLoading: boolean
   error: string | null
+  errorTitle: string | null
   refetch: () => Promise<void>
 }
 
@@ -38,6 +42,7 @@ export function useAnalysisStatus(
   const [progress, setProgress] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [errorTitle, setErrorTitle] = useState<string | null>(null)
 
   const fetchStatus = useCallback(async () => {
     if (!analysisId) return
@@ -57,13 +62,20 @@ export function useAnalysisStatus(
       const statusData = data.data as AnalysisStatusData
       setStatus(statusData.status)
       setProgress(statusData.progress ?? 0)
-      setError(null)
 
-      // Check if completed or failed
+      // Handle error state
+      if (statusData.status === 'FAILED') {
+        setErrorTitle(statusData.errorTitle ?? 'Analýza selhala')
+        setError(statusData.errorMessage ?? 'Při analýze nastala chyba.')
+        onError?.(statusData.errorMessage ?? 'Analýza selhala')
+      } else {
+        setErrorTitle(null)
+        setError(null)
+      }
+
+      // Check if completed
       if (statusData.status === 'COMPLETED') {
         onComplete?.()
-      } else if (statusData.status === 'FAILED') {
-        onError?.('Analýza selhala')
       }
     } catch (err) {
       console.error('[useAnalysisStatus]', err)
@@ -103,6 +115,7 @@ export function useAnalysisStatus(
     progress,
     isLoading,
     error,
+    errorTitle,
     refetch: fetchStatus,
   }
 }
