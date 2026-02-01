@@ -33,14 +33,16 @@ _Zatím žádné záznamy._
 **Kontext**: PDF generování s Puppeteer v Alpine Linux Docker kontejneru
 **Problém**: PDF export selhal s chybou "chromium executable not found" přestože byl Chromium nainstalován v Dockerfile
 **Příčina**:
+
 1. Chybějící environment variables `PUPPETEER_EXECUTABLE_PATH` a `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` v docker-compose
 2. Špatná cesta k executable (`/usr/bin/chromium-browser` místo `/usr/bin/chromium` v Alpine)
 3. @sparticuz/chromium se snažil stáhnout binárku místo použití systémového Chromium
-**Řešení**:
-1. Přidat env vars do docker-compose.vps.yml: `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` a `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`
-2. Upravit pdf-service.ts: prioritně použít `process.env.PUPPETEER_EXECUTABLE_PATH`, fallback na `chromium.executablePath()`
-3. Rebuild Docker image pro instalaci Chromium dependencies z Dockerfile.dev
-**Prevence**:
+   **Řešení**:
+4. Přidat env vars do docker-compose.vps.yml: `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` a `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`
+5. Upravit pdf-service.ts: prioritně použít `process.env.PUPPETEER_EXECUTABLE_PATH`, fallback na `chromium.executablePath()`
+6. Rebuild Docker image pro instalaci Chromium dependencies z Dockerfile.dev
+   **Prevence**:
+
 - V Alpine Linux se Chromium jmenuje `/usr/bin/chromium`, ne `chromium-browser`
 - Puppeteer v Dockeru vždy vyžaduje explicitní nastavení executable path
 - Po změně Dockerfile vždy rebuild image (`docker compose build` nebo `./QUICK-START.sh rebuild`)
@@ -71,7 +73,40 @@ _Zatím žádné záznamy._
 
 ## Facebook API
 
-_Zatím žádné záznamy._
+### Facebook Graph API requires appsecret_proof for insights
+
+**Datum**: 2026-02-01
+**Kontext**: Testování aplikace v produkci - analýza stránky hlásila chybějící `read_insights` oprávnění
+**Problém**:
+
+- Token měl `read_insights` v `scopes` ✅
+- `/me/permissions` ukazovalo `read_insights: granted` ✅
+- Ale `granular_scopes` z debug_token NEOBSAHOVALO `read_insights` ❌
+- Insights endpointy vracely error 200 "Provide valid app ID"
+
+**Příčina**: Facebook vyžaduje `appsecret_proof` (HMAC-SHA256 podpis) pro citlivé API endpointy jako insights. Bez něj:
+
+- Základní endpointy fungují (user info, page list)
+- Insights endpointy selhávají s matoucí chybou "Provide valid app ID"
+- `granular_scopes` nezahrnuje permissions vyžadující proof
+
+**Řešení**: Přidat `appsecret_proof` ke všem Graph API requestům:
+
+```typescript
+function getAppSecretProof(accessToken: string): string {
+  return crypto
+    .createHmac('sha256', process.env.FACEBOOK_APP_SECRET!)
+    .update(accessToken)
+    .digest('hex')
+}
+// Přidat k URL: &appsecret_proof=${getAppSecretProof(token)}
+```
+
+**Prevence**:
+
+- VŽDY používat `appsecret_proof` pro Facebook Graph API v produkci
+- Při debugování FB permissions zkontrolovat jak `scopes` tak `granular_scopes`
+- Chyba "Provide valid app ID" obvykle znamená chybějící appsecret_proof, ne špatné app ID
 
 ---
 

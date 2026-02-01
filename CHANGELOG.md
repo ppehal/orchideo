@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Facebook API - appsecret_proof**
+  - Fixed `read_insights` permission errors (code 200 "Provide valid app ID")
+  - Added `appsecret_proof` HMAC-SHA256 signature to all Graph API requests
+  - Facebook requires this for secure API calls, especially insights endpoints
+  - Root cause: `granular_scopes` didn't include `read_insights` without proof
+
 - **PDF Export - Chromium Configuration**
   - Fixed PDF generation failures in Docker environment
   - Added `PUPPETEER_EXECUTABLE_PATH` and `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` environment variables to `docker-compose.vps.yml`
@@ -28,18 +34,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New constants: `FB_PERMISSIONS`, `FB_PERMISSIONS_DONT_LIST` in `src/lib/constants/fb-permissions.ts`
   - New component: `src/components/auth/permissions-disclosure.tsx`
 
-- **Trigger Detail Pages (BASIC_001)**
+- **Trigger Detail Pages (All 27 Triggers)**
   - Detail page route `/report/[token]/trigger/[triggerId]` with Server Component
-  - Input parameters display card showing calculation inputs (fan count, posts, interactions)
+  - Input parameters display card showing calculation inputs
   - Formula debug card (visible when `SHOW_DEBUG_FORMULAS=true`)
-  - Category display with 64 combinations (4 fan ranges × 4 post frequencies × 4 interaction levels)
-  - Current category highlighting with personalized recommendation
+  - Category display with personalized recommendations based on user's data
+  - Current category highlighting with contextual advice
   - Expandable view to browse all category combinations
   - Loading skeleton state for async data fetching
   - Click-through navigation from TriggerCard to detail page
   - ENV variable `SHOW_DEBUG_FORMULAS` for debug mode
-  - Category definitions in `src/lib/constants/trigger-categories/basic-001.ts`
-  - Extended metrics with `_inputParams`, `_formula`, `_categoryKey` fields
+  - Category definitions for all trigger types:
+    - BASIC (5): Interactions, structure, reactions, fan quality
+    - CONTENT (6): Content mix, top/weak posts, promoted posts, formats, clicks
+    - TECHNICAL (7): Visual sizes, file types, text length, paragraphs, links, emojis
+    - TIMING (3): Best hours, posting frequency, best days
+    - SHARING (4): Shared posts, YouTube, Reels, UTM tracking
+    - PAGE_SETTINGS (2): Profile photo, cover photo
+  - Extended metrics with `_inputParams`, `_formula`, `_categoryKey` fields in all 27 triggers
+  - 27 category definition files in `src/lib/constants/trigger-categories/`
   - Documentation in `docs/systems/trigger-definitions.md`
 
 - **Dark/Light Theme Support**
