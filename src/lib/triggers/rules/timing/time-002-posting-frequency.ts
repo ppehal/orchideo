@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/time-002'
 
 const TRIGGER_ID = 'TIME_002'
 const TRIGGER_NAME = 'Frekvence postování'
@@ -107,6 +108,19 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       ? `${postsPerWeek.toFixed(1)} postů/týden`
       : `1 post/${(7 / postsPerWeek).toFixed(0)} dní`
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, postsPerWeek, cv)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků (90d)', value: posts90d.length.toString() },
+    { key: 'postsPerWeek', label: 'Postů za týden', value: postsPerWeek.toFixed(1) },
+    { key: 'medianGap', label: 'Medián rozestupu', value: `${medianGap.toFixed(1)} dní` },
+    { key: 'avgGap', label: 'Průměrný rozestup', value: `${avgGap.toFixed(1)} dní` },
+    { key: 'longestGap', label: 'Nejdelší pauza', value: `${Math.max(...gaps).toFixed(1)} dní` },
+    { key: 'consistencyCV', label: 'Koeficient variace', value: cv.toFixed(2) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -126,6 +140,12 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         consistencyCV: Number(cv.toFixed(2)),
         totalPosts: posts90d.length,
         longestGapDays: Number(Math.max(...gaps).toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `postsPerWeek = 7 / medianGapDays
+CV = stdDev(gaps) / avgGap (nižší = pravidelnější)
+Kategorie: frekvence × konzistence matice`,
+        _categoryKey: categoryKey,
       },
     },
   }

@@ -208,6 +208,33 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: TECH_007_RECOMMENDATIONS,
       }
     }
+    case 'TIME_001': {
+      const { TIME_001_INTRO, TIME_001_DIMENSIONS, TIME_001_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/time-001')
+      return {
+        intro: TIME_001_INTRO,
+        dimensions: TIME_001_DIMENSIONS,
+        recommendations: TIME_001_RECOMMENDATIONS,
+      }
+    }
+    case 'TIME_002': {
+      const { TIME_002_INTRO, TIME_002_DIMENSIONS, TIME_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/time-002')
+      return {
+        intro: TIME_002_INTRO,
+        dimensions: TIME_002_DIMENSIONS,
+        recommendations: TIME_002_RECOMMENDATIONS,
+      }
+    }
+    case 'TIME_003': {
+      const { TIME_003_INTRO, TIME_003_DIMENSIONS, TIME_003_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/time-003')
+      return {
+        intro: TIME_003_INTRO,
+        dimensions: TIME_003_DIMENSIONS,
+        recommendations: TIME_003_RECOMMENDATIONS,
+      }
+    }
     // Additional triggers will be added here
     default:
       return null

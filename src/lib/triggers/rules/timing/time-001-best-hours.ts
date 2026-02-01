@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/time-001'
 
 const TRIGGER_ID = 'TIME_001'
 const TRIGGER_NAME = 'Nejlepší hodiny'
@@ -94,6 +95,23 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = `Publikujte více v časech ${bestHoursDisplay} - mají nejvyšší engagement`
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, bestHoursPct, true)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'hoursAnalyzed', label: 'Analyzovaných hodin', value: validHours.length.toString() },
+    { key: 'bestHours', label: 'Nejlepší hodiny', value: bestHoursDisplay },
+    {
+      key: 'bestHourEngagement',
+      label: 'Avg engagement (top)',
+      value: bestHours[0]?.avgEngagement.toFixed(1) ?? '0',
+    },
+    { key: 'postsInBestHours', label: 'Postů v top hodinách', value: postsInBestHours.toString() },
+    { key: 'bestHoursPct', label: 'Podíl v top hodinách', value: `${bestHoursPct.toFixed(1)}%` },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -114,6 +132,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         postsInBestHoursPct: Number(bestHoursPct.toFixed(1)),
         overallAvgEngagement: Number(overallAvg.toFixed(1)),
         hoursAnalyzed: validHours.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `bestHoursPct = postsInBestHours / totalPosts * 100
+Kategorie: ≥50% → EXCELLENT, ≥30% → GOOD, ≥15% → FAIR`,
+        _categoryKey: categoryKey,
       },
     },
   }

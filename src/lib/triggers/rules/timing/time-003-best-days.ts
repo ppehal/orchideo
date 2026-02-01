@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/time-003'
 
 const TRIGGER_ID = 'TIME_003'
 const TRIGGER_NAME = 'Nejlepší dny'
@@ -133,6 +134,25 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = `Preferujte publikování v ${bestDaysDisplay} - mají vyšší engagement`
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, bestDaysPct, worstDaysPct, true)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'daysAnalyzed', label: 'Dnů s příspěvky', value: daysWithPosts.length.toString() },
+    { key: 'bestDays', label: 'Nejlepší dny', value: bestDaysDisplay },
+    { key: 'worstDays', label: 'Nejslabší dny', value: worstDaysDisplay },
+    {
+      key: 'bestDayEngagement',
+      label: 'Avg engagement (top)',
+      value: bestDays[0]?.avgEngagement.toFixed(1) ?? '0',
+    },
+    { key: 'postsInBestDays', label: 'Postů v top dnech', value: postsInBestDays.toString() },
+    { key: 'bestDaysPct', label: 'Podíl v top dnech', value: `${bestDaysPct.toFixed(1)}%` },
+    { key: 'worstDaysPct', label: 'Podíl v slabých dnech', value: `${worstDaysPct.toFixed(1)}%` },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -153,6 +173,12 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         postsInBestDaysPct: Number(bestDaysPct.toFixed(1)),
         postsInWorstDaysPct: Number(worstDaysPct.toFixed(1)),
         overallAvgEngagement: Number(overallAvg.toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `bestDaysPct = postsInBestDays / totalPosts * 100
+worstDaysPct = postsInWorstDays / totalPosts * 100
+Kategorie: bestDays usage × worstDays avoidance matice`,
+        _categoryKey: categoryKey,
       },
     },
   }

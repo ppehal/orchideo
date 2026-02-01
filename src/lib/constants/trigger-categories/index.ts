@@ -159,3 +159,27 @@ export {
   TECH_007_RECOMMENDATIONS,
   getCategoryKey as getTech007CategoryKey,
 } from './tech-007'
+
+// TIME_001
+export {
+  TIME_001_INTRO,
+  TIME_001_DIMENSIONS,
+  TIME_001_RECOMMENDATIONS,
+  getCategoryKey as getTime001CategoryKey,
+} from './time-001'
+
+// TIME_002
+export {
+  TIME_002_INTRO,
+  TIME_002_DIMENSIONS,
+  TIME_002_RECOMMENDATIONS,
+  getCategoryKey as getTime002CategoryKey,
+} from './time-002'
+
+// TIME_003
+export {
+  TIME_003_INTRO,
+  TIME_003_DIMENSIONS,
+  TIME_003_RECOMMENDATIONS,
+  getCategoryKey as getTime003CategoryKey,
+} from './time-003'

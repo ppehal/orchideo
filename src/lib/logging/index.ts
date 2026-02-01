@@ -83,12 +83,15 @@ export function serializeError(error: unknown): Record<string, unknown> {
       stack: error.stack,
       cause: error.cause ? serializeError(error.cause) : undefined,
       // Preserve any additional enumerable properties
-      ...Object.getOwnPropertyNames(error).reduce((acc, key) => {
-        if (!['name', 'message', 'stack', 'cause'].includes(key)) {
-          acc[key] = (error as any)[key]
-        }
-        return acc
-      }, {} as Record<string, unknown>),
+      ...Object.getOwnPropertyNames(error).reduce(
+        (acc, key) => {
+          if (!['name', 'message', 'stack', 'cause'].includes(key)) {
+            acc[key] = (error as unknown as Record<string, unknown>)[key]
+          }
+          return acc
+        },
+        {} as Record<string, unknown>
+      ),
     }
   }
 
