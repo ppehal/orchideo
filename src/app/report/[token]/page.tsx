@@ -168,12 +168,16 @@ export default async function ReportPage({ params, searchParams }: Props) {
         <div className="space-y-6">
           <h2 className="text-xl font-semibold">Detailní analýza</h2>
 
-          <TriggerSection category="BASIC" triggers={grouped.BASIC} />
-          <TriggerSection category="CONTENT" triggers={grouped.CONTENT} />
-          <TriggerSection category="TECHNICAL" triggers={grouped.TECHNICAL} />
-          <TriggerSection category="TIMING" triggers={grouped.TIMING} />
-          <TriggerSection category="SHARING" triggers={grouped.SHARING} />
-          <TriggerSection category="PAGE_SETTINGS" triggers={grouped.PAGE_SETTINGS} />
+          <TriggerSection category="BASIC" triggers={grouped.BASIC} reportToken={token} />
+          <TriggerSection category="CONTENT" triggers={grouped.CONTENT} reportToken={token} />
+          <TriggerSection category="TECHNICAL" triggers={grouped.TECHNICAL} reportToken={token} />
+          <TriggerSection category="TIMING" triggers={grouped.TIMING} reportToken={token} />
+          <TriggerSection category="SHARING" triggers={grouped.SHARING} reportToken={token} />
+          <TriggerSection
+            category="PAGE_SETTINGS"
+            triggers={grouped.PAGE_SETTINGS}
+            reportToken={token}
+          />
         </div>
 
         {/* Disclaimer */}

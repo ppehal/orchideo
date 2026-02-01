@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/basic-001'
 
 const TRIGGER_ID = 'BASIC_001'
 const TRIGGER_NAME = 'Interakce na příspěvek'
@@ -87,6 +88,30 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   const engagementPct = engagementRate * 100
 
+  // Calculate posts per month (90 days = 3 months)
+  const postsPerMonth = posts90d.length / 3
+
+  // Get category key for detail page
+  const categoryKey = getCategoryKey(fanCount, postsPerMonth, avgEngagement)
+
+  // Build input parameters for detail page
+  const inputParams = [
+    { key: 'fanCount', label: 'Počet fanoušků', value: fanCount.toLocaleString('cs-CZ') },
+    { key: 'posts90d', label: 'Postů za 90 dní', value: posts90d.length },
+    {
+      key: 'postsPerMonth',
+      label: 'Postů/měsíc (průměr)',
+      value: Math.round(postsPerMonth),
+    },
+    { key: 'totalInteractions', label: 'Interakcí celkem', value: totalEngagement },
+    {
+      key: 'avgInteractions',
+      label: 'Interakcí/post',
+      value: Number(avgEngagement.toFixed(1)),
+    },
+    { key: 'engagementRate', label: 'Engagement rate', value: formatPercent(engagementPct, 2) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -105,6 +130,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         engagementRate: Number(engagementRate.toFixed(4)),
         fanCount,
         postsAnalyzed: posts90d.length,
+        // Extended data for detail page (prefixed with _ to mark as internal)
+        _inputParams: JSON.stringify(inputParams),
+        _formula:
+          'avgEngagement = totalInteractions / posts\nengagementRate = avgEngagement / fans',
+        _categoryKey: categoryKey,
       },
     },
   }

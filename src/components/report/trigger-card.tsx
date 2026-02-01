@@ -1,7 +1,8 @@
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScoreBadge, type TriggerStatus, getStatusFromScore } from './score-badge'
 import { cn } from '@/lib/utils'
-import { AlertCircle, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, AlertTriangle, XCircle, ExternalLink } from 'lucide-react'
 
 export interface TriggerResult {
   id: string
@@ -19,6 +20,7 @@ export interface TriggerResult {
 
 interface TriggerCardProps {
   trigger: TriggerResult
+  reportToken?: string
   className?: string
 }
 
@@ -36,12 +38,18 @@ const STATUS_ICON_COLORS: Record<TriggerStatus, string> = {
   CRITICAL: 'text-red-500',
 }
 
-export function TriggerCard({ trigger, className }: TriggerCardProps) {
+export function TriggerCard({ trigger, reportToken, className }: TriggerCardProps) {
   const status = getStatusFromScore(trigger.score)
   const Icon = STATUS_ICONS[status]
 
-  return (
-    <Card className={cn('relative overflow-hidden', className)}>
+  const content = (
+    <Card
+      className={cn(
+        'relative overflow-hidden',
+        reportToken && 'cursor-pointer transition-shadow hover:shadow-md',
+        className
+      )}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -51,7 +59,10 @@ export function TriggerCard({ trigger, className }: TriggerCardProps) {
               <CardDescription className="mt-1">{trigger.description}</CardDescription>
             </div>
           </div>
-          <ScoreBadge score={trigger.score} size="sm" showLabel={false} />
+          <div className="flex items-center gap-2">
+            {reportToken && <ExternalLink className="text-muted-foreground h-4 w-4 shrink-0" />}
+            <ScoreBadge score={trigger.score} size="sm" showLabel={false} />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -91,4 +102,15 @@ export function TriggerCard({ trigger, className }: TriggerCardProps) {
       </CardContent>
     </Card>
   )
+
+  // Wrap in Link if reportToken is provided
+  if (reportToken) {
+    return (
+      <Link href={`/report/${reportToken}/trigger/${trigger.id}`} className="block">
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }

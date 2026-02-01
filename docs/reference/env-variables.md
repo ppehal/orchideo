@@ -39,6 +39,12 @@
 | -------- | ------- | ------------------- |
 | `CI`     | -       | CI environment flag |
 
+### Debug
+
+| Variable              | Default | Description                                       |
+| --------------------- | ------- | ------------------------------------------------- |
+| `SHOW_DEBUG_FORMULAS` | `false` | Show calculation formulas in trigger detail pages |
+
 ## Example .env.local
 
 ```bash

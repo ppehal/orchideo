@@ -14,6 +14,7 @@ export type TriggerCategory =
 interface TriggerSectionProps {
   category: TriggerCategory
   triggers: TriggerResult[]
+  reportToken?: string
   className?: string
 }
 
@@ -69,7 +70,12 @@ export function calculateCategoryScore(triggers: TriggerResult[]): number {
   return Math.round(sum / triggers.length)
 }
 
-export function TriggerSection({ category, triggers, className }: TriggerSectionProps) {
+export function TriggerSection({
+  category,
+  triggers,
+  reportToken,
+  className,
+}: TriggerSectionProps) {
   const config = CATEGORY_CONFIG[category]
   const categoryScore = calculateCategoryScore(triggers)
   const weight = CATEGORY_WEIGHTS[category]
@@ -98,7 +104,7 @@ export function TriggerSection({ category, triggers, className }: TriggerSection
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               {triggers.map((trigger) => (
-                <TriggerCard key={trigger.id} trigger={trigger} />
+                <TriggerCard key={trigger.id} trigger={trigger} reportToken={reportToken} />
               ))}
             </div>
           </CardContent>

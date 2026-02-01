@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Trigger Detail Pages (BASIC_001)**
+  - Detail page route `/report/[token]/trigger/[triggerId]` with Server Component
+  - Input parameters display card showing calculation inputs (fan count, posts, interactions)
+  - Formula debug card (visible when `SHOW_DEBUG_FORMULAS=true`)
+  - Category display with 64 combinations (4 fan ranges × 4 post frequencies × 4 interaction levels)
+  - Current category highlighting with personalized recommendation
+  - Expandable view to browse all category combinations
+  - Loading skeleton state for async data fetching
+  - Click-through navigation from TriggerCard to detail page
+  - ENV variable `SHOW_DEBUG_FORMULAS` for debug mode
+  - Category definitions in `src/lib/constants/trigger-categories/basic-001.ts`
+  - Extended metrics with `_inputParams`, `_formula`, `_categoryKey` fields
+  - Documentation in `docs/systems/trigger-definitions.md`
+
 - **Dark/Light Theme Support**
   - ThemeProvider integration using next-themes (system/light/dark modes)
   - Theme toggle dropdown in header (visible for all users)

@@ -31,6 +31,11 @@ The Trigger Engine evaluates Facebook page performance using a registry of trigg
 - `src/lib/triggers/types.ts` - Type definitions
 - `src/lib/triggers/utils.ts` - Scoring utilities
 - `src/lib/triggers/rules/` - Individual trigger implementations
+- `src/lib/constants/trigger-categories/` - Category definitions for detail pages
+
+**Related documentation:**
+
+- [Trigger Definitions](./trigger-definitions.md) - Complete category matrix for BASIC_001 (64 combinations)
 
 ---
 
@@ -134,13 +139,15 @@ type FallbackReason =
 
 ### BASIC (5 triggers)
 
-| ID        | Name                    | Description                               |
-| --------- | ----------------------- | ----------------------------------------- |
-| BASIC_001 | Interakce na prisp.     | Engagement rate per post vs fan count     |
-| BASIC_002 | Struktura interakci     | Distribution of reactions/comments/shares |
-| BASIC_003 | Struktura reakci        | Types of reactions (like, love, etc.)     |
-| BASIC_004 | Kvalita novych fanousku | New fans engagement quality               |
-| BASIC_005 | Kvalita soucasnych fan. | Current fans engagement quality           |
+| ID        | Name                    | Description                               | Detail Page |
+| --------- | ----------------------- | ----------------------------------------- | ----------- |
+| BASIC_001 | Interakce na prisp.     | Engagement rate per post vs fan count     | ✓ 64 cats   |
+| BASIC_002 | Struktura interakci     | Distribution of reactions/comments/shares | -           |
+| BASIC_003 | Struktura reakci        | Types of reactions (like, love, etc.)     | -           |
+| BASIC_004 | Kvalita novych fanousku | New fans engagement quality               | -           |
+| BASIC_005 | Kvalita soucasnych fan. | Current fans engagement quality           | -           |
+
+> **BASIC_001** has a dedicated detail page with 64 category combinations (4 fan ranges × 4 post frequencies × 4 interaction levels). See [Trigger Definitions](./trigger-definitions.md#basic_001) for the complete matrix.
 
 ### CONTENT (6 triggers)
 
