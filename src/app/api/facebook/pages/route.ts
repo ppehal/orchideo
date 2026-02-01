@@ -19,7 +19,6 @@ export async function GET() {
     userId = session.user.id
 
     // Rate limiting per user: 20 requests per minute
-    const userId = session.user.id
     const limiter = getRateLimiter(`facebook-pages-${userId}`, {
       maxRequests: 20,
       windowMs: 60 * 1000, // 1 minute
