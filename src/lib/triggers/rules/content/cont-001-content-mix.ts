@@ -2,6 +2,7 @@ import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
 import { analyzeContentMix } from '@/lib/utils/text-analysis'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-001'
 
 const TRIGGER_ID = 'CONT_001'
 const TRIGGER_NAME = 'Obsahový mix'
@@ -68,6 +69,28 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Optimalizujte obsahový mix: více engagement obsahu, méně prodejního'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(analysis.total, analysis.engagementPct, analysis.salesPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: analysis.total.toString() },
+    {
+      key: 'engagementCount',
+      label: 'Engagement příspěvků',
+      value: analysis.engagementCount.toString(),
+    },
+    { key: 'salesCount', label: 'Prodejních příspěvků', value: analysis.salesCount.toString() },
+    { key: 'brandCount', label: 'Brandových příspěvků', value: analysis.brandCount.toString() },
+    {
+      key: 'engagementPct',
+      label: 'Podíl engagement',
+      value: formatPercent(analysis.engagementPct, 1),
+    },
+    { key: 'salesPct', label: 'Podíl prodejních', value: formatPercent(analysis.salesPct, 1) },
+    { key: 'brandPct', label: 'Podíl brandových', value: formatPercent(analysis.brandPct, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -87,6 +110,13 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         engagementCount: analysis.engagementCount,
         salesCount: analysis.salesCount,
         brandCount: analysis.brandCount,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `engagementPct = engagementCount / totalPosts * 100
+salesPct = salesCount / totalPosts * 100
+Kategorie: engagement ≥60% → HIGH, 45-60% → MEDIUM, <45% → LOW
+          sales ≤15% → LOW, >15% → HIGH`,
+        _categoryKey: categoryKey,
       },
     },
   }

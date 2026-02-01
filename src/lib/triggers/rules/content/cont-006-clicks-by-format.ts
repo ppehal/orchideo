@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-006'
 
 const TRIGGER_ID = 'CONT_006'
 const TRIGGER_NAME = 'Prokliky dle formátu'
@@ -104,6 +105,36 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   const bestTypeName = typeNames[bestFormat.type] || bestFormat.type
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(spreadRatio, true)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'postsWithClicks', label: 'Příspěvků s daty', value: postsWithClicks.length.toString() },
+    {
+      key: 'formatsAnalyzed',
+      label: 'Analyzovaných formátů',
+      value: sortedStats.length.toString(),
+    },
+    { key: 'bestFormat', label: 'Nejlepší formát', value: bestTypeName },
+    {
+      key: 'bestAvgClicks',
+      label: 'Průměr kliků (nejlepší)',
+      value: bestFormat.avgClicks.toFixed(0),
+    },
+    {
+      key: 'worstFormat',
+      label: 'Nejhorší formát',
+      value: typeNames[worstFormat.type] || worstFormat.type,
+    },
+    {
+      key: 'worstAvgClicks',
+      label: 'Průměr kliků (nejhorší)',
+      value: worstFormat.avgClicks.toFixed(0),
+    },
+    { key: 'spreadRatio', label: 'Rozptyl', value: `${spreadRatio.toFixed(1)}×` },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -126,6 +157,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         worstAvgClicks: Number(worstFormat.avgClicks.toFixed(1)),
         overallAvgClicks: Number(overallAvgClicks.toFixed(1)),
         formatsAnalyzed: sortedStats.length,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `spreadRatio = bestAvgClicks / worstAvgClicks
+Kategorie: ≤2× → BALANCED, 2-3× → MODERATE, 3-5× → UNBALANCED, >5× → VERY_UNBALANCED`,
+        _categoryKey: categoryKey,
       },
     },
   }
@@ -175,6 +211,26 @@ function evaluateWithEngagementProxy(posts: TriggerInput['posts90d']): TriggerEv
 
   const bestTypeName = typeNames[bestFormat.type] || bestFormat.type
 
+  // Category key for fallback
+  const categoryKey = getCategoryKey(null, false)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts.length.toString() },
+    {
+      key: 'formatsAnalyzed',
+      label: 'Analyzovaných formátů',
+      value: sortedStats.length.toString(),
+    },
+    { key: 'bestFormat', label: 'Nejlepší formát', value: bestTypeName },
+    {
+      key: 'bestAvgEngagement',
+      label: 'Průměr engagement',
+      value: bestFormat.avgEngagement.toFixed(0),
+    },
+    { key: 'dataSource', label: 'Zdroj dat', value: 'Engagement (proxy)' },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -193,6 +249,10 @@ function evaluateWithEngagementProxy(posts: TriggerInput['posts90d']): TriggerEv
         bestAvgEngagement: Number(bestFormat.avgEngagement.toFixed(1)),
         formatsAnalyzed: sortedStats.length,
         dataSource: 'engagement_proxy',
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: 'Data o proklikách nedostupná. Použit engagement jako aproximace.',
+        _categoryKey: categoryKey,
       },
     },
   }

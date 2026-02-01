@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-003'
 
 const TRIGGER_ID = 'CONT_003'
 const TRIGGER_NAME = 'Nejslabší posty'
@@ -98,6 +99,27 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = `Omezte publikování formátu "${weakestType}" - často končí ve slabých postech`
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, bottomToAvgRatio)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'bottomCount', label: 'Slabých příspěvků (10%)', value: bottomCount.toString() },
+    {
+      key: 'avgBottomEngagement',
+      label: 'Průměrný engagement slabých',
+      value: avgBottomEngagement.toFixed(1),
+    },
+    { key: 'overallAvg', label: 'Celkový průměr', value: overallAvg.toFixed(1) },
+    {
+      key: 'bottomToAvgRatio',
+      label: 'Poměr slabých/průměr',
+      value: `${(bottomToAvgRatio * 100).toFixed(0)}%`,
+    },
+    { key: 'weakestType', label: 'Nejčastější formát', value: weakestType },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -118,6 +140,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         weakestType: worstType?.[0] || 'mixed',
         sharedPostPct: (isSharedPost / bottomCount) * 100,
         inlineLinksPct: (hasInlineLinks / bottomCount) * 100,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `bottomToAvgRatio = avgBottomEngagement / overallAvg
+Kategorie: ≥50% → GOOD, 30-50% → MEDIUM, 15-30% → BAD, <15% → VERY_BAD`,
+        _categoryKey: categoryKey,
       },
     },
   }

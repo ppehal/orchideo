@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-004'
 
 const TRIGGER_ID = 'CONT_004'
 const TRIGGER_NAME = 'Promované posty'
@@ -95,6 +96,26 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = 'Promujte více top příspěvků pro lepší výsledky'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(promotedPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    {
+      key: 'promotedCount',
+      label: 'Promovaných příspěvků',
+      value: promotedPosts.length.toString(),
+    },
+    { key: 'promotedPct', label: 'Podíl promovaných', value: formatPercent(promotedPct, 1) },
+    { key: 'avgPaidReach', label: 'Průměrný placený dosah', value: avgPaidReach.toFixed(0) },
+    {
+      key: 'dataSource',
+      label: 'Zdroj dat',
+      value: postsWithPaidData.length > 0 ? 'Post insights' : 'Page insights',
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -116,6 +137,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         totalPosts: posts90d.length,
         avgPaidReach: Number(avgPaidReach.toFixed(0)),
         dataSource: postsWithPaidData.length > 0 ? 'post_insights' : 'page_insights',
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `promotedPct = promotedCount / totalPosts * 100
+Kategorie: 0% → NONE, <10% → LOW, 10-30% → IDEAL, 30-50% → HIGH, >50% → VERY_HIGH`,
+        _categoryKey: categoryKey,
       },
     },
   }

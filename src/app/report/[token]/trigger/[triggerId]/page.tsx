@@ -91,6 +91,60 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: BASIC_005_RECOMMENDATIONS,
       }
     }
+    case 'CONT_001': {
+      const { CONT_001_INTRO, CONT_001_DIMENSIONS, CONT_001_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-001')
+      return {
+        intro: CONT_001_INTRO,
+        dimensions: CONT_001_DIMENSIONS,
+        recommendations: CONT_001_RECOMMENDATIONS,
+      }
+    }
+    case 'CONT_002': {
+      const { CONT_002_INTRO, CONT_002_DIMENSIONS, CONT_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-002')
+      return {
+        intro: CONT_002_INTRO,
+        dimensions: CONT_002_DIMENSIONS,
+        recommendations: CONT_002_RECOMMENDATIONS,
+      }
+    }
+    case 'CONT_003': {
+      const { CONT_003_INTRO, CONT_003_DIMENSIONS, CONT_003_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-003')
+      return {
+        intro: CONT_003_INTRO,
+        dimensions: CONT_003_DIMENSIONS,
+        recommendations: CONT_003_RECOMMENDATIONS,
+      }
+    }
+    case 'CONT_004': {
+      const { CONT_004_INTRO, CONT_004_DIMENSIONS, CONT_004_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-004')
+      return {
+        intro: CONT_004_INTRO,
+        dimensions: CONT_004_DIMENSIONS,
+        recommendations: CONT_004_RECOMMENDATIONS,
+      }
+    }
+    case 'CONT_005': {
+      const { CONT_005_INTRO, CONT_005_DIMENSIONS, CONT_005_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-005')
+      return {
+        intro: CONT_005_INTRO,
+        dimensions: CONT_005_DIMENSIONS,
+        recommendations: CONT_005_RECOMMENDATIONS,
+      }
+    }
+    case 'CONT_006': {
+      const { CONT_006_INTRO, CONT_006_DIMENSIONS, CONT_006_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/cont-006')
+      return {
+        intro: CONT_006_INTRO,
+        dimensions: CONT_006_DIMENSIONS,
+        recommendations: CONT_006_RECOMMENDATIONS,
+      }
+    }
     // Additional triggers will be added here
     default:
       return null

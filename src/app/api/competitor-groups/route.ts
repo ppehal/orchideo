@@ -159,7 +159,6 @@ export async function POST(request: Request) {
   } catch (error) {
     logError(log, error, 'Failed to create competitor group', {
       [LogFields.userId]: userId,
-      primary_page_id: parsed?.data?.primaryPageId,
     })
 
     return NextResponse.json(

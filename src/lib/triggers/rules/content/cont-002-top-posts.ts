@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-002'
 
 const TRIGGER_ID = 'CONT_002'
 const TRIGGER_NAME = 'Nejsilnější posty'
@@ -78,6 +79,23 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   const bestTypeCount = dominantType ? dominantType[1] : 0
   const bestTypePct = topCount > 0 ? (bestTypeCount / topCount) * 100 : 0
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, topToAvgRatio)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'topCount', label: 'Top příspěvků (10%)', value: topCount.toString() },
+    {
+      key: 'avgTopEngagement',
+      label: 'Průměrný engagement top',
+      value: avgTopEngagement.toFixed(1),
+    },
+    { key: 'overallAvg', label: 'Celkový průměr', value: overallAvg.toFixed(1) },
+    { key: 'topToAvgRatio', label: 'Poměr top/průměr', value: `${topToAvgRatio.toFixed(1)}×` },
+    { key: 'bestType', label: 'Nejčastější formát', value: bestType },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -101,6 +119,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         bestType: dominantType?.[0] || 'mixed',
         hasMediaPct: (hasMedia / topCount) * 100,
         avgMessageLength: Number(avgMessageLength.toFixed(0)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `topToAvgRatio = avgTopEngagement / overallAvg
+Kategorie: ≥3× → EXCELLENT, 2-3× → HIGH, 1.5-2× → MEDIUM, <1.5× → LOW`,
+        _categoryKey: categoryKey,
       },
     },
   }

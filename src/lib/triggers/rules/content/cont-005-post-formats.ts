@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey, isFormatBalanced } from '@/lib/constants/trigger-categories/cont-005'
 
 const TRIGGER_ID = 'CONT_005'
 const TRIGGER_NAME = 'Formáty příspěvků'
@@ -116,6 +117,22 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     .filter(Boolean)
     .join(' / ')
 
+  // Calculate category key for detail page
+  const balanced = isFormatBalanced(photoPct, videoTotalPct, sharedPct, statusPct)
+  const categoryKey = getCategoryKey(total, activeFormats, balanced)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: total.toString() },
+    { key: 'activeFormats', label: 'Aktivních formátů', value: activeFormats.toString() },
+    { key: 'photoPct', label: 'Podíl fotek', value: formatPercent(photoPct, 1) },
+    { key: 'videoPct', label: 'Podíl videí', value: formatPercent(videoPct, 1) },
+    { key: 'reelPct', label: 'Podíl Reels', value: formatPercent(reelPct, 1) },
+    { key: 'linkPct', label: 'Podíl odkazů', value: formatPercent(linkPct, 1) },
+    { key: 'statusPct', label: 'Podíl textů', value: formatPercent(statusPct, 1) },
+    { key: 'sharedPct', label: 'Podíl sdílených', value: formatPercent(sharedPct, 1) },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -136,6 +153,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         statusPct: Number(statusPct.toFixed(1)),
         sharedPct: Number(sharedPct.toFixed(1)),
         activeFormats,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `Diverzita: 5+ formátů → HIGH, 3-4 → MEDIUM, 1-2 → LOW
+Balance: foto ≤70%, sdílené ≤20%, text ≤20% → BALANCED`,
+        _categoryKey: categoryKey,
       },
     },
   }

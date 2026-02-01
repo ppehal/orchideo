@@ -6,7 +6,7 @@ import {
   saveComparisonSnapshot,
   getComparisonHistory,
 } from '@/lib/services/competitors'
-import { createLogger, logError, LogFields } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 
 const log = createLogger('api-competitor-comparison')
 
