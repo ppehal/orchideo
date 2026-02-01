@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Analysis History Page** (`/analyze/history`)
+  - List of all user's analyses with filters (status, page, sort order)
+  - URL-based filter state for shareable/bookmarkable filter combinations
+  - Responsive layout: table on desktop (`md:`), cards on mobile
+  - Status badges with semantic colors (`ANALYSIS_STATUS_CONFIG`)
+  - Score visualization with color thresholds via `getScoreColor()`
+  - Expired analysis detection with visual indication (opacity + "Vypršelo" badge)
+  - Error message tooltips for failed analyses
+  - Disconnected page indicator when `fb_page_id` is null
+  - Empty states: no data vs no filter results
+  - Navigation link added to header and mobile nav
+  - New constants: `ANALYSIS_STATUS_CONFIG`, `ANALYSIS_STATUS_OPTIONS`, `ANALYSIS_STATUS_LABELS_SHORT`
+  - Query functions: `getUserAnalyses()`, `getUserPages()` in `src/lib/actions/analysis-history.ts`
+
 ### Fixed
 
 - **Facebook API - appsecret_proof**

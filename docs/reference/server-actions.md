@@ -105,6 +105,46 @@ async function handleAnalyze(pageId: string) {
 
 ---
 
+## Analysis History Queries
+
+**Location:** `src/lib/actions/analysis-history.ts`
+
+These are query functions (not mutations), so they can throw on error. Called from Server Components.
+
+### getUserAnalyses
+
+Gets all analyses for the current user with optional filters.
+
+**Signature:**
+
+```typescript
+function getUserAnalyses(filters?: AnalysisHistoryFilters): Promise<AnalysisHistoryItem[]>
+```
+
+**Parameters:**
+
+| Parameter      | Type   | Required | Description                                    |
+| -------------- | ------ | -------- | ---------------------------------------------- |
+| filters.status | string | No       | "ALL", "COMPLETED", "FAILED", or "IN_PROGRESS" |
+| filters.pageId | string | No       | Facebook page ID to filter by                  |
+| filters.sort   | string | No       | "newest", "oldest", "best", "worst"            |
+
+**Returns:** Array of `AnalysisHistoryItem` with fields: `id`, `public_token`, `page_name`, `page_picture`, `overall_score`, `status`, `created_at`, `completed_at`, `expires_at`, `error_message`, `fb_page_id`.
+
+### getUserPages
+
+Gets all Facebook pages for the current user (for filter dropdown).
+
+**Signature:**
+
+```typescript
+function getUserPages(): Promise<UserPage[]>
+```
+
+**Returns:** Array of `{ id: string, name: string }`.
+
+---
+
 ## Action vs Query Functions
 
 | Type   | Use Case                           | Error Handling      | Called From       |
