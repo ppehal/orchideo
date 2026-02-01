@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth, signIn } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PermissionsDisclosure } from '@/components/auth/permissions-disclosure'
 
 export const metadata = {
   title: 'Přihlášení',
@@ -22,6 +23,8 @@ export default async function LoginPage() {
           <CardDescription>Přihlaste se pro analýzu vaší Facebook stránky</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <PermissionsDisclosure />
+
           <form
             action={async () => {
               'use server'

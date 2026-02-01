@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Permissions Disclosure on Login Page**
+  - GDPR 2026 compliant transparency component showing Facebook permissions before login
+  - Expandable card with permission list (7 permissions with icons and descriptions)
+  - Technical permission IDs displayed as code blocks (e.g., `pages_read_engagement`)
+  - "What we DON'T do" trust-building section
+  - WCAG AA accessible (44px touch targets, aria-expanded, keyboard navigation)
+  - Dark mode support
+  - New constants: `FB_PERMISSIONS`, `FB_PERMISSIONS_DONT_LIST` in `src/lib/constants/fb-permissions.ts`
+  - New component: `src/components/auth/permissions-disclosure.tsx`
+
 - **Trigger Detail Pages (BASIC_001)**
   - Detail page route `/report/[token]/trigger/[triggerId]` with Server Component
   - Input parameters display card showing calculation inputs (fan count, posts, interactions)
