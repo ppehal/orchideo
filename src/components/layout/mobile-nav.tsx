@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const NAV_LINKS = [
   { href: '/analyze', label: 'Analýza' },
+  { href: '/analyze/history', label: 'Historie' },
   { href: '/trends', label: 'Trendy' },
   { href: '/competitors', label: 'Porovnání' },
   { href: '/alerts', label: 'Upozornění' },
