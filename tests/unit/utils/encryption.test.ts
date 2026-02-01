@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 import { encrypt, decrypt, generateEncryptionKey } from '@/lib/utils/encryption'
 
 // Generate a valid test key (32 bytes = 256 bits, base64 encoded)
@@ -165,6 +165,64 @@ describe('Encryption Utils', () => {
       const decrypted = decrypt(ciphertext)
 
       expect(JSON.parse(decrypted)).toEqual({ token: 'secret', expiry: 12345 })
+    })
+
+    it('handles very large strings (100KB)', () => {
+      const largeString = 'X'.repeat(100_000)
+      const ciphertext = encrypt(largeString)
+      const decrypted = decrypt(ciphertext)
+
+      expect(decrypted).toBe(largeString)
+      expect(decrypted.length).toBe(100_000)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('throws error for invalid base64 in IV', () => {
+      // @@@ is not valid base64
+      expect(() => decrypt('@@@:validbase64:validbase64')).toThrow()
+    })
+
+    it('throws error for invalid base64 in authTag', () => {
+      const iv = Buffer.from('0123456789abcdef').toString('base64')
+      expect(() => decrypt(`${iv}:@@@:validbase64`)).toThrow()
+    })
+
+    it('throws error for invalid base64 in encrypted data', () => {
+      const iv = Buffer.from('0123456789abcdef').toString('base64')
+      const authTag = Buffer.from('0123456789abcdef').toString('base64')
+      expect(() => decrypt(`${iv}:${authTag}:@@@`)).toThrow()
+    })
+
+    it('handles very long key gracefully (should still validate)', () => {
+      const longKey = randomBytes(64).toString('base64') // 64 bytes instead of 32
+      vi.stubEnv('ENCRYPTION_KEY', longKey)
+      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be a base64-encoded 32-byte key')
+    })
+
+    it('handles binary-like content', () => {
+      // Create a string that contains all byte values 0-255 as characters
+      const binaryLike = String.fromCharCode(...Array.from({ length: 256 }, (_, i) => i))
+      const ciphertext = encrypt(binaryLike)
+      const decrypted = decrypt(ciphertext)
+
+      expect(decrypted).toBe(binaryLike)
+    })
+
+    it('handles only whitespace', () => {
+      const whitespace = '   \t\n\r  '
+      const ciphertext = encrypt(whitespace)
+      const decrypted = decrypt(ciphertext)
+
+      expect(decrypted).toBe(whitespace)
+    })
+
+    it('handles null character in string', () => {
+      const withNull = 'before\0after'
+      const ciphertext = encrypt(withNull)
+      const decrypted = decrypt(ciphertext)
+
+      expect(decrypted).toBe(withNull)
     })
   })
 })

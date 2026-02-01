@@ -113,30 +113,77 @@ describe('Normalizer', () => {
         expect(result.shares_count).toBe(0)
         expect(result.total_engagement).toBe(0)
       })
+
+      it('treats empty string message as null (falsy coercion)', () => {
+        const rawEmpty = createRawPost({ message: '' })
+        const rawUndefined = createRawPost({ message: undefined })
+
+        const resultEmpty = normalizePost(rawEmpty)
+        const resultUndefined = normalizePost(rawUndefined)
+
+        // Both empty string and undefined become null due to `|| null` coercion
+        expect(resultEmpty.message).toBeNull()
+        expect(resultEmpty.message_length).toBe(0)
+        expect(resultUndefined.message).toBeNull()
+        expect(resultUndefined.message_length).toBe(0)
+      })
+
+      it('handles invalid date format gracefully', () => {
+        const raw = createRawPost({ created_time: 'not-a-date' })
+        const result = normalizePost(raw)
+
+        // Invalid date should result in Invalid Date object
+        expect(result.created_time instanceof Date).toBe(true)
+        expect(isNaN(result.created_time.getTime())).toBe(true)
+      })
+
+      it('handles zero engagement values', () => {
+        const raw = createRawPost({
+          reactions: { summary: { total_count: 0 } },
+          comments: { summary: { total_count: 0 } },
+          shares: { count: 0 },
+        })
+
+        const result = normalizePost(raw)
+
+        expect(result.reactions_count).toBe(0)
+        expect(result.comments_count).toBe(0)
+        expect(result.shares_count).toBe(0)
+        expect(result.total_engagement).toBe(0)
+      })
     })
 
     describe('post type detection', () => {
-      it('detects photo post', () => {
-        const raw = createRawPost({ type: 'photo' })
+      it('detects photo post from attachment media_type', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ media_type: 'photo' }],
+          },
+        })
         expect(normalizePost(raw).type).toBe('photo')
       })
 
-      it('detects video post', () => {
-        const raw = createRawPost({ type: 'video' })
+      it('detects video post from attachment media_type', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ media_type: 'video' }],
+          },
+        })
         expect(normalizePost(raw).type).toBe('video')
       })
 
-      it('detects link post', () => {
-        const raw = createRawPost({ type: 'link' })
+      it('detects link post from attachment media_type', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ media_type: 'link' }],
+          },
+        })
         expect(normalizePost(raw).type).toBe('link')
       })
 
-      it('detects shared post by status_type', () => {
-        const raw = createRawPost({ status_type: 'shared_story' })
-        const result = normalizePost(raw)
-
-        expect(result.type).toBe('shared')
-        expect(result.is_shared_post).toBe(true)
+      it('returns status for post without attachments', () => {
+        const raw = createRawPost({})
+        expect(normalizePost(raw).type).toBe('status')
       })
 
       it('detects shared post by target in attachment', () => {
@@ -174,6 +221,40 @@ describe('Normalizer', () => {
 
         expect(result.is_reel).toBe(true)
       })
+
+      it('returns "other" for unrecognized attachment type', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ type: 'unknown_type', media_type: 'something_else' }],
+          },
+        })
+        const result = normalizePost(raw)
+
+        expect(result.type).toBe('other')
+      })
+
+      it('treats album media_type as photo', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ media_type: 'album' }],
+          },
+        })
+        const result = normalizePost(raw)
+
+        expect(result.type).toBe('photo')
+      })
+
+      it('detects shared post by share attachment type', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [{ type: 'share' }],
+          },
+        })
+        const result = normalizePost(raw)
+
+        expect(result.type).toBe('shared')
+        expect(result.is_shared_post).toBe(true)
+      })
     })
 
     describe('text analysis', () => {
@@ -203,6 +284,13 @@ describe('Normalizer', () => {
       it('does not detect single emoji as bullet', () => {
         const raw = createRawPost({ message: '🔥 Just one emoji line' })
         expect(normalizePost(raw).has_emoji_bullets).toBe(false)
+      })
+
+      it('detects exactly 2 emoji bullets (minimum threshold)', () => {
+        const raw = createRawPost({
+          message: '🔥 First point\n✅ Second point',
+        })
+        expect(normalizePost(raw).has_emoji_bullets).toBe(true)
       })
 
       it('detects inline links', () => {
@@ -283,6 +371,119 @@ describe('Normalizer', () => {
           },
         })
         expect(normalizePost(raw).image_format).toBe('jpeg')
+      })
+
+      it('detects GIF format from URL', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [
+              {
+                media: {
+                  image: { width: 400, height: 300, src: 'https://example.com/animation.gif' },
+                },
+              },
+            ],
+          },
+        })
+        expect(normalizePost(raw).image_format).toBe('gif')
+      })
+
+      it('detects WebP format from URL', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [
+              {
+                media: {
+                  image: { width: 800, height: 600, src: 'https://example.com/image.webp' },
+                },
+              },
+            ],
+          },
+        })
+        expect(normalizePost(raw).image_format).toBe('webp')
+      })
+
+      it('detects format from URL with query parameters', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [
+              {
+                media: {
+                  image: {
+                    width: 800,
+                    height: 600,
+                    src: 'https://example.com/image.png?w=100&h=100',
+                  },
+                },
+              },
+            ],
+          },
+        })
+        expect(normalizePost(raw).image_format).toBe('png')
+      })
+
+      it('extracts image from subattachments', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [
+              {
+                subattachments: {
+                  data: [
+                    {
+                      media: {
+                        image: {
+                          width: 1200,
+                          height: 800,
+                          src: 'https://example.com/sub-image.png',
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        })
+
+        const result = normalizePost(raw)
+
+        expect(result.has_media).toBe(true)
+        expect(result.media_type).toBe('image')
+        expect(result.image_width).toBe(1200)
+        expect(result.image_height).toBe(800)
+        expect(result.image_format).toBe('png')
+      })
+
+      it('returns null format for unrecognized extension', () => {
+        const raw = createRawPost({
+          attachments: {
+            data: [
+              {
+                media: {
+                  image: {
+                    width: 800,
+                    height: 600,
+                    src: 'https://example.com/image.tiff',
+                  },
+                },
+              },
+            ],
+          },
+        })
+        expect(normalizePost(raw).image_format).toBeNull()
+      })
+
+      it('handles image without dimensions from full_picture fallback', () => {
+        const raw = createRawPost({
+          full_picture: 'https://example.com/image.png',
+        })
+
+        const result = normalizePost(raw)
+
+        expect(result.has_media).toBe(true)
+        expect(result.media_type).toBe('image')
+        expect(result.image_width).toBeNull()
+        expect(result.image_height).toBeNull()
       })
 
       it('extracts video metadata', () => {
@@ -430,6 +631,40 @@ describe('Normalizer', () => {
       expect(result.collectionMetadata.postsCollected).toBe(3)
       expect(result.collectionMetadata.daysOfData).toBe(14)
     })
+
+    it('normalizes collection with no posts', () => {
+      const pageData: NormalizedFacebookPage = {
+        fb_page_id: 'page_123',
+        name: 'Empty Page',
+        category: 'Business',
+        fan_count: 0,
+        picture_url: null,
+        cover_url: null,
+        page_access_token: 'test_token',
+        username: 'emptypage',
+      }
+
+      const collectedData: CollectedData = {
+        pageData,
+        posts: [],
+        insights: null,
+        collectedAt: new Date('2024-01-20T00:00:00Z'),
+        metadata: {
+          postsCollected: 0,
+          oldestPostDate: null,
+          newestPostDate: null,
+          insightsAvailable: false,
+          daysOfData: 0,
+        },
+      }
+
+      const result = normalizeCollectedData(collectedData)
+
+      expect(result.posts90d).toHaveLength(0)
+      expect(result.collectionMetadata.postsCollected).toBe(0)
+      expect(result.collectionMetadata.oldestPostDate).toBeNull()
+      expect(result.collectionMetadata.newestPostDate).toBeNull()
+    })
   })
 
   describe('getPostsByDateRange', () => {
@@ -467,6 +702,16 @@ describe('Normalizer', () => {
 
     it('handles empty posts array', () => {
       const result = getPostsByDateRange([], 30)
+      expect(result).toHaveLength(0)
+    })
+
+    it('handles zero daysBack (should return no posts)', () => {
+      const result = getPostsByDateRange(posts, 0)
+      expect(result).toHaveLength(0)
+    })
+
+    it('handles negative daysBack (edge case)', () => {
+      const result = getPostsByDateRange(posts, -1)
       expect(result).toHaveLength(0)
     })
   })
