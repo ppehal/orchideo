@@ -30,13 +30,16 @@ interface TriggerDetails {
   metrics?: Record<string, string | number | null>
 }
 
+interface CategoryDimension {
+  id: string
+  label: string
+  min?: number
+  max?: number
+}
+
 interface CategoryDefinition {
   intro: string
-  dimensions: {
-    fanCount: Array<{ id: string; label: string; min?: number; max?: number }>
-    postsPerMonth: Array<{ id: string; label: string; min?: number; max?: number }>
-    interactionsPerPost: Array<{ id: string; label: string; min?: number; max?: number }>
-  }
+  dimensions: Record<string, CategoryDimension[]>
   recommendations: Record<string, string>
 }
 
@@ -50,6 +53,15 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         intro: BASIC_001_INTRO,
         dimensions: BASIC_001_DIMENSIONS,
         recommendations: BASIC_001_RECOMMENDATIONS,
+      }
+    }
+    case 'BASIC_005': {
+      const { BASIC_005_INTRO, BASIC_005_DIMENSIONS, BASIC_005_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/basic-005')
+      return {
+        intro: BASIC_005_INTRO,
+        dimensions: BASIC_005_DIMENSIONS,
+        recommendations: BASIC_005_RECOMMENDATIONS,
       }
     }
     // Additional triggers will be added here

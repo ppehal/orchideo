@@ -1,6 +1,11 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import {
+  getCategoryKey,
+  getFanCountCategory,
+  BASIC_005_REACH_THRESHOLDS,
+} from '@/lib/constants/trigger-categories/basic-005'
 
 const TRIGGER_ID = 'BASIC_005'
 const TRIGGER_NAME = 'Kvalita současných fanoušků'
@@ -107,6 +112,39 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   const reachPct = organicReachRate * 100
 
+  // Calculate average reach per post for category determination
+  const postsWithReach = posts90d.filter((p) => p.reach !== null)
+  const avgReachPerPost =
+    postsWithReach.length > 0
+      ? postsWithReach.reduce((sum, p) => sum + (p.reach ?? 0), 0) / postsWithReach.length
+      : organicReach / 30 // Fallback estimate
+
+  // Get category key for detail page
+  const categoryKey = getCategoryKey(fanCount, avgReachPerPost)
+  const fanCategory = getFanCountCategory(fanCount)
+  const reachThreshold = BASIC_005_REACH_THRESHOLDS[fanCategory] ?? 0
+
+  // Build input parameters for detail page
+  const inputParams = [
+    { key: 'fanCount', label: 'Počet fanoušků', value: fanCount.toLocaleString('cs-CZ') },
+    {
+      key: 'avgReachPerPost',
+      label: 'Průměrný organický dosah/post',
+      value: Math.round(avgReachPerPost).toLocaleString('cs-CZ'),
+    },
+    {
+      key: 'reachThreshold',
+      label: 'Threshold pro kvalitní dosah',
+      value: reachThreshold > 0 ? reachThreshold.toLocaleString('cs-CZ') : 'N/A',
+    },
+    {
+      key: 'organicReach',
+      label: 'Celkový organický dosah (30d)',
+      value: organicReach.toLocaleString('cs-CZ'),
+    },
+    { key: 'reachSource', label: 'Zdroj dat', value: reachSource },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -127,6 +165,12 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         fanCount,
         organicReachRate: Number(organicReachRate.toFixed(4)),
         reachSource,
+        avgReachPerPost: Math.round(avgReachPerPost),
+        // Extended data for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula:
+          'avgReachPerPost = sum(post.reach) / posts.count\nfanCategory = categorize(fanCount)\nreachQuality = avgReachPerPost >= threshold ? HIGH : LOW',
+        _categoryKey: categoryKey,
       },
     },
   }
