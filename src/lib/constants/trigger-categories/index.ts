@@ -215,3 +215,19 @@ export {
   SHARE_004_RECOMMENDATIONS,
   getCategoryKey as getShare004CategoryKey,
 } from './share-004'
+
+// PAGE_001
+export {
+  PAGE_001_INTRO,
+  PAGE_001_DIMENSIONS,
+  PAGE_001_RECOMMENDATIONS,
+  getCategoryKey as getPage001CategoryKey,
+} from './page-001'
+
+// PAGE_002
+export {
+  PAGE_002_INTRO,
+  PAGE_002_DIMENSIONS,
+  PAGE_002_RECOMMENDATIONS,
+  getCategoryKey as getPage002CategoryKey,
+} from './page-002'

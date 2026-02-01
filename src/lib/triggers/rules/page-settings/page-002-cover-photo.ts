@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/page-002'
 
 const TRIGGER_ID = 'PAGE_002'
 const TRIGGER_NAME = 'Cover fotka'
@@ -18,6 +19,15 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   // Check if cover photo exists
   if (!pageData.cover_url) {
+    const missingParams = [
+      { key: 'status', label: 'Stav cover fotky', value: 'Chybí' },
+      {
+        key: 'recommendedSize',
+        label: 'Doporučená velikost',
+        value: `${IDEAL_WIDTH}×${IDEAL_HEIGHT} px`,
+      },
+      { key: 'minSize', label: 'Minimální velikost', value: `${MIN_WIDTH}×${MIN_HEIGHT} px` },
+    ]
     return {
       id: TRIGGER_ID,
       name: TRIGGER_NAME,
@@ -30,6 +40,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         currentValue: 'Chybí',
         targetValue: `${IDEAL_WIDTH}x${IDEAL_HEIGHT} px`,
         context: 'Cover fotka je první věc, kterou návštěvníci vidí',
+        metrics: {
+          hasCoverPhoto: 'false',
+          _inputParams: JSON.stringify(missingParams),
+          _categoryKey: getCategoryKey(false),
+        },
       },
     }
   }
@@ -37,6 +52,17 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
   // Cover photo exists - give good score
   // In production, you could analyze dimensions via image service
   const score = 85
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'status', label: 'Stav cover fotky', value: 'Nastavena' },
+    {
+      key: 'recommendedSize',
+      label: 'Doporučená velikost',
+      value: `${IDEAL_WIDTH}×${IDEAL_HEIGHT} px`,
+    },
+    { key: 'minSize', label: 'Minimální velikost', value: `${MIN_WIDTH}×${MIN_HEIGHT} px` },
+  ]
 
   return {
     id: TRIGGER_ID,
@@ -50,6 +76,13 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       currentValue: 'Nastavena',
       targetValue: `${IDEAL_WIDTH}x${IDEAL_HEIGHT} px`,
       context: `Minimální velikost ${MIN_WIDTH}x${MIN_HEIGHT} px pro ostré zobrazení`,
+      metrics: {
+        hasCoverPhoto: 'true',
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `Score based on cover photo presence
+Kategorie: EXISTS (photo set) or MISSING (no photo)`,
+        _categoryKey: getCategoryKey(true),
+      },
     },
   }
 }

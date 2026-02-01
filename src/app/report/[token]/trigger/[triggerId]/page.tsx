@@ -271,7 +271,24 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: SHARE_004_RECOMMENDATIONS,
       }
     }
-    // Additional triggers will be added here
+    case 'PAGE_001': {
+      const { PAGE_001_INTRO, PAGE_001_DIMENSIONS, PAGE_001_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/page-001')
+      return {
+        intro: PAGE_001_INTRO,
+        dimensions: PAGE_001_DIMENSIONS,
+        recommendations: PAGE_001_RECOMMENDATIONS,
+      }
+    }
+    case 'PAGE_002': {
+      const { PAGE_002_INTRO, PAGE_002_DIMENSIONS, PAGE_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/page-002')
+      return {
+        intro: PAGE_002_INTRO,
+        dimensions: PAGE_002_DIMENSIONS,
+        recommendations: PAGE_002_RECOMMENDATIONS,
+      }
+    }
     default:
       return null
   }
