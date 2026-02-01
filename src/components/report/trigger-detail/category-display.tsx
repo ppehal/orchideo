@@ -454,6 +454,118 @@ function CategoryDisplay2D({
 }
 
 /**
+ * 1D Category Display (CONT_002, TECH_001, SHARE_001, etc.)
+ * Handles single-dimension triggers with flat category list
+ */
+function CategoryDisplay1D({
+  definition,
+  currentKey,
+}: {
+  definition: CategoryDefinition
+  currentKey: string
+}) {
+  const [showAll, setShowAll] = useState(false)
+
+  const dims = definition.dimensions
+  const dimKey = Object.keys(dims)[0] ?? 'unknown'
+  const dimOptions = dims[dimKey] ?? []
+
+  // Check if currentKey is a real category (not fallback like INSUFFICIENT, UNAVAILABLE)
+  const isInDimensions = dimOptions.some((d) => d.id === currentKey)
+  const currentLabel = dimOptions.find((d) => d.id === currentKey)?.label ?? currentKey
+  const currentRecommendation = definition.recommendations[currentKey]
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-medium">Vaše zařazení</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Current category badge */}
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="gap-1">
+            <Check className="h-3 w-3" />
+            {currentLabel}
+          </Badge>
+        </div>
+
+        {/* Current recommendation */}
+        {currentRecommendation && (
+          <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
+            <p className="text-sm leading-relaxed">{currentRecommendation}</p>
+          </div>
+        )}
+
+        {/* Toggle and category list - only show if currentKey is in dimensions */}
+        {isInDimensions && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAll(!showAll)}
+              className="gap-2"
+            >
+              {showAll ? (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Skrýt všechny kategorie
+                </>
+              ) : (
+                <>
+                  <ChevronRight className="h-4 w-4" />
+                  Zobrazit všechny kategorie
+                </>
+              )}
+            </Button>
+
+            {/* All categories - flat list */}
+            {showAll && (
+              <div className="space-y-2 pt-2">
+                {dimOptions.map((d) => {
+                  const isActive = d.id === currentKey
+                  const recommendation = definition.recommendations[d.id]
+
+                  return (
+                    <div
+                      key={d.id}
+                      className={cn(
+                        'rounded-md p-2 text-sm',
+                        isActive ? 'bg-primary/10 border-primary/30 border' : 'bg-muted/30'
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isActive ? (
+                          <Badge variant="default" className="bg-primary shrink-0 text-xs">
+                            VAŠE KATEGORIE
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">○</span>
+                        )}
+                        <span className={cn('text-xs', isActive && 'font-medium')}>{d.label}</span>
+                      </div>
+                      {recommendation && (
+                        <p
+                          className={cn(
+                            'mt-1 text-xs leading-relaxed',
+                            isActive ? 'text-foreground' : 'text-muted-foreground line-clamp-2'
+                          )}
+                        >
+                          {recommendation}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
  * Main CategoryDisplay component - automatically selects the right display mode
  */
 export function CategoryDisplay({ definition, currentKey }: CategoryDisplayProps) {
@@ -465,6 +577,10 @@ export function CategoryDisplay({ definition, currentKey }: CategoryDisplayProps
 
   if (structureType === '2d') {
     return <CategoryDisplay2D definition={definition} currentKey={currentKey} />
+  }
+
+  if (structureType === '1d') {
+    return <CategoryDisplay1D definition={definition} currentKey={currentKey} />
   }
 
   // Fallback for unknown structures - just show recommendation

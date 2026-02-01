@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **CategoryDisplay for 1D Triggers**
+  - Added `CategoryDisplay1D` component for single-dimension triggers (18 triggers total)
+  - Previously 1D triggers only showed current recommendation without ability to browse other categories
+  - Now displays: badge with current category, recommendation, toggle to show all categories
+  - Handles fallback states (INSUFFICIENT, UNAVAILABLE, INSUFFICIENT_DATA) - shows only badge + recommendation without toggle
+  - Binary triggers (PAGE_001, PAGE_002) work correctly with 2 categories
+  - Consistent styling with existing 2D/3D components
+  - Affected triggers: CONT_002, CONT_003, CONT_004, CONT_006, SHARE_001-004, PAGE_001-002, TECH_001-007, TIME_001
+
 ### Added
 
 - **Analysis History Page** (`/analyze/history`)
