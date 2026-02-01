@@ -110,12 +110,24 @@ feature-branch → stage → (PR) → main
 | `stage` | Integrační větev pro testování           |
 | `fix/*` | Feature/fix branches, vychází ze `stage` |
 
+**⚠️ PUSH PRAVIDLA:**
+
+```bash
+# ✅ POVOLENO - push pouze do stage
+git push origin stage
+
+# ❌ ZAKÁZÁNO - NIKDY nepushovat do main
+git push origin main        # FORBIDDEN!
+git push                    # FORBIDDEN! (může jít do main)
+```
+
 **Pravidla:**
 
-1. NIKDY nepushovat přímo do `main`
-2. Nové změny commitovat do feature branch
-3. PR mergovat do `stage` (nebo `main` pro hotfixy)
-4. `stage` → `main` pouze přes PR s review
+1. **PUSH POUZE DO `stage`** - nikdy přímo do `main`
+2. NIKDY nepoužívat `git push` bez specifikace větve
+3. Nové změny commitovat do feature branch nebo přímo do `stage`
+4. `stage` → `main` POUZE přes Pull Request s review
+5. Před pushem vždy ověřit aktuální větev: `git branch --show-current`
 
 ---
 
@@ -314,6 +326,8 @@ Před editací souboru >300 řádků VŽDY:
 | Use `console.error` in server code   | Use `createLogger` from `@/lib/logging`           |
 | `fetch()` without timeout            | Always add `AbortSignal.timeout()`                |
 | Edit >300 line file bez čtení celého | Vždy číst celý soubor před editací                |
+| `git push origin main`               | `git push origin stage` (main pouze přes PR)      |
+| `git push` bez specifikace větve     | Vždy specifikovat: `git push origin stage`        |
 
 ---
 
