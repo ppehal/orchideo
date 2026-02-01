@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/share-004'
 
 const TRIGGER_ID = 'SHARE_004'
 const TRIGGER_NAME = 'UTM parametry'
@@ -20,6 +21,10 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
 
   if (linkPosts.length < 3) {
     // Not enough link posts to evaluate
+    const fallbackParams = [
+      { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+      { key: 'linkPostsCount', label: 'Link postů', value: linkPosts.length.toString() },
+    ]
     return {
       id: TRIGGER_ID,
       name: TRIGGER_NAME,
@@ -34,6 +39,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         metrics: {
           linkPostsCount: linkPosts.length,
           totalPosts: posts90d.length,
+          _inputParams: JSON.stringify(fallbackParams),
+          _categoryKey: 'INSUFFICIENT_DATA',
         },
       },
     }
@@ -63,6 +70,18 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = `Přidejte UTM parametry k ${formatPercent(100 - utmPct, 0)} odkazů bez trackingu. Pomůže to měřit efektivitu FB kampaní.`
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(linkPosts.length, utmPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'linkPostsCount', label: 'Link postů', value: linkPosts.length.toString() },
+    { key: 'utmCount', label: 'S UTM parametry', value: utmCount.toString() },
+    { key: 'utmPct', label: 'Podíl s UTM', value: formatPercent(utmPct, 1) },
+    { key: 'withoutUtm', label: 'Bez UTM', value: (linkPosts.length - utmCount).toString() },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -80,6 +99,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         utmCount,
         linkPostsCount: linkPosts.length,
         linkPostsPct: Number(((linkPosts.length / posts90d.length) * 100).toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `utmPct = utmCount / linkPostsCount * 100
+Kategorie: ≥80% → EXCELLENT, ≥60% → GOOD, ≥40% → MODERATE`,
+        _categoryKey: categoryKey,
       },
     },
   }

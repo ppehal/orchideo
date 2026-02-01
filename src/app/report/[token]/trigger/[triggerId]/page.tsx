@@ -235,6 +235,42 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
         recommendations: TIME_003_RECOMMENDATIONS,
       }
     }
+    case 'SHARE_001': {
+      const { SHARE_001_INTRO, SHARE_001_DIMENSIONS, SHARE_001_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/share-001')
+      return {
+        intro: SHARE_001_INTRO,
+        dimensions: SHARE_001_DIMENSIONS,
+        recommendations: SHARE_001_RECOMMENDATIONS,
+      }
+    }
+    case 'SHARE_002': {
+      const { SHARE_002_INTRO, SHARE_002_DIMENSIONS, SHARE_002_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/share-002')
+      return {
+        intro: SHARE_002_INTRO,
+        dimensions: SHARE_002_DIMENSIONS,
+        recommendations: SHARE_002_RECOMMENDATIONS,
+      }
+    }
+    case 'SHARE_003': {
+      const { SHARE_003_INTRO, SHARE_003_DIMENSIONS, SHARE_003_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/share-003')
+      return {
+        intro: SHARE_003_INTRO,
+        dimensions: SHARE_003_DIMENSIONS,
+        recommendations: SHARE_003_RECOMMENDATIONS,
+      }
+    }
+    case 'SHARE_004': {
+      const { SHARE_004_INTRO, SHARE_004_DIMENSIONS, SHARE_004_RECOMMENDATIONS } =
+        await import('@/lib/constants/trigger-categories/share-004')
+      return {
+        intro: SHARE_004_INTRO,
+        dimensions: SHARE_004_DIMENSIONS,
+        recommendations: SHARE_004_RECOMMENDATIONS,
+      }
+    }
     // Additional triggers will be added here
     default:
       return null

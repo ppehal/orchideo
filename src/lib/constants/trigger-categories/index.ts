@@ -183,3 +183,35 @@ export {
   TIME_003_RECOMMENDATIONS,
   getCategoryKey as getTime003CategoryKey,
 } from './time-003'
+
+// SHARE_001
+export {
+  SHARE_001_INTRO,
+  SHARE_001_DIMENSIONS,
+  SHARE_001_RECOMMENDATIONS,
+  getCategoryKey as getShare001CategoryKey,
+} from './share-001'
+
+// SHARE_002
+export {
+  SHARE_002_INTRO,
+  SHARE_002_DIMENSIONS,
+  SHARE_002_RECOMMENDATIONS,
+  getCategoryKey as getShare002CategoryKey,
+} from './share-002'
+
+// SHARE_003
+export {
+  SHARE_003_INTRO,
+  SHARE_003_DIMENSIONS,
+  SHARE_003_RECOMMENDATIONS,
+  getCategoryKey as getShare003CategoryKey,
+} from './share-003'
+
+// SHARE_004
+export {
+  SHARE_004_INTRO,
+  SHARE_004_DIMENSIONS,
+  SHARE_004_RECOMMENDATIONS,
+  getCategoryKey as getShare004CategoryKey,
+} from './share-004'

@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/share-002'
 
 const TRIGGER_ID = 'SHARE_002'
 const TRIGGER_NAME = 'YouTube videa'
@@ -75,6 +76,31 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     recommendation = `Vaše nativní videa mají ${((avgNativeVideoEngagement / avgYoutubeEngagement - 1) * 100).toFixed(0)}% vyšší engagement než YouTube. Preferujte přímé nahrávání.`
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, youtubePct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'youtubeCount', label: 'YouTube odkazů', value: youtubeCount.toString() },
+    {
+      key: 'nativeVideoCount',
+      label: 'Nativních videí',
+      value: nativeVideoPosts.length.toString(),
+    },
+    { key: 'youtubePct', label: 'Podíl YouTube', value: formatPercent(youtubePct, 1) },
+    {
+      key: 'avgYoutubeEngagement',
+      label: 'Avg engagement (YouTube)',
+      value: avgYoutubeEngagement.toFixed(1),
+    },
+    {
+      key: 'avgNativeVideoEngagement',
+      label: 'Avg engagement (nativní)',
+      value: avgNativeVideoEngagement.toFixed(1),
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -99,6 +125,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         nativeVideoCount: nativeVideoPosts.length,
         avgYoutubeEngagement: Number(avgYoutubeEngagement.toFixed(1)),
         avgNativeVideoEngagement: Number(avgNativeVideoEngagement.toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `youtubePct = youtubeCount / totalPosts * 100
+Kategorie: 0% → NONE, ≤5% → MINIMAL, ≤15% → MODERATE (nižší = lepší)`,
+        _categoryKey: categoryKey,
       },
     },
   }

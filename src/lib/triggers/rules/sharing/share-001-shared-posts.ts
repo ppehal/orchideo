@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/share-001'
 
 const TRIGGER_ID = 'SHARE_001'
 const TRIGGER_NAME = 'Sdílené příspěvky'
@@ -66,6 +67,31 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       'Sdílený obsah má vyšší engagement - analyzujte, co funguje a inspirujte se pro vlastní tvorbu'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, sharedPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'sharedCount', label: 'Sdílených příspěvků', value: sharedCount.toString() },
+    {
+      key: 'originalCount',
+      label: 'Originálních příspěvků',
+      value: originalPosts.length.toString(),
+    },
+    { key: 'sharedPct', label: 'Podíl sdíleného obsahu', value: formatPercent(sharedPct, 1) },
+    {
+      key: 'avgSharedEngagement',
+      label: 'Avg engagement (sdílené)',
+      value: avgSharedEngagement.toFixed(1),
+    },
+    {
+      key: 'avgOriginalEngagement',
+      label: 'Avg engagement (originální)',
+      value: avgOriginalEngagement.toFixed(1),
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -84,6 +110,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
         originalCount: originalPosts.length,
         avgSharedEngagement: Number(avgSharedEngagement.toFixed(1)),
         avgOriginalEngagement: Number(avgOriginalEngagement.toFixed(1)),
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `sharedPct = sharedCount / totalPosts * 100
+Kategorie: ≤10% → EXCELLENT, ≤20% → GOOD, ≤30% → ACCEPTABLE`,
+        _categoryKey: categoryKey,
       },
     },
   }

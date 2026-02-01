@@ -1,6 +1,7 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
+import { getCategoryKey } from '@/lib/constants/trigger-categories/share-003'
 
 const TRIGGER_ID = 'SHARE_003'
 const TRIGGER_NAME = 'Reels formát'
@@ -72,6 +73,34 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       'Vaše Reels mají nižší engagement než ostatní obsah - zkuste jiný styl nebo témata'
   }
 
+  // Calculate category key for detail page
+  const categoryKey = getCategoryKey(posts90d.length, reelsPct)
+
+  // Extended data for detail page
+  const inputParams = [
+    { key: 'totalPosts', label: 'Celkem příspěvků', value: posts90d.length.toString() },
+    { key: 'reelsCount', label: 'Počet Reels', value: reelsCount.toString() },
+    { key: 'reelsPct', label: 'Podíl Reels', value: formatPercent(reelsPct, 1) },
+    {
+      key: 'avgReelsEngagement',
+      label: 'Avg engagement (Reels)',
+      value: avgReelsEngagement.toFixed(1),
+    },
+    {
+      key: 'avgOtherEngagement',
+      label: 'Avg engagement (ostatní)',
+      value: avgOtherEngagement.toFixed(1),
+    },
+    {
+      key: 'reelsPerformanceRatio',
+      label: 'Výkon Reels vs ostatní',
+      value:
+        avgOtherEngagement > 0
+          ? `${((avgReelsEngagement / avgOtherEngagement) * 100).toFixed(0)}%`
+          : 'N/A',
+    },
+  ]
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -97,6 +126,11 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
           avgOtherEngagement > 0
             ? Number((avgReelsEngagement / avgOtherEngagement).toFixed(2))
             : null,
+        // Extended for detail page
+        _inputParams: JSON.stringify(inputParams),
+        _formula: `reelsPct = reelsCount / totalPosts * 100
+Kategorie: 15-35% → OPTIMAL, 5-15% → LOW, 0% → NONE`,
+        _categoryKey: categoryKey,
       },
     },
   }
