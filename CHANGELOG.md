@@ -55,6 +55,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Historical comparison banner with date display and "back to current" action
     - Save snapshot button in ComparisonView
 
+### Changed
+
+- **Architecture Cleanup (Audit findings)**
+  - Removed dead code: unused `getAnalysisStatus` server action
+  - Extracted progress constants to `lib/constants/analysis-progress.ts` (DRY)
+  - Added rate limiting to `GET /api/user/alerts` (60 req/min per user)
+  - Cleaned up middleware - removed unused parameter
+  - Updated docs to reflect removed server action
+
 ### Fixed
 
 - Duplicate competitor page IDs are now deduplicated in group creation
