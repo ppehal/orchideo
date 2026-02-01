@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { ANALYSIS_STATUS_LABELS, ANALYSIS_STATUS_PROGRESS } from '@/lib/constants'
 import type { AnalysisStatus } from '@/generated/prisma/enums'
 
 interface AnalysisProgressClientProps {
@@ -16,22 +17,6 @@ interface AnalysisProgressClientProps {
   initialStatus: AnalysisStatus
   errorMessage: string | null
   publicToken: string
-}
-
-const STATUS_LABELS: Record<AnalysisStatus, string> = {
-  PENDING: 'Čekání na zpracování...',
-  COLLECTING_DATA: 'Stahování dat z Facebooku...',
-  ANALYZING: 'Vyhodnocování triggerů...',
-  COMPLETED: 'Analýza dokončena',
-  FAILED: 'Analýza selhala',
-}
-
-const STATUS_PROGRESS: Record<AnalysisStatus, number> = {
-  PENDING: 5,
-  COLLECTING_DATA: 40,
-  ANALYZING: 75,
-  COMPLETED: 100,
-  FAILED: 100,
 }
 
 const POLL_INTERVAL_MS = 2500 // 2.5 seconds
@@ -47,7 +32,7 @@ export function AnalysisProgressClient({
   const router = useRouter()
   const [status, setStatus] = useState<AnalysisStatus>(initialStatus)
   const [error, setError] = useState<string | null>(errorMessage)
-  const [progress, setProgress] = useState(STATUS_PROGRESS[initialStatus])
+  const [progress, setProgress] = useState(ANALYSIS_STATUS_PROGRESS[initialStatus])
 
   const pollStatus = useCallback(async () => {
     try {
@@ -58,7 +43,7 @@ export function AnalysisProgressClient({
 
       if (response.ok) {
         setStatus(data.status)
-        setProgress(data.progress ?? STATUS_PROGRESS[data.status as AnalysisStatus])
+        setProgress(data.progress ?? ANALYSIS_STATUS_PROGRESS[data.status as AnalysisStatus])
 
         if (data.status === 'COMPLETED') {
           // Redirect to report after a short delay
@@ -99,7 +84,7 @@ export function AnalysisProgressClient({
         )}
         <CardTitle>{pageName || 'Analýza stránky'}</CardTitle>
         <CardDescription>
-          {isFailed ? 'Došlo k chybě při analýze' : STATUS_LABELS[status]}
+          {isFailed ? 'Došlo k chybě při analýze' : ANALYSIS_STATUS_LABELS[status]}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

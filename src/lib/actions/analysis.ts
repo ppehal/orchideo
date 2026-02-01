@@ -12,7 +12,7 @@ import { generateSecureToken } from '@/lib/utils/tokens'
 import { createLogger } from '@/lib/logging'
 import { startAnalysisInBackground } from '@/lib/services/analysis/runner'
 import { type AnalysisStatus } from '../../generated/prisma/enums'
-import { withAuth, success, failure, notFound, type ActionResult } from './action-wrapper'
+import { withAuth, success, failure, type ActionResult } from './action-wrapper'
 
 const log = createLogger('action-analysis')
 
@@ -155,46 +155,5 @@ export async function createAnalysis(
     },
     'Nepodařilo se vytvořit analýzu',
     { pageId, industryCode }
-  )
-}
-
-/**
- * Get the status of an analysis.
- */
-export async function getAnalysisStatus(
-  analysisId: string
-): Promise<ActionResult<{ status: AnalysisStatus; progress?: number }>> {
-  return withAuth(
-    async (session) => {
-      const analysis = await prisma.analysis.findFirst({
-        where: {
-          id: analysisId,
-          userId: session.user!.id,
-        },
-        select: {
-          status: true,
-        },
-      })
-
-      if (!analysis) {
-        return notFound('Analýza')
-      }
-
-      // Calculate progress based on status
-      const progressMap: Record<AnalysisStatus, number> = {
-        PENDING: 0,
-        COLLECTING_DATA: 30,
-        ANALYZING: 70,
-        COMPLETED: 100,
-        FAILED: 100,
-      }
-
-      return success({
-        status: analysis.status,
-        progress: progressMap[analysis.status],
-      })
-    },
-    'Nepodařilo se načíst stav analýzy',
-    { analysisId }
   )
 }

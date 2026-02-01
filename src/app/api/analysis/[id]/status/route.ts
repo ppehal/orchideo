@@ -2,20 +2,12 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createLogger } from '@/lib/logging'
-import type { AnalysisStatus } from '@/generated/prisma/enums'
+import { ANALYSIS_STATUS_PROGRESS } from '@/lib/constants'
 
 const log = createLogger('api-analysis-status')
 
 interface Props {
   params: Promise<{ id: string }>
-}
-
-const STATUS_PROGRESS: Record<AnalysisStatus, number> = {
-  PENDING: 5,
-  COLLECTING_DATA: 40,
-  ANALYZING: 75,
-  COMPLETED: 100,
-  FAILED: 100,
 }
 
 export async function GET(_request: Request, { params }: Props) {
@@ -51,7 +43,7 @@ export async function GET(_request: Request, { params }: Props) {
       success: true,
       data: {
         status: analysis.status,
-        progress: STATUS_PROGRESS[analysis.status],
+        progress: ANALYSIS_STATUS_PROGRESS[analysis.status],
         // Return generic error message to client, details stay in server logs
         errorMessage: analysis.status === 'FAILED' ? 'Analýza selhala. Prosím zkuste znovu.' : null,
         publicToken: analysis.public_token,
