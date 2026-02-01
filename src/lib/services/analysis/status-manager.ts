@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import type { AnalysisRawData } from './types'
 
 const log = createLogger('analysis-status')
@@ -95,7 +95,9 @@ export async function logAnalysisCompleted(
       },
     })
   } catch (error) {
-    log.error({ error, analysisId }, 'Failed to log analysis completed event')
+    logError(log, error, 'Failed to log analysis completed event', {
+      analysis_id: analysisId,
+    })
   }
 }
 
@@ -115,6 +117,8 @@ export async function logAnalysisFailed(
       },
     })
   } catch (error) {
-    log.error({ error, analysisId }, 'Failed to log analysis failed event')
+    logError(log, error, 'Failed to log analysis failed event', {
+      analysis_id: analysisId,
+    })
   }
 }

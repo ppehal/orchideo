@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **PDF Export - Chromium Configuration**
+  - Fixed PDF generation failures in Docker environment
+  - Added `PUPPETEER_EXECUTABLE_PATH` and `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` environment variables to `docker-compose.vps.yml`
+  - Updated `pdf-service.ts` to use system-installed Chromium in Docker with fallback to @sparticuz/chromium
+  - Corrected Chromium executable path for Alpine Linux (`/usr/bin/chromium`)
+  - Resolved issue where Puppeteer attempted to download Chromium instead of using pre-installed binary
+
 ### Added
 
 - **Permissions Disclosure on Login Page**

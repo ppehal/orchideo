@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 import { SCORING_VERSION, BENCHMARK_VERSION, TREND_THRESHOLDS } from '@/lib/constants/versions'
 import type {
   TrendDirection,
@@ -266,7 +266,9 @@ export async function getTrendsForPage(pageId: string): Promise<TrendResponse | 
 
     return response
   } catch (error) {
-    log.error({ error, pageId }, 'Failed to get trends for page')
+    logError(log, error, 'Failed to get trends for page', {
+      [LogFields.fbPageId]: pageId,
+    })
     throw error
   }
 }

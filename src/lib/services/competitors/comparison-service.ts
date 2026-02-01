@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { SCORING_VERSION, BENCHMARK_VERSION } from '@/lib/constants/versions'
 import { COMPARISON_METRICS, type ComparisonMetricDef } from '@/lib/constants/comparison-metrics'
 
@@ -345,7 +345,9 @@ export async function computeComparison(groupId: string): Promise<ComparisonResu
       },
     }
   } catch (error) {
-    log.error({ error, groupId }, 'Failed to compute comparison')
+    logError(log, error, 'Failed to compute comparison', {
+      group_id: groupId,
+    })
     throw error
   }
 }

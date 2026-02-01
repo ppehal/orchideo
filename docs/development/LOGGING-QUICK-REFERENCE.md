@@ -1,263 +1,155 @@
 # Logging Quick Reference
 
-> **TL;DR:** Používej helper funkce místo přímého volání `log.error({ error }, ...)`
+> **Rychlá reference pro logging v Orchideo projektu**
 
----
-
-## ❌ ŠPATNĚ
-
-```typescript
-// ❌ Error objekt bude prázdný {}
-log.error({ error }, 'PDF generation failed')
-
-// ❌ Těžko searchovat, není structured
-log.info(`User ${userId} logged in`)
-
-// ❌ Duplicita kódu
-try {
-  await operation()
-} catch (error) {
-  log.error({
-    error: {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    }
-  }, 'Failed')
-}
-```
-
----
-
-## ✅ SPRÁVNĚ
+## Import
 
 ```typescript
 import { createLogger, logError, LogFields } from '@/lib/logging'
+```
 
-const log = createLogger('my-service')
+## Vytvoření loggeru
 
-// ✅ Error s proper serializací
+```typescript
+const log = createLogger('module-name')
+```
+
+## Základní logging
+
+```typescript
+// Info
+log.info('Operation started')
+log.info({ userId, analysisId }, 'Analysis created')
+
+// Warning
+log.warn({ attempts: 3 }, 'Rate limit approaching')
+```
+
+## Error logging
+
+```typescript
 try {
   await operation()
 } catch (error) {
   logError(log, error, 'Operation failed', {
     [LogFields.userId]: userId,
-    [LogFields.analysisId]: analysisId,
   })
 }
+```
 
-// ✅ Structured, searchable
-log.info({
-  [LogFields.userId]: userId,
-  action: 'login',
-}, 'User logged in')
+## Request tracing (API routes)
 
-// ✅ Request tracing
+```typescript
 import { withRequestContext } from '@/lib/logging'
 
-export async function POST(request: Request) {
-  const log = withRequestContext(createLogger('api'), request)
-  // Všechny logy budou mít request_id
-}
-```
-
----
-
-## Cheat Sheet
-
-| Operace | Helper funkce | Použití |
-|---------|---------------|---------|
-| Error logging | `logError()` | `logError(log, error, 'Failed', context)` |
-| API request | `logApiRequest()` | `logApiRequest(log, 'POST', '/api/x', 200, 150)` |
-| DB operation | `logDbOperation()` | `logDbOperation(log, 'create', 'users', 50)` |
-| External API | `logExternalApi()` | `logExternalApi(log, 'facebook', '/me', 200, 300)` |
-| Business event | `logBusinessEvent()` | `logBusinessEvent(log, 'analysis_started', ctx)` |
-| Request context | `withRequestContext()` | `withRequestContext(log, request)` |
-
----
-
-## Context Fields - Používej konstanty
-
-```typescript
-import { LogFields } from '@/lib/logging'
-
-// ✅ Type-safe, konzistentní
-log.info({
-  [LogFields.userId]: '123',
-  [LogFields.analysisId]: 'abc',
-  [LogFields.durationMs]: 150,
-})
-
-// ❌ Typo-prone, nekonzistentní
-log.info({
-  user_id: '123',      // někde
-  userId: '123',       // jinde
-  USER_ID: '123',      // ???
-})
-```
-
----
-
-## Log Levels
-
-```typescript
-log.fatal({ ... }, 'App crashed')       // 💀 Cannot recover
-log.error({ ... }, 'Operation failed')  // ❌ Needs attention
-log.warn({ ... }, 'Retry limit')        // ⚠️ Unexpected but handled
-log.info({ ... }, 'Analysis created')   // ℹ️ Business events (DEFAULT)
-log.debug({ ... }, 'Query: SELECT...')  // 🔍 Development only
-log.trace({ ... }, 'Every step...')     // 🐛 Very verbose
-```
-
----
-
-## Common Patterns
-
-### API Route
-
-```typescript
-import { createLogger, logError, withRequestContext } from '@/lib/logging'
-
-const baseLog = createLogger('api-analysis')
+const baseLog = createLogger('api-route')
 
 export async function POST(request: Request) {
   const log = withRequestContext(baseLog, request)
-  const startTime = Date.now()
+  // log obsahuje request_id, ip_address, user_agent, path
+}
+```
+
+## Zachycení kontextu pro error handling
+
+```typescript
+export async function POST(request: Request, { params }: Props) {
+  let userId: string | undefined
+  let resourceId: string | undefined
 
   try {
-    const result = await createAnalysis(data)
+    const session = await auth()
+    userId = session.user.id
 
-    log.info({
-      analysis_id: result.id,
-      duration_ms: Date.now() - startTime,
-    }, 'Analysis created')
+    const { id } = await params
+    resourceId = id
 
-    return NextResponse.json(result)
+    // ... business logic ...
+
   } catch (error) {
-    logError(log, error, 'Analysis creation failed', {
-      user_id: session.user.id,
+    logError(log, error, 'Request failed', {
+      [LogFields.userId]: userId,
+      resource_id: resourceId,
     })
-
-    return NextResponse.json(
-      { error: 'Failed' },
-      { status: 500 }
-    )
   }
 }
 ```
 
-### Service Function
+## LogFields konstanty
 
 ```typescript
-import { createLogger, logError } from '@/lib/logging'
+// Vždy používej pro standardní pole
+LogFields.userId        // 'user_id'
+LogFields.analysisId    // 'analysis_id'
+LogFields.fbPageId      // 'fb_page_id'
+LogFields.requestId     // 'request_id'
+LogFields.durationMs    // 'duration_ms'
 
-const log = createLogger('pdf-service')
-
-export async function generatePdf(params: PdfParams) {
-  const start = Date.now()
-
-  log.info({ analysis_id: params.analysisId }, 'Generating PDF')
-
-  try {
-    const pdf = await puppeteer.launch(...)
-
-    log.info({
-      analysis_id: params.analysisId,
-      duration_ms: Date.now() - start,
-      file_size: pdf.length,
-    }, 'PDF generated')
-
-    return pdf
-  } catch (error) {
-    logError(log, error, 'PDF generation failed', {
-      analysis_id: params.analysisId,
-      duration_ms: Date.now() - start,
-    })
-    throw error
-  }
+// Vlastní pole: snake_case
+{
+  group_id: groupId,
+  primary_page_id: pageId,
 }
 ```
 
-### External API Call
+## Measuring Performance
 
 ```typescript
-import { createLogger, logExternalApi } from '@/lib/logging'
-
-const log = createLogger('facebook-api')
-
-async function fetchPageInsights(pageId: string, token: string) {
-  const start = Date.now()
-  const endpoint = `/v21.0/${pageId}/insights`
-
-  try {
-    const response = await fetch(`https://graph.facebook.com${endpoint}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
-    logExternalApi(
-      log,
-      'facebook',
-      endpoint,
-      response.status,
-      Date.now() - start,
-      { fb_page_id: pageId }
-    )
-
-    return await response.json()
-  } catch (error) {
-    logError(log, error, 'Facebook API call failed', {
-      fb_page_id: pageId,
-      endpoint,
-    })
-    throw error
-  }
-}
-```
-
----
-
-## Migrační příklad
-
-### Před (❌)
-
-```typescript
-const log = createLogger('pdf-service')
-
+const startTime = Date.now()
 try {
-  const pdf = await generatePdf()
+  await operation()
+  log.info({ [LogFields.durationMs]: Date.now() - startTime }, 'Completed')
 } catch (error) {
-  log.error({ error }, 'PDF generation failed')  // error: {}
-}
-```
-
-### Po (✅)
-
-```typescript
-import { createLogger, logError, LogFields } from '@/lib/logging'
-
-const log = createLogger('pdf-service')
-
-try {
-  const pdf = await generatePdf()
-} catch (error) {
-  logError(log, error, 'PDF generation failed', {
-    [LogFields.analysisId]: analysisId,
+  logError(log, error, 'Failed', {
+    [LogFields.durationMs]: Date.now() - startTime,
   })
 }
 ```
 
----
+## ✅ DO
 
-## Environment Setup
+```typescript
+// ✅ Použij logError pro chyby
+logError(log, error, 'Failed to create user')
 
-```bash
-# .env.local
-LOG_LEVEL=debug   # Development
+// ✅ Použij LogFields konstanty
+{ [LogFields.userId]: userId }
 
-# .env.production
-LOG_LEVEL=info    # Production
+// ✅ Zachyť kontext před try blokem
+let userId: string | undefined
+
+// ✅ Error message v imperativu
+'Failed to create analysis'
 ```
 
----
+## ❌ DON'T
 
-**Dokumentace:** [LOGGING-IMPROVEMENT-PLAN.md](./LOGGING-IMPROVEMENT-PLAN.md)
+```typescript
+// ❌ Nepřímé logování erroru
+log.error({ error }, 'Failed')
+
+// ❌ Vlastní názvy místo LogFields
+{ userId: userId }  // místo [LogFields.userId]
+
+// ❌ Kontext nedostupný v catch
+try {
+  const userId = session.user.id // nedostupné v catch!
+}
+
+// ❌ Duplicitní info v message
+`Failed: ${error.message}`  // message je už v err objektu
+```
+
+## Code Review Checklist
+
+- [ ] `logError()` místo `log.error({ error }, ...)`
+- [ ] `LogFields` pro standardní pole
+- [ ] Kontext zachycen ve scope
+- [ ] Error messages v imperativu
+- [ ] `withRequestContext()` v API routes
+- [ ] Žádná citlivá data v logách
+- [ ] Správný log level (info/warn/error)
+
+## Full Documentation
+
+📖 [LOGGING-GUIDE.md](./LOGGING-GUIDE.md)

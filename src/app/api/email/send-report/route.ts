@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { sendReportEmail } from '@/lib/email'
 import { sendReportEmailSchema } from '@/lib/validators/email'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
@@ -9,6 +9,8 @@ import { getRateLimiter } from '@/lib/utils/rate-limiter'
 const log = createLogger('api:email:send-report')
 
 export async function POST(request: NextRequest) {
+  let analysisToken: string | undefined
+
   try {
     // Rate limiting by IP address
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
@@ -45,7 +47,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, analysisToken } = parseResult.data
+    const parsedData = parseResult.data
+    analysisToken = parsedData.analysisToken
+    const email = parsedData.email
 
     // Find analysis by public token
     const analysis = await prisma.analysis.findUnique({
@@ -92,9 +96,11 @@ export async function POST(request: NextRequest) {
           },
         })
       } catch (dbError) {
-        log.error(
-          { error: dbError, analysisId: analysis.id },
-          'Failed to log email error analytics'
+        logError(
+          log,
+          dbError,
+          'Failed to log email error analytics',
+          { analysis_id: analysis.id }
         )
       }
 
@@ -111,7 +117,9 @@ export async function POST(request: NextRequest) {
         data: { email_sent_to: email },
       })
     } catch (dbError) {
-      log.error({ error: dbError, analysisId: analysis.id }, 'Failed to update email_sent_to')
+      logError(log, dbError, 'Failed to update email_sent_to', {
+        analysis_id: analysis.id,
+      })
     }
 
     // Log analytics events (non-critical, don't fail the request)
@@ -131,9 +139,11 @@ export async function POST(request: NextRequest) {
         ],
       })
     } catch (dbError) {
-      log.error(
-        { error: dbError, analysisId: analysis.id },
-        'Failed to log email success analytics'
+      logError(
+        log,
+        dbError,
+        'Failed to log email success analytics',
+        { analysis_id: analysis.id }
       )
     }
 
@@ -142,7 +152,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    log.error({ error }, 'Unexpected error in send-report endpoint')
+    logError(log, error, 'Unexpected error in send-report endpoint', {
+      analysis_token: analysisToken,
+    })
     return NextResponse.json({ error: 'Interní chyba serveru' }, { status: 500 })
   }
 }

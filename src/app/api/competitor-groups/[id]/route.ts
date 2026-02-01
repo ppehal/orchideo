@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 
 const log = createLogger('api-competitor-group-detail')
 
@@ -10,6 +10,9 @@ interface Props {
 }
 
 export async function GET(_request: Request, { params }: Props) {
+  let userId: string | undefined
+  let groupId: string | undefined
+
   try {
     const session = await auth()
 
@@ -17,7 +20,9 @@ export async function GET(_request: Request, { params }: Props) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
+    userId = session.user.id
     const { id } = await params
+    groupId = id
 
     const group = await prisma.competitorGroup.findFirst({
       where: {
@@ -52,7 +57,10 @@ export async function GET(_request: Request, { params }: Props) {
       updatedAt: group.updated_at.toISOString(),
     })
   } catch (error) {
-    log.error({ error }, 'Failed to get competitor group')
+    logError(log, error, 'Failed to get competitor group', {
+      [LogFields.userId]: userId,
+      group_id: groupId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
@@ -62,6 +70,9 @@ export async function GET(_request: Request, { params }: Props) {
 }
 
 export async function DELETE(_request: Request, { params }: Props) {
+  let userId: string | undefined
+  let groupId: string | undefined
+
   try {
     const session = await auth()
 
@@ -69,7 +80,9 @@ export async function DELETE(_request: Request, { params }: Props) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
+    userId = session.user.id
     const { id } = await params
+    groupId = id
 
     // Verify ownership
     const group = await prisma.competitorGroup.findFirst({
@@ -92,7 +105,10 @@ export async function DELETE(_request: Request, { params }: Props) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    log.error({ error }, 'Failed to delete competitor group')
+    logError(log, error, 'Failed to delete competitor group', {
+      [LogFields.userId]: userId,
+      group_id: groupId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

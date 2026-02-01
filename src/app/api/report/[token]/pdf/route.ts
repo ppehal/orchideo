@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getOrGeneratePdf } from '@/lib/services/pdf'
 import { PDF_RATE_LIMIT } from '@/lib/constants/pdf'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 
 const log = createLogger('api-report-pdf')
 
@@ -75,9 +75,11 @@ interface Props {
 
 export async function POST(request: Request, { params }: Props) {
   const startTime = Date.now()
+  let token: string | undefined
 
   try {
-    const { token } = await params
+    const resolvedParams = await params
+    token = resolvedParams.token
 
     // Rate limiting
     const rateLimit = checkRateLimit(token)
@@ -167,7 +169,9 @@ export async function POST(request: Request, { params }: Props) {
       },
     })
   } catch (error) {
-    log.error({ error }, 'PDF generation failed')
+    logError(log, error, 'PDF generation failed', {
+      token: token || 'unknown',
+    })
 
     if (error instanceof Error && error.message === 'Semaphore acquire timeout') {
       return NextResponse.json(

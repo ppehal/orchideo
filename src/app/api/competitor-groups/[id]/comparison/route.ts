@@ -6,7 +6,7 @@ import {
   saveComparisonSnapshot,
   getComparisonHistory,
 } from '@/lib/services/competitors'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 
 const log = createLogger('api-competitor-comparison')
 
@@ -20,6 +20,8 @@ interface Props {
  *   - ?history=true - returns historical snapshots instead
  */
 export async function GET(request: Request, { params }: Props) {
+  let groupId: string | undefined
+
   try {
     const session = await auth()
 
@@ -28,6 +30,7 @@ export async function GET(request: Request, { params }: Props) {
     }
 
     const { id } = await params
+    groupId = id
     const { searchParams } = new URL(request.url)
 
     // Handle history query param
@@ -59,7 +62,9 @@ export async function GET(request: Request, { params }: Props) {
 
     return NextResponse.json(comparison)
   } catch (error) {
-    log.error({ error }, 'Failed to compute comparison')
+    logError(log, error, 'Failed to compute comparison', {
+      group_id: groupId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
@@ -72,6 +77,8 @@ export async function GET(request: Request, { params }: Props) {
  * POST - Save a comparison snapshot
  */
 export async function POST(_request: Request, { params }: Props) {
+  let groupId: string | undefined
+
   try {
     const session = await auth()
 
@@ -80,6 +87,7 @@ export async function POST(_request: Request, { params }: Props) {
     }
 
     const { id } = await params
+    groupId = id
 
     // Verify ownership
     const group = await prisma.competitorGroup.findFirst({
@@ -114,7 +122,9 @@ export async function POST(_request: Request, { params }: Props) {
       { status: 201 }
     )
   } catch (error) {
-    log.error({ error }, 'Failed to save comparison snapshot')
+    logError(log, error, 'Failed to save comparison snapshot', {
+      group_id: groupId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
@@ -146,7 +156,9 @@ async function getComparisonHistoryHandler(groupId: string, userId: string): Pro
 
     return NextResponse.json({ history })
   } catch (error) {
-    log.error({ error, groupId }, 'Failed to fetch comparison history')
+    logError(log, error, 'Failed to fetch comparison history', {
+      group_id: groupId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

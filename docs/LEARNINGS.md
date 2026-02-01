@@ -27,6 +27,26 @@ _Zatím žádné záznamy._
 
 ## Next.js & React
 
+### Puppeteer/Chromium Docker configuration
+
+**Datum**: 2026-02-01
+**Kontext**: PDF generování s Puppeteer v Alpine Linux Docker kontejneru
+**Problém**: PDF export selhal s chybou "chromium executable not found" přestože byl Chromium nainstalován v Dockerfile
+**Příčina**:
+1. Chybějící environment variables `PUPPETEER_EXECUTABLE_PATH` a `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` v docker-compose
+2. Špatná cesta k executable (`/usr/bin/chromium-browser` místo `/usr/bin/chromium` v Alpine)
+3. @sparticuz/chromium se snažil stáhnout binárku místo použití systémového Chromium
+**Řešení**:
+1. Přidat env vars do docker-compose.vps.yml: `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` a `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`
+2. Upravit pdf-service.ts: prioritně použít `process.env.PUPPETEER_EXECUTABLE_PATH`, fallback na `chromium.executablePath()`
+3. Rebuild Docker image pro instalaci Chromium dependencies z Dockerfile.dev
+**Prevence**:
+- V Alpine Linux se Chromium jmenuje `/usr/bin/chromium`, ne `chromium-browser`
+- Puppeteer v Dockeru vždy vyžaduje explicitní nastavení executable path
+- Po změně Dockerfile vždy rebuild image (`docker compose build` nebo `./QUICK-START.sh rebuild`)
+
+---
+
 ### In-memory rate limiter memory leak
 
 **Datum**: 2026-01-31

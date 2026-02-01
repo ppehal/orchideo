@@ -10,7 +10,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 
 const log = createLogger('api-health')
 
@@ -29,7 +29,7 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1`
     dbOk = true
   } catch (error) {
-    log.error({ error }, 'Health check: database connection failed')
+    logError(log, error, 'Health check: database connection failed')
   }
 
   const latency = Date.now() - start

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { createAnalysis } from '@/lib/actions/analysis'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import { z } from 'zod'
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result.data)
   } catch (error) {
-    log.error({ error }, 'Unexpected error in analysis create endpoint')
+    logError(log, error, 'Unexpected error in analysis create endpoint')
 
     return NextResponse.json(
       {

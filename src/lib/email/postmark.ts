@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts'
 
 const log = createLogger('email')
@@ -71,7 +71,10 @@ async function sendEmail(
     log.info({ messageId: data.MessageID, to: data.To }, 'Email sent successfully')
     return { success: true, messageId: data.MessageID }
   } catch (error) {
-    log.error({ error }, 'Failed to send email via Postmark')
+    logError(log, error, 'Failed to send email via Postmark', {
+      to: request.To,
+      subject: request.Subject,
+    })
     return { success: false, error: 'Failed to send email' }
   }
 }

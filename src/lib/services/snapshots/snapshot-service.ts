@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { SCORING_VERSION, BENCHMARK_VERSION } from '@/lib/constants/versions'
 import type { AnalysisRawData, NormalizedPost } from '@/lib/services/analysis/types'
 
@@ -159,7 +159,9 @@ export async function createOrUpdateSnapshot(analysisId: string): Promise<void> 
       'Snapshot created/updated'
     )
   } catch (error) {
-    log.error({ error, analysisId }, 'Failed to create snapshot')
+    logError(log, error, 'Failed to create snapshot', {
+      analysis_id: analysisId,
+    })
     // Don't throw - snapshot creation should not fail the analysis
   }
 }

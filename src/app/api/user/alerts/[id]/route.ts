@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { markAlertAsRead } from '@/lib/services/alerts'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 
 const log = createLogger('api-user-alert-detail')
 
@@ -10,6 +10,9 @@ interface Props {
 }
 
 export async function PATCH(request: Request, { params }: Props) {
+  let userId: string | undefined
+  let alertId: string | undefined
+
   try {
     const session = await auth()
 
@@ -17,7 +20,9 @@ export async function PATCH(request: Request, { params }: Props) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
+    userId = session.user.id
     const { id } = await params
+    alertId = id
     const body = await request.json()
 
     // Mark as read
@@ -33,7 +38,10 @@ export async function PATCH(request: Request, { params }: Props) {
 
     return NextResponse.json({ error: 'Neplatná akce', code: 'INVALID_ACTION' }, { status: 400 })
   } catch (error) {
-    log.error({ error }, 'Failed to update alert')
+    logError(log, error, 'Failed to update alert', {
+      [LogFields.userId]: userId,
+      alert_id: alertId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

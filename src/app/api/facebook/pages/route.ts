@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server'
 import { auth, getFacebookAccessToken } from '@/lib/auth'
 import { getManagedPagesWithTokens, FacebookApiError } from '@/lib/integrations/facebook'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
 
 const log = createLogger('api-facebook-pages')
 
 export async function GET() {
+  let userId: string | undefined
+
   try {
     const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nepřihlášen' }, { status: 401 })
     }
+
+    userId = session.user.id
 
     // Rate limiting per user: 20 requests per minute
     const userId = session.user.id
@@ -99,7 +103,9 @@ export async function GET() {
       )
     }
 
-    log.error({ error }, 'Unexpected error fetching Facebook pages')
+    logError(log, error, 'Unexpected error fetching Facebook pages', {
+      [LogFields.userId]: userId,
+    })
 
     return NextResponse.json(
       {

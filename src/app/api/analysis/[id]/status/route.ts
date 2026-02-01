@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import { ANALYSIS_STATUS_PROGRESS } from '@/lib/constants'
 
 const log = createLogger('api-analysis-status')
@@ -50,7 +50,9 @@ export async function GET(_request: Request, { params }: Props) {
       },
     })
   } catch (error) {
-    log.error({ error, analysisId: id }, 'Failed to get analysis status')
+    logError(log, error, 'Failed to get analysis status', {
+      analysis_id: id,
+    })
     return NextResponse.json(
       { success: false, error: 'Chyba při načítání stavu analýzy' },
       { status: 500 }

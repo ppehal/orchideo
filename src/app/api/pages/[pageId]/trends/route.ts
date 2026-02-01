@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getTrendsForPage } from '@/lib/services/trends'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 
 const log = createLogger('api-page-trends')
 
@@ -11,6 +11,9 @@ interface Props {
 }
 
 export async function GET(_request: Request, { params }: Props) {
+  let userId: string | undefined
+  let pageId: string | undefined
+
   try {
     const session = await auth()
 
@@ -18,7 +21,9 @@ export async function GET(_request: Request, { params }: Props) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
-    const { pageId } = await params
+    userId = session.user.id
+    const resolvedParams = await params
+    pageId = resolvedParams.pageId
 
     // Verify user owns this page
     const page = await prisma.facebookPage.findFirst({
@@ -44,7 +49,10 @@ export async function GET(_request: Request, { params }: Props) {
 
     return NextResponse.json(trends)
   } catch (error) {
-    log.error({ error }, 'Failed to get page trends')
+    logError(log, error, 'Failed to get page trends', {
+      [LogFields.fbPageId]: pageId,
+      [LogFields.userId]: userId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

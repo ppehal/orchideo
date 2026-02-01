@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 import { z } from 'zod'
 
 const log = createLogger('api-competitor-groups')
@@ -14,12 +14,16 @@ const createGroupSchema = z.object({
 })
 
 export async function GET() {
+  let userId: string | undefined
+
   try {
     const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
+
+    userId = session.user.id
 
     const groups = await prisma.competitorGroup.findMany({
       where: { userId: session.user.id },
@@ -54,7 +58,9 @@ export async function GET() {
       })),
     })
   } catch (error) {
-    log.error({ error }, 'Failed to get competitor groups')
+    logError(log, error, 'Failed to get competitor groups', {
+      [LogFields.userId]: userId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
@@ -64,12 +70,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let userId: string | undefined
+
   try {
     const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
+
+    userId = session.user.id
 
     const body = await request.json()
     const parsed = createGroupSchema.safeParse(body)
@@ -147,7 +157,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ id: group.id }, { status: 201 })
   } catch (error) {
-    log.error({ error }, 'Failed to create competitor group')
+    logError(log, error, 'Failed to create competitor group', {
+      [LogFields.userId]: userId,
+      primary_page_id: parsed?.data?.primaryPageId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

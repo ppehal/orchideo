@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { getAlertsForUser, markAllAlertsAsRead } from '@/lib/services/alerts'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
 
 const log = createLogger('api-user-alerts')
 
 export async function GET(request: Request) {
+  let userId: string | undefined
+
   try {
     const session = await auth()
 
@@ -14,7 +16,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
-    const userId = session.user.id
+    userId = session.user.id
 
     // Rate limiting: 60 requests per minute per user
     const limiter = getRateLimiter(`alerts-get-${userId}`, {
@@ -50,7 +52,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json(alerts)
   } catch (error) {
-    log.error({ error }, 'Failed to get user alerts')
+    logError(log, error, 'Failed to get user alerts', {
+      [LogFields.userId]: userId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
@@ -60,12 +64,16 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  let userId: string | undefined
+
   try {
     const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
     }
+
+    userId = session.user.id
 
     const body = await request.json()
 
@@ -77,7 +85,9 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ error: 'Neplatná akce', code: 'INVALID_ACTION' }, { status: 400 })
   } catch (error) {
-    log.error({ error }, 'Failed to update alerts')
+    logError(log, error, 'Failed to update alerts', {
+      [LogFields.userId]: userId,
+    })
 
     return NextResponse.json(
       { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },

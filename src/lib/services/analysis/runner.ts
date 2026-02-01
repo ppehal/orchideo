@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { createLogger, withContext } from '@/lib/logging'
+import { createLogger, withContext, logError, LogFields } from '@/lib/logging'
 import { decrypt } from '@/lib/utils/encryption'
 import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { collectAnalysisData } from './collector'
@@ -137,7 +137,10 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
     try {
       accessToken = decrypt(fbPage.page_access_token)
     } catch (error) {
-      log.error({ error }, 'Failed to decrypt page access token')
+      logError(log, error, 'Failed to decrypt page access token', {
+        [LogFields.analysisId]: analysisId,
+        [LogFields.fbPageId]: fbPage.fb_page_id,
+      })
       await updateAnalysisStatus(analysisId, 'FAILED', {
         error_message: 'Nepodařilo se dešifrovat přístupový token',
         error_code: 'DECRYPTION_ERROR',
@@ -276,7 +279,11 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
     const elapsedMs = Date.now() - startTime
     const isTimeout = error instanceof Error && error.message === 'Analysis timeout exceeded'
 
-    log.error({ error, elapsedMs, isTimeout }, 'Analysis failed')
+    logError(log, error, 'Analysis failed', {
+      [LogFields.analysisId]: analysisId,
+      elapsedMs,
+      isTimeout,
+    })
 
     const errorMessage = isTimeout
       ? 'Analýza překročila časový limit'
@@ -312,6 +319,8 @@ export function startAnalysisInBackground(analysisId: string): void {
 
   // Run analysis without awaiting
   runAnalysis(analysisId).catch((error) => {
-    log.error({ error }, 'Background analysis failed unexpectedly')
+    logError(log, error, 'Background analysis failed unexpectedly', {
+      [LogFields.analysisId]: analysisId,
+    })
   })
 }

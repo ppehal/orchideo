@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError, LogFields } from '@/lib/logging'
 import { ALERT_THRESHOLDS, ALERT_SEVERITY } from '@/lib/constants/versions'
 import type { TrendAlertType } from '@/generated/prisma/enums'
 import type { TrendAlertData, UserAlertsResponse } from '@/types/trends'
@@ -188,7 +188,10 @@ export async function checkAndCreateAlerts(analysisId: string, fbPageId: string)
       )
     }
   } catch (error) {
-    log.error({ error, analysisId, fbPageId }, 'Failed to check and create alerts')
+    logError(log, error, 'Failed to check and create alerts', {
+      [LogFields.analysisId]: analysisId,
+      [LogFields.fbPageId]: fbPageId,
+    })
     // Don't throw - alert creation should not fail the analysis
   }
 }

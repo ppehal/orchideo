@@ -1,9 +1,26 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function middleware(_request: NextRequest) {
-  const response = NextResponse.next()
+/**
+ * Generate unique request ID for tracing.
+ */
+function generateRequestId(): string {
+  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}
+
+export function middleware(request: NextRequest) {
+  // Generate or use existing request ID
+  const requestId = request.headers.get('x-request-id') || generateRequestId()
+
+  // Clone request with request ID
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-request-id', requestId)
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 
   // Prevent MIME type sniffing
   response.headers.set('X-Content-Type-Options', 'nosniff')
@@ -44,6 +61,9 @@ export function middleware(_request: NextRequest) {
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), interest-cohort=()'
   )
+
+  // Add request ID to response for tracing
+  response.headers.set('x-request-id', requestId)
 
   return response
 }

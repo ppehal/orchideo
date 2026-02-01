@@ -6,7 +6,7 @@
  */
 
 import { auth } from '@/lib/auth'
-import { createLogger } from '@/lib/logging'
+import { createLogger, logError } from '@/lib/logging'
 import type { Session } from 'next-auth'
 
 const log = createLogger('action-wrapper')
@@ -112,7 +112,7 @@ export async function wrapAction<T extends ActionResult>(
   try {
     return await action()
   } catch (error) {
-    log.error({ error, context }, `wrapAction: ${errorMessage}`)
+    logError(log, error, `wrapAction: ${errorMessage}`, context)
     return { success: false, error: errorMessage, code: 'INTERNAL_ERROR' }
   }
 }
@@ -147,7 +147,7 @@ export async function withAuth<T extends ActionResult>(
     }
     return await action(session)
   } catch (error) {
-    log.error({ error, context }, `withAuth: ${errorMessage}`)
+    logError(log, error, `withAuth: ${errorMessage}`, context)
     return { success: false, error: errorMessage, code: 'INTERNAL_ERROR' }
   }
 }
