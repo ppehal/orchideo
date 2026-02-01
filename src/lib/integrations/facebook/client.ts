@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import type { ZodType } from 'zod'
 import { createLogger } from '@/lib/logging'
 import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
@@ -12,6 +13,18 @@ import type {
 } from './types'
 
 const log = createLogger('facebook-api')
+
+// ============================================================================
+// App Secret Proof - Required by Facebook for secure API calls
+// ============================================================================
+
+function getAppSecretProof(accessToken: string): string {
+  const appSecret = process.env.FACEBOOK_APP_SECRET
+  if (!appSecret) {
+    throw new Error('FACEBOOK_APP_SECRET is not configured')
+  }
+  return crypto.createHmac('sha256', appSecret).update(accessToken).digest('hex')
+}
 
 export const GRAPH_API_VERSION = 'v19.0'
 export const GRAPH_API_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
@@ -84,6 +97,11 @@ export async function makeRequest<T>(
   const maxRetries = options.maxRetries ?? MAX_RETRIES
   const initialRetryDelay = options.retryDelayMs ?? INITIAL_RETRY_DELAY_MS
 
+  // Add appsecret_proof to URL for secure API calls
+  const urlWithProof = new URL(url)
+  urlWithProof.searchParams.set('appsecret_proof', getAppSecretProof(accessToken))
+  const secureUrl = urlWithProof.toString()
+
   let lastError: Error | null = null
   let attempt = 0
 
@@ -94,7 +112,7 @@ export async function makeRequest<T>(
         'Making Facebook API request'
       )
 
-      const response = await fetch(url, {
+      const response = await fetch(secureUrl, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
