@@ -110,9 +110,20 @@ async function generatePdf(
   }
 
   // Launch Puppeteer with Chromium
-  const executablePath = await chromium.executablePath()
+  // Use system Chromium if available (Docker/production), fallback to @sparticuz/chromium
+  const executablePath =
+    process.env.PUPPETEER_EXECUTABLE_PATH ||
+    (await chromium.executablePath())
+
   const browser = await puppeteer.launch({
-    args: chromium.args,
+    args: process.env.PUPPETEER_EXECUTABLE_PATH
+      ? [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ]
+      : chromium.args,
     defaultViewport: {
       width: PDF_SETTINGS.WIDTH,
       height: PDF_SETTINGS.HEIGHT,
