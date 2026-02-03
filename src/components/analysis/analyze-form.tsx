@@ -4,16 +4,17 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { LoadingButton } from '@/components/ui/loading-button'
 import { PageSelector } from './page-selector'
 import { UrlInputForm } from './url-input-form'
 import { FbConnectButton } from './fb-connect-button'
 import { IndustrySelector } from './industry-selector'
 import { CategoryMappingInfo } from './category-mapping-info'
+import { AnalysisStickyActionBar } from './analysis-sticky-action-bar'
 import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
 import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
 import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface AnalyzeFormProps {
   hasFacebookAccount: boolean
@@ -127,7 +128,9 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
 
   return (
     <div className="space-y-6">
-      <Card>
+      {/* Add padding when sticky bar is visible */}
+      <div className={cn(selectedPage && 'pb-32 sm:pb-24')}>
+        <Card>
         <CardHeader>
           <CardTitle>Zadejte URL stránky</CardTitle>
           <CardDescription>
@@ -186,23 +189,22 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
               disabled={isSubmitting}
             />
 
-            <div className="flex justify-end">
-              <LoadingButton
-                onClick={handleSubmit}
-                loading={isSubmitting}
-                loadingText="Spouštím analýzu..."
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                Spustit analýzu
-              </LoadingButton>
-            </div>
+            {/* Button moved to sticky action bar */}
           </CardContent>
         </Card>
       )}
 
       {/* Category Mapping Reference - Separate informational card */}
       <CategoryMappingInfo />
+      </div>
+
+      {/* Sticky action bar */}
+      <AnalysisStickyActionBar
+        selectedPage={selectedPage}
+        selectedIndustry={selectedIndustry}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
