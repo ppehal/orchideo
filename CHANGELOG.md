@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Report Navigation - Scroll Position Restoration**
+  - Fixed scroll position being lost when navigating back from trigger detail page
+  - Implemented scroll restoration mechanism using sessionStorage
+  - Added `useScrollRestoration` custom hook with SSR safety and responsive-awareness
+  - Added `ReportClientWrapper` component using event delegation for optimal performance
+  - Scroll restoration respects user's `prefers-reduced-motion` preference for accessibility
+  - Viewport width validation (±100px tolerance) prevents wrong content after responsive layout changes
+  - Double RAF ensures reliable DOM hydration before scroll restoration
+  - Graceful degradation in private browsing mode (sessionStorage disabled)
+  - Report page remains Server Component (wrapper adds client-side behavior)
+  - Added `data-report-content` and `data-trigger-id` attributes for future enhancements
+
 ### Added
 
 - **Facebook Category Mapping Visualization**

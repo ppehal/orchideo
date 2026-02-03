@@ -49,6 +49,7 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
         reportToken && 'cursor-pointer transition-shadow hover:shadow-md',
         className
       )}
+      data-trigger-id={trigger.id}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">

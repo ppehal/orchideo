@@ -12,6 +12,7 @@ import {
 } from '@/components/report'
 import { EmailForm } from '@/components/report/email-form'
 import type { TriggerResult } from '@/components/report/trigger-card'
+import { ReportClientWrapper } from './client-wrapper'
 
 interface Props {
   params: Promise<{ token: string }>
@@ -134,11 +135,15 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const daysOfData = rawData?.collectionMetadata?.daysOfData ?? 90
 
   return (
-    <div
-      className={`bg-muted/30 min-h-screen ${isPrintMode ? 'print-mode' : ''}`}
-      data-pdf-ready="true"
-    >
-      <div className="container mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <ReportClientWrapper>
+      <div
+        className={`bg-muted/30 min-h-screen ${isPrintMode ? 'print-mode' : ''}`}
+        data-pdf-ready="true"
+      >
+        <div
+          className="container mx-auto max-w-5xl space-y-6 px-4 py-8"
+          data-report-content
+        >
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <ReportHeader
@@ -204,7 +209,8 @@ export default async function ReportPage({ params, searchParams }: Props) {
             </p>
           </footer>
         )}
+        </div>
       </div>
-    </div>
+    </ReportClientWrapper>
   )
 }
