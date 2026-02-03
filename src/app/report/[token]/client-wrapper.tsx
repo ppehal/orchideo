@@ -23,8 +23,11 @@ interface ReportClientWrapperProps {
 export function ReportClientWrapper({ children }: ReportClientWrapperProps) {
   const params = useParams()
 
-  // Type-safe token extraction - handle undefined and array cases
-  const token = typeof params.token === 'string' ? params.token : undefined
+  // Type-safe token extraction - handle undefined, array, and empty string cases
+  const token =
+    typeof params.token === 'string' && params.token.trim() !== ''
+      ? params.token
+      : undefined
 
   const { saveScrollPosition } = useScrollRestoration({
     key: token ? `report_${token}` : 'report_fallback',
@@ -39,7 +42,14 @@ export function ReportClientWrapper({ children }: ReportClientWrapperProps) {
      * Uses narrow scope (container) instead of document for better performance.
      */
     const handleClick = (e: MouseEvent) => {
-      const link = (e.target as HTMLElement).closest('a[href*="/trigger/"]')
+      // Only handle left-click (button 0), ignore right-click and middle-click
+      if (e.button !== 0) return
+
+      // Type guard - ensure target is HTMLElement
+      const target = e.target
+      if (!(target instanceof HTMLElement)) return
+
+      const link = target.closest('a[href*="/trigger/"]')
       if (link) {
         saveScrollPosition()
       }

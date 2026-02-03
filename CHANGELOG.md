@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Graceful degradation in private browsing mode (sessionStorage disabled)
   - Report page remains Server Component (wrapper adds client-side behavior)
   - Added `data-report-content` and `data-trigger-id` attributes for future enhancements
+  - **Hardening:** Added empty string validation for keys/tokens to prevent collisions
+  - **Hardening:** Added runtime type validation for sessionStorage data to prevent errors
+  - **Hardening:** Filter left-click only (ignore right-click/middle-click) for better UX
+  - **Hardening:** Added explicit return types and type guards for TypeScript safety
 
 ### Added
 

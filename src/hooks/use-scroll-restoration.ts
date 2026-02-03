@@ -42,9 +42,17 @@ interface SavedScrollPosition {
 export function useScrollRestoration({
   key,
   enabled = true,
-}: UseScrollRestorationOptions) {
+}: UseScrollRestorationOptions): {
+  saveScrollPosition: () => void
+} {
   // SSR guard - return no-op if window is not available
   if (typeof window === 'undefined') {
+    return { saveScrollPosition: () => {} }
+  }
+
+  // Validate key - prevent empty string key collision
+  if (!key || key.trim() === '') {
+    console.warn('[useScrollRestoration] Invalid key provided (empty string)')
     return { saveScrollPosition: () => {} }
   }
 
@@ -80,7 +88,22 @@ export function useScrollRestoration({
     if (!savedData) return
 
     try {
-      const data: SavedScrollPosition = JSON.parse(savedData)
+      const parsed = JSON.parse(savedData)
+
+      // Runtime type validation - ensure data has correct shape
+      if (
+        typeof parsed !== 'object' ||
+        parsed === null ||
+        typeof parsed.scrollY !== 'number' ||
+        typeof parsed.viewportWidth !== 'number'
+      ) {
+        // Invalid data format - cleanup and skip restoration
+        sessionStorage.removeItem(`scroll_${key}`)
+        console.warn('[useScrollRestoration] Invalid data format in sessionStorage')
+        return
+      }
+
+      const data: SavedScrollPosition = parsed
 
       // Responsive safety: Only restore if viewport width is similar (±100px tolerance)
       // This prevents scroll to wrong position after responsive layout change
