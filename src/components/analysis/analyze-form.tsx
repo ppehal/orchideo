@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageSelector } from './page-selector'
-import { UrlInputForm } from './url-input-form'
 import { FbConnectButton } from './fb-connect-button'
 import { IndustrySelector } from './industry-selector'
 import { CategoryMappingInfo } from './category-mapping-info'
@@ -25,24 +24,13 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
   const router = useRouter()
   const { pages, isLoading, error, errorCode } = useFbPages()
   const [selectedPage, setSelectedPage] = React.useState<FacebookPageItem | null>(null)
-  const [highlightedPageId, setHighlightedPageId] = React.useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [selectedIndustry, setSelectedIndustry] = React.useState<IndustryCode>('DEFAULT')
   const [suggestedIndustry, setSuggestedIndustry] = React.useState<IndustryCode>('DEFAULT')
 
-  // Handle URL-based page highlighting
-  const handleUrlParsed = React.useCallback((pageId: string | null) => {
-    setHighlightedPageId(pageId)
-    if (pageId) {
-      // Auto-select if only one match
-      setSelectedPage((prev) => (prev?.id === pageId ? prev : null))
-    }
-  }, [])
-
   // Handle page selection
   const handleSelectPage = React.useCallback((page: FacebookPageItem) => {
     setSelectedPage(page)
-    setHighlightedPageId(null)
 
     // Auto-detect industry from FB category
     const detectedIndustry = getIndustryFromFbCategory(page.category)
@@ -127,43 +115,27 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Add padding when sticky bar is visible */}
-      <div className={cn(selectedPage && 'pb-32 sm:pb-24')}>
+      <div className={cn('space-y-8', selectedPage && 'pb-32 sm:pb-24')}>
         <Card>
-        <CardHeader>
-          <CardTitle>Zadejte URL stránky</CardTitle>
-          <CardDescription>
-            Vložte URL vaší Facebook stránky pro rychlé vyhledání, nebo vyberte ze seznamu níže.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UrlInputForm
-            pages={pages}
-            onUrlParsed={handleUrlParsed}
-            disabled={isLoading || isSubmitting}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Vaše stránky</CardTitle>
-          <CardDescription>
-            Vyberte stránku, kterou chcete analyzovat. Zobrazeny jsou pouze stránky, ke kterým máte
-            přístup.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PageSelector
-            pages={pages}
-            selectedPageId={selectedPage?.id ?? null}
-            highlightedPageId={highlightedPageId}
-            onSelectPage={handleSelectPage}
-            isLoading={isLoading}
-          />
-        </CardContent>
-      </Card>
+          <CardHeader>
+            <CardTitle>Vyberte stránku k analýze</CardTitle>
+            <CardDescription>
+              Vyberte stránku, kterou chcete analyzovat. Můžete vyhledávat podle názvu, URL (např.
+              facebook.com/vase-stranka) nebo ID. Zobrazeny jsou pouze stránky, ke kterým máte
+              přístup.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PageSelector
+              pages={pages}
+              selectedPageId={selectedPage?.id ?? null}
+              onSelectPage={handleSelectPage}
+              isLoading={isLoading}
+            />
+          </CardContent>
+        </Card>
 
       {selectedPage && (
         <Card>

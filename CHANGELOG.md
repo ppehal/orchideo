@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **UX Improvement: Unified Smart Search on /analyze Page**
+  - Consolidated two separate search mechanisms (UrlInputForm + PageSelector) into single unified search interface
+  - Smart auto-detection: automatically handles Facebook URLs, numeric page IDs, and page name searches
+  - Improved mobile UX: removed redundant first card (~160px vertical space saved), main interface now visible without scrolling
+  - Reduced cognitive load: single search box with clear placeholder text instead of confusing dual search
+  - Maintained all functionality: URL parsing and ID matching still work, just integrated seamlessly
+  - Cleaner codebase: removed ~124 lines of duplicate search logic
+  - **Files**: Removed `url-input-form.tsx`, enhanced `page-selector.tsx` with smart input detection
+
 ### Added
 
 - **Post-Level Insights Enrichment for Reaction Data**

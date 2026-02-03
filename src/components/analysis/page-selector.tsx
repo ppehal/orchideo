@@ -12,13 +12,13 @@ import { cn } from '@/lib/utils'
 import type { FacebookPageItem } from '@/hooks/use-fb-pages'
 import { CategoryMappingBadge } from '@/components/ui/category-mapping-badge'
 import { getIndustryFromFbCategory } from '@/lib/constants/fb-category-map'
+import { parseFacebookUrl, matchPageByIdentifier } from '@/lib/utils/url-parser'
 
 interface PageSelectorProps {
   pages: FacebookPageItem[]
   selectedPageId: string | null
   onSelectPage: (page: FacebookPageItem) => void
   isLoading?: boolean
-  highlightedPageId?: string | null
 }
 
 export function PageSelector({
@@ -26,7 +26,6 @@ export function PageSelector({
   selectedPageId,
   onSelectPage,
   isLoading,
-  highlightedPageId,
 }: PageSelectorProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
 
@@ -40,8 +39,21 @@ export function PageSelector({
   const filteredPages = React.useMemo(() => {
     if (!searchQuery.trim()) return pages
 
-    const normalizedQuery = normalizeForSearch(searchQuery)
+    // Step 1: Try to parse as Facebook URL
+    const parsed = parseFacebookUrl(searchQuery)
+    if (parsed) {
+      const matched = matchPageByIdentifier(pages, parsed.value)
+      return matched ? [matched] : []
+    }
 
+    // Step 2: Check if it's a numeric ID
+    if (/^\d+$/.test(searchQuery)) {
+      const byId = pages.find((p) => p.id === searchQuery)
+      if (byId) return [byId]
+    }
+
+    // Step 3: Treat as name/username search (substring)
+    const normalizedQuery = normalizeForSearch(searchQuery)
     return pages.filter((page) => {
       const normalizedName = normalizeForSearch(page.name)
       const normalizedUsername = page.username ? normalizeForSearch(page.username) : ''
@@ -63,7 +75,7 @@ export function PageSelector({
           <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             type="text"
-            placeholder="Vyhledat stránku podle názvu nebo URL..."
+            placeholder="Vyhledat podle názvu, URL (facebook.com/stranka) nebo ID"
             value=""
             onChange={() => {}}
             disabled
@@ -96,7 +108,7 @@ export function PageSelector({
         <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
         <Input
           type="text"
-          placeholder="Vyhledat stránku podle názvu nebo URL..."
+          placeholder="Vyhledat podle názvu, URL (facebook.com/stranka) nebo ID"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9 pr-9"
@@ -137,7 +149,6 @@ export function PageSelector({
               key={page.id}
               page={page}
               isSelected={selectedPageId === page.id}
-              isHighlighted={highlightedPageId === page.id}
               onClick={() => onSelectPage(page)}
             />
           ))}
@@ -150,21 +161,19 @@ export function PageSelector({
 interface PageCardProps {
   page: FacebookPageItem
   isSelected: boolean
-  isHighlighted?: boolean
   onClick: () => void
 }
 
-function PageCard({ page, isSelected, isHighlighted, onClick }: PageCardProps) {
+function PageCard({ page, isSelected, onClick }: PageCardProps) {
   return (
     <Card
       className={cn(
         'cursor-pointer transition-all hover:shadow-md',
-        isSelected && 'ring-primary ring-2',
-        isHighlighted && !isSelected && 'ring-primary/50 ring-1'
+        isSelected && 'ring-primary ring-2'
       )}
       onClick={onClick}
     >
-      <CardContent className="flex items-center gap-3 p-4">
+      <CardContent className="flex items-start gap-3 p-4">
         <div className="bg-muted relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
           {page.picture_url ? (
             <Image
@@ -180,14 +189,13 @@ function PageCard({ page, isSelected, isHighlighted, onClick }: PageCardProps) {
             </div>
           )}
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-1">
           <p className="truncate font-medium">{page.name}</p>
           {page.category?.trim() && (
             <CategoryMappingBadge
               fbCategory={page.category}
               industryCode={getIndustryFromFbCategory(page.category)}
               variant="compact"
-              className="mt-1"
             />
           )}
         </div>
