@@ -10,21 +10,13 @@
  * Celkem: 7 kombinací
  */
 
-export const CONT_005_INTRO = `Různé formáty příspěvků mají různý potenciál pro engagement. Facebook algoritmus upřednostňuje rozmanitý obsah a nativní formáty (zejména video a Reels).
+export const CONT_005_INTRO = `Každý druh formátu je silný na něco jiného a podle toho se i vybírá při tvorbě příspěvku. Nikdy se nesnažte mixovat cíle pro příspěvek s jinými druhy formátů, než které jsou pro ně vhodné. Zbytečně byste se obírali o výsledky a dlouhodobě profilu škodili. Jednotlivé cíle a formáty jsou:
 
-Ideální rozložení formátů:
-- **Fotky: 40-60%** - základ vizuálního obsahu
-- **Video/Reels: 20-40%** - nejvyšší engagement potenciál
-- **Odkazy: 10-20%** - pro návštěvnost webu
-- **Text (status): <10%** - nejnižší dosah
-- **Sdílené: <10%** - nízký organický dosah
-
-Proč je diverzita důležitá?
-- Různé formáty oslovují různé segmenty publika
-- Algoritmus oceňuje kreativitu a rozmanitost
-- Některé formáty fungují lépe pro různé cíle (engagement vs. návštěvnost)
-
-Používejte alespoň 3-4 různé formáty pro optimální výsledky.`
+- Fotka/Grafika - Interakce
+- Album - Interakce
+- GIF - Interakce
+- Video - Sdělení složitější myšlenky, Dosah
+- Linkshare - Prokliky na web`
 
 export interface CategoryDimension {
   id: string

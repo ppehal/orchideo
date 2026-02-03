@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Trigger Category Intro Texts - Restored Complete Content from Specification**
+  - **CONT_004 (Promované posty)**: Restored full 30+ line mathematical ROI model with detailed 6 vs 10 posts example showing 20% reach improvement calculation
+  - **CONT_001 (Obsahový mix)**: Restored complete 20/80 ratio explanation for business vs interaction posts balance
+  - **CONT_005 (Formáty příspěvků)**: Added format-specific purpose descriptions (Photo→Interactions, Video→Complex messages, Linkshare→Clicks)
+  - **CONT_006 (Prokliky dle formátu)**: Restored product complexity guidance for Video vs Linkshare selection
+  - **BASIC_002 (Struktura interakcí)**: Added missing FOMO effect explanation in comment acquisition context
+  - All intro texts now match original specification in `docs/systems/complete-trigger-desc.md`
+  - Fixes critical information loss where users were missing key context, examples, and strategic guidance
+
 - **Report Navigation - Scroll Position Restoration**
   - Fixed scroll position being lost when navigating back from trigger detail page
   - Implemented scroll restoration mechanism using sessionStorage

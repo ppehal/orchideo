@@ -11,11 +11,7 @@
  * Celkem: 9 kombinací (1 fallback + 2×2×2)
  */
 
-export const BASIC_002_INTRO = `Pro správně fungující stránku je důležitá struktura interakcí, protože mají pro algoritmus každá jinou váhu. Zároveň je u každého druhu interakce jinak těžké takovou interakci získat.
-
-Facebook si totiž tuto náročnost uvědomuje a benefituje větším dosahem příspěvku ty druhy interakcí, které je těžší získat. Like Vám dá každý. Trošku náročnější je to s dalšími druhy reakcí, protože si uživatel musí vysunout jejich lištu, a tím dává najevo, že ho příspěvek zaujal více.
-
-Potom je dlouho nic a o velice mnoho náročnější je získat komentář, protože nad tím se uživatel musí už skutečně zamyslet a potom si dát práci s odpovědí. Největší váhu má sdílení, protože tím uživatel vyjadřuje, že je daný příspěvek dle něj natolik dobrý a relevantní, že si zaslouží pozornost i uživatelových přátel.`
+export const BASIC_002_INTRO = `Pro správně fungující stránku je důležitá struktura interakcí, protože mají pro algoritmus každá jinou váhu. Zároveň je u každého druhu interakce jinak těžké takovou interakci získat. Facebook si totiž tuto náročnost uvědomuje a benefituje větším dosahem příspěvku ty druhy interakcí, které je těžší získat. Like Vám dá každý. Trošku náročnější je to s dalšími druhy reakcí, protože si uživatel musí vysunout jejich lištu, a tím dává najevo, že ho příspěvek zaujal více. Potom je dlouho nic a o velice mnoho náročnější je získat komentář, protože nad tím se uživatel musí už skutečně zamyslet (Což je v prostředí sociálních sítí spíše zřídkavá situace, protože zde uživatelé primárně bezmyšlenkovitě scrollují kvůli FOMO efektu, než je nějaký příspěvek nezaujme natolik, že se na něm zastaví a alespoň si ho přečtou.) a potom si dát práci s odpovědí. Největší váhu má sdílení, protože tím uživatel vyjadřuje, že je daný příspěvek dle něj natolik dobrý a relevantní, že si zaslouží pozornost i uživatelových přátel a je se za něj ochoten postavit a vystavit se riziku, že s ním přátelé nebudou souhlasit.`
 
 export interface CategoryDimension {
   id: string

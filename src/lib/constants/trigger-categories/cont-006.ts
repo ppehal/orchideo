@@ -9,13 +9,7 @@
  * Celkem: 5 kombinací
  */
 
-export const CONT_006_INTRO = `Různé formáty příspěvků generují různé množství prokliků. Prokliky jsou důležité zejména pokud chcete návštěvnost na webu nebo v e-shopu.
-
-Ideální stav je, když máte relativně vyrovnané prokliky napříč formáty (rozptyl do 2×). To znamená, že všechny vaše formáty fungují dobře.
-
-Pokud máte velký rozptyl (5× a více), znamená to, že některé formáty u vás vůbec nefungují pro generování prokliků. V tom případě se zaměřte na formáty, které fungují, nebo experimentujte s vylepšením slabých formátů.
-
-Poznámka: Data o proklikách vyžadují oprávnění read_insights. Pokud tato data nemáme, používáme engagement jako aproximaci.`
+export const CONT_006_INTRO = `Prokliky na web se sbírají buď přes statický Linkshare formát, nebo přes video formát. U každého firemního profilu to ale funguje jinak - někde je lepší dělat pro prokliky videa, jinde spíše Linkshary. Čím je složitější služba nebo produkt, který prodáváte, tím více se hodí spíše video. Linkshare se hodí na méně složité produkty nebo na obecně známé produkty a služby.`
 
 export interface CategoryDimension {
   id: string

@@ -10,14 +10,7 @@
  * Celkem: 7 kombinací (1 fallback + 3×2)
  */
 
-export const CONT_001_INTRO = `Žádná firemní stránka nemůže fungovat jen na základě postování příspěvků o produktech a službách. Facebook chce, aby se uživatelé na platformě bavili, a proto upřednostňuje obsah, který vyvolává engagement.
-
-Ideální obsahový mix je přibližně:
-- **60%+ zábavného/engagement obsahu** - příspěvky, které baví, vzdělávají nebo vyvolávají diskuzi
-- **Max 15% prodejního obsahu** - přímé nabídky produktů, služeb, akcí
-- **Zbytek brandový obsah** - informace o firmě, zákulisí, hodnoty
-
-Pokud máte příliš mnoho prodejního obsahu, algoritmus bude vaše příspěvky penalizovat a ukazovat je méně lidem. Naopak zábavný obsah má tendenci se šířit organicky.`
+export const CONT_001_INTRO = `Obsahový mix příspěvků by vždy měl být vyvážený a měl by být tvořen z příspěvků, které Vám dělají business (ať už prodejní, nebo jen budující značku), tak z příspěvků, které pomáhají profil oživovat, protože businessové příspěvky zpravidla negenerují příliš interakcí a táhnou algoritmus dolů. Ideální poměr je 20 % businessových příspěvků a 80 % těch, které generují interakce, které slouží jako palivo pro businessové příspěvky, které toto palivo spotřebovávají. Nejlépe byste se měli úplně vyvarovat prodejních příspěvků a soustředit se jen na ty brandové. Pokud ale dokážete najít taková obsahová témata, která propojují Vaše businessové příspěvky do takového obsahu, který zároveň generuje i interakce, tak máte vyhráno a dejte těmto příspěvkům nejvíce prostoru.`
 
 export interface CategoryDimension {
   id: string
