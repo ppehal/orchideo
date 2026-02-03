@@ -21,7 +21,7 @@
 
 **Nadpis:** Jak jste na tom s příspěvky
 
-**Úvodní text:**
+**Jak to funguje?:**
 Facebook chce, aby se k fanouškům dostával jen ten nejzajímavější obsah, který je všem šitý na míru. Právě proto používá interakce jako barometr relevance a zajímavosti obsahu. Z nastavení se každý příspěvek zobrazí jen malému procentu vašich fanoušků. Dobře fungující profil potřebuje správnou frekvenci příspěvků, aby ho algoritmus považoval za dostatečně zajímavý a příspěvky fanouškům ukazoval častěji. Čím více interakcí potom příspěvky dostávají, tím většímu množství fanoušků algoritmus příspěvky ukáže a tím lépe vám profil funguje. Interakce fungují jako palivo pro váš profil. A s větším množstvím dosahu je i více příležitostí pro dodatečné interakce - funguje to jako sněhová koule, kterou je třeba rozkutálet.
 
 **Dimenze:**

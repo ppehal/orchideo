@@ -11,7 +11,7 @@ export function IntroText({ text }: IntroTextProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <BookOpen className="text-muted-foreground h-4 w-4" />
-          <CardTitle className="text-base font-medium">Úvodní text</CardTitle>
+          <CardTitle className="text-base font-medium">Jak to funguje?</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
