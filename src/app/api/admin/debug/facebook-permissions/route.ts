@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 import { getGrantedPermissions } from '@/lib/integrations/facebook/introspection'
 import { FB_PERMISSIONS } from '@/lib/constants/fb-permissions'
 
-const ADMIN_EMAILS = [
-  // Add admin emails here for now (until User.role is added)
-  'admin@example.com',
-]
+// Admin emails for permission debugging - configured via env var
+// Format: comma-separated list of emails
+// Example: ADMIN_EMAILS="admin@example.com,support@example.com"
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim()) || []
 
 export async function GET(request: Request) {
   const session = await auth()
@@ -86,16 +86,22 @@ export async function GET(request: Request) {
 
   const diagnosis = {
     hasValidToken: account.access_token !== null,
-    hasAllRequiredPermissions: missingPermissions.length === 0,
+    hasAllRequiredPermissions:
+      introspectionError === null && missingPermissions.length === 0,
     missingPermissions,
     tokenExpired: account.expires_at
       ? account.expires_at * 1000 < Date.now()
       : false,
+    introspectionFailed: introspectionError !== null,
     recommendations: [] as string[],
   }
 
   if (!diagnosis.hasValidToken) {
     diagnosis.recommendations.push('User needs to connect Facebook account')
+  } else if (introspectionError) {
+    diagnosis.recommendations.push(
+      `Failed to introspect token via Facebook API: ${introspectionError}. Cannot verify permissions. This may be a temporary API issue.`
+    )
   } else if (diagnosis.tokenExpired) {
     diagnosis.recommendations.push('Token has expired, user must re-login')
   } else if (!diagnosis.hasAllRequiredPermissions) {

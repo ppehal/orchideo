@@ -54,8 +54,20 @@ export async function getGrantedPermissions(
  * Requires app access token (generated as: {FACEBOOK_APP_ID}|{FACEBOOK_APP_SECRET})
  */
 export async function debugToken(accessToken: string): Promise<TokenDebugInfo> {
+  // Validate environment variables
+  const appId = process.env.FACEBOOK_APP_ID
+  const appSecret = process.env.FACEBOOK_APP_SECRET
+
+  if (!appId || !appSecret) {
+    const error = new Error(
+      'Missing FACEBOOK_APP_ID or FACEBOOK_APP_SECRET environment variables'
+    )
+    log.error({ appId: !!appId, appSecret: !!appSecret }, 'Missing environment variables')
+    throw error
+  }
+
   // Generate app access token: {app_id}|{app_secret}
-  const appAccessToken = `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`
+  const appAccessToken = `${appId}|${appSecret}`
 
   const url = `${GRAPH_API_BASE_URL}/debug_token?input_token=${accessToken}&access_token=${appAccessToken}`
 
