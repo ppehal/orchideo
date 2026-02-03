@@ -76,9 +76,48 @@ interface CollectedData {
 
 1. **Page metadata** (required) - Name, fan count, picture, cover
 2. **Feed posts** - Last 90 days, with reactions/comments/shares
-3. **Page insights** - 28 days of page-level metrics (optional)
+3. **Post-level insights enrichment** (optional, default: enabled) - Detailed reaction breakdowns, impressions, clicks per post
+4. **Page insights** - 28 days of page-level metrics (optional)
 
-Feed and insights are fetched in parallel using `Promise.allSettled`.
+**Flow:**
+```
+fetchPageFeed() ──▶ enrichPostsWithInsights() ──▶ convertToRawPost() ──▶ normalizePost()
+      ║                    ║ (parallel)
+      ║                    ▼
+      ║             fetchPostInsights() per post
+      ║                    ║
+      ╚═══════════════════▶║
+            (in parallel via Promise.allSettled)
+```
+
+Feed and page insights are fetched in parallel. Post enrichment happens sequentially after feed fetch but before normalization.
+
+#### Post Insights Enrichment (Added 2026-02-03)
+
+Enriches each post with detailed metrics via parallel API calls:
+
+**Collected metrics:**
+- Reaction breakdowns: like, love, wow, haha, sad, angry
+- Impressions: total, organic, paid, unique (reach)
+- Engagement: clicks, engaged users
+
+**Implementation:**
+- Controlled parallelism (max 5 concurrent requests via Semaphore)
+- Rate limiting (100 requests/min)
+- Timeout protection (120s with fallback to basic data)
+- Graceful degradation (analysis continues if enrichment fails)
+- Progress logging every 10 posts
+
+**Performance:**
+- Typical overhead: 30-90s for 50-200 posts
+- Acceptable for background job pattern
+
+**Can be disabled:**
+```typescript
+await collectAnalysisData(pageId, token, {
+  fetchPostInsights: false  // Skip enrichment
+})
+```
 
 ### Collector Options
 
@@ -88,6 +127,7 @@ interface CollectorOptions {
   maxFeedPages?: number // Max pagination pages
   feedDaysBack?: number // Days to look back (default: 90)
   insightsDaysBack?: number // Insights period (default: 28)
+  fetchPostInsights?: boolean // Enable post-level insights enrichment (default: true, added 2026-02-03)
 }
 ```
 
@@ -132,14 +172,15 @@ interface NormalizedPost {
   image_height: number | null
   image_format: string | null // jpeg, png, gif, webp
 
-  // Post insights (if available)
-  impressions: number | null
-  impressions_organic: number | null
-  impressions_paid: number | null
-  reach: number | null
-  clicks: number | null
+  // Post insights (collected via post-level insights enrichment, added 2026-02-03)
+  impressions: number | null // Total impressions
+  impressions_organic: number | null // Organic reach
+  impressions_paid: number | null // Paid reach
+  reach: number | null // Unique impressions
+  clicks: number | null // Post clicks
 
-  // Reaction breakdown
+  // Reaction breakdown (collected via post-level insights enrichment, added 2026-02-03)
+  // Previously always 0, now populated with actual breakdown from Facebook API
   reaction_like: number
   reaction_love: number
   reaction_wow: number

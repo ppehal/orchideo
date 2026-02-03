@@ -110,6 +110,72 @@ function getAppSecretProof(accessToken: string): string {
 
 ---
 
+### Post-Level Insights Were Never Collected Despite Function Existing
+
+**Datum**: 2026-02-03
+**Kontext**: BASIC_003 trigger (Reaction Structure Analysis) vždy vracel `INSUFFICIENT_DATA` protože reaction breakdowns (like, love, wow, etc.) byly vždy 0
+
+**Problém**:
+- `fetchPostInsights()` funkce existovala v `feed.ts` od začátku ✅
+- Normalizer očekával `post.insights` a správně je mapoval ✅
+- Ale reakce byly vždy 0 ve všech analýzách ❌
+- Facebook API fetch vracel pouze `reactions.summary(total_count)` ❌
+
+**Příčina**:
+- Collector nikdy nevolal `fetchPostInsights()` pro jednotlivé posty
+- Data flow byl: `fetchPageFeed()` → `convertToRawPost()` → `normalizePost()`
+- Chyběla enrichment fáze mezi feed fetch a normalizací
+- Fetch v `fetchPageFeed()` používal pouze `reactions.summary(total_count)` (aggregate), ne breakdown
+
+**Řešení**: Přidána enrichment fáze s paralelním fetchem post insights:
+
+```typescript
+// New flow:
+fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normalizePost()
+                   ↓ (parallel, max 5)
+                   fetchPostInsights() per post
+
+async function enrichPostsWithInsights(posts, token, pageId) {
+  const semaphore = new Semaphore(5)  // Concurrency control
+  const rateLimiter = getRateLimiter('...', { maxRequests: 100, windowMs: 60_000 })
+
+  await Promise.allSettled(posts.map(async (post) => {
+    const release = await semaphore.acquire()
+    try {
+      await rateLimiter.acquire()
+      const insights = await fetchPostInsights(post.id, token)
+      if (insights) post.processedInsights = insights  // Assign to new field
+    } finally {
+      release()
+    }
+  }))
+}
+```
+
+**Prevence**:
+- ✅ Zkontrolovat že helper funkce se SKUTEČNĚ volají (ne jen existují)
+- ✅ End-to-end test by odhalil (reakce by neměly být vždy 0)
+- ✅ Code review data flow od API až do DB
+- ⚠️ Facebook API má různé endpointy pro aggregate vs breakdown data
+- ⚠️ Feed endpoint vrací jen `reactions.summary`, breakdown vyžaduje separate `/insights` endpoint
+
+**Gotchas při implementaci:**
+1. **Timeout konflikt**: Runner má timeout 60s (default), enrichment 120s → runner může timeout dřív
+   - Fix: Enrichment má vlastní timeout + fallback na unenriched data
+2. **Stats misleading**: "failed" zahrnuje jak errors, tak posty bez dostupných insights (null)
+   - Better: Rozdělit na `enriched` / `no_insights` / `failed`
+3. **Pending requests po timeout**: Promise.race() timeout nezastaví běžící promises
+   - Improvement: AbortController pro clean cancellation
+4. **Rate limiter per-instance**: Multiple analyses sdílí quota
+   - OK pro single-user VPS, ale multi-tenant vyžaduje per-user limiting
+
+**Performance impact:**
+- Typical: +30-90s pro 50-200 postů
+- Acceptable: Background job pattern, uživatel nemusí čekat
+- MAX_FEED_POSTS = 300 může timeout při slow API (2s/post * 300/5 = 120s)
+
+---
+
 ## Auth
 
 _Zatím žádné záznamy._

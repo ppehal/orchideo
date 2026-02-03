@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Post-Level Insights Enrichment for Reaction Data**
+  - Implemented automatic collection of detailed reaction breakdowns (like, love, wow, haha, sad, angry) from Facebook API
+  - Added `enrichPostsWithInsights()` function that fetches individual post insights before normalization
+  - Concurrency control with Semaphore (max 5 parallel requests) to prevent API overload
+  - Conservative rate limiting (100 requests/min) to respect Facebook API quotas
+  - Timeout protection (2 min) with graceful fallback to basic data if enrichment fails
+  - New `processedInsights` field on `FacebookPost` type for simplified insights format
+  - Progress logging every 10 posts for observability
+  - Feature enabled by default, can be disabled via `fetchPostInsights: false` option
+  - Performance impact: Adds 30-90 seconds to analysis duration (acceptable for background job)
+  - **Fixes:** BASIC_003 trigger (Reaction Structure Analysis) now receives actual data instead of returning INSUFFICIENT_DATA
+  - **Data collected:** Reaction breakdowns, impressions (total/organic/paid), reach, clicks per post
+  - **Backward compatible:** Posts without insights continue to work (graceful degradation)
+
 ### Fixed
 
 - **Report Navigation - Scroll Position Restoration**
