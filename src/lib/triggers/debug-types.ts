@@ -6,7 +6,7 @@
  * benchmark sources, keyword matching, and threshold visualizations.
  */
 
-import type { TriggerStatus } from '@prisma/client'
+import type { TriggerStatus } from './types'
 
 export interface TriggerDebugData {
   /**
