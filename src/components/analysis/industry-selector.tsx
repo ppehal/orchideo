@@ -48,7 +48,11 @@ export function IndustrySelector({
         />
       )}
 
-      <Select value={value} onValueChange={(v) => onChange(v as IndustryCode)} disabled={disabled}>
+      <Select
+        value={value || 'DEFAULT'}
+        onValueChange={(v) => onChange(v as IndustryCode)}
+        disabled={disabled}
+      >
         <SelectTrigger id="industry" className="w-full">
           <SelectValue placeholder="Vyberte obor" />
         </SelectTrigger>

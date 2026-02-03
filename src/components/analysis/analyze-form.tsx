@@ -182,6 +182,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
             </div>
 
             <IndustrySelector
+              key={selectedPage?.id}
               value={selectedIndustry}
               onChange={setSelectedIndustry}
               suggestedIndustry={suggestedIndustry}

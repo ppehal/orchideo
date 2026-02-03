@@ -44,7 +44,7 @@ export function AnalysisFilters({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       {/* Page filter */}
       {pages.length > 0 && (
-        <Select value={selectedPageId} onValueChange={onPageChange}>
+        <Select value={selectedPageId || 'ALL'} onValueChange={onPageChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Vyberte stránku" />
           </SelectTrigger>
@@ -60,7 +60,7 @@ export function AnalysisFilters({
       )}
 
       {/* Status filter */}
-      <Select value={selectedStatus} onValueChange={onStatusChange}>
+      <Select value={selectedStatus || 'ALL'} onValueChange={onStatusChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Stav" />
         </SelectTrigger>
@@ -74,7 +74,7 @@ export function AnalysisFilters({
       </Select>
 
       {/* Sort */}
-      <Select value={selectedSort} onValueChange={onSortChange}>
+      <Select value={selectedSort || 'newest'} onValueChange={onSortChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Řazení" />
         </SelectTrigger>
