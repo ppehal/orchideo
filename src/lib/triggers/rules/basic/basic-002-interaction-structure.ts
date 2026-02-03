@@ -1,4 +1,5 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
+import type { TriggerDebugData } from '../../debug-types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
 import { getCategoryKey } from '@/lib/constants/trigger-categories/basic-002'
@@ -125,6 +126,89 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     },
   ]
 
+  // Detect if using default benchmark
+  const isDefaultBenchmark =
+    industryBenchmark.industry_code === 'DEFAULT' ||
+    industryBenchmark.industry_name === 'Default' ||
+    !industryBenchmark.industry_code
+
+  // Build debug data
+  const debugData: TriggerDebugData = {
+    calculationSteps: [
+      {
+        step: 1,
+        description: 'Výpočet celkového počtu interakcí',
+        formula: 'totalEngagement = totalReactions + totalComments + totalShares',
+        inputs: {
+          totalReactions,
+          totalComments,
+          totalShares,
+        },
+        result: totalEngagement,
+      },
+      {
+        step: 2,
+        description: 'Výpočet procentuálního podílu reakcí',
+        formula: 'reactionsPct = (totalReactions / totalEngagement) * 100',
+        inputs: { totalReactions, totalEngagement },
+        result: `${reactionsPct.toFixed(1)}%`,
+      },
+      {
+        step: 3,
+        description: 'Výpočet procentuálního podílu komentářů',
+        formula: 'commentsPct = (totalComments / totalEngagement) * 100',
+        inputs: { totalComments, totalEngagement },
+        result: `${commentsPct.toFixed(1)}%`,
+      },
+      {
+        step: 4,
+        description: 'Výpočet procentuálního podílu sdílení',
+        formula: 'sharesPct = (totalShares / totalEngagement) * 100',
+        inputs: { totalShares, totalEngagement },
+        result: `${sharesPct.toFixed(1)}%`,
+      },
+      {
+        step: 5,
+        description: 'Výpočet průměrné odchylky od benchmarku',
+        formula:
+          'avgDeviation = (|reactions - benchmark| + |comments - benchmark| + |shares - benchmark|) / 3',
+        inputs: {
+          'Odchylka reakcí': Math.abs(reactionsPct - industryBenchmark.reactions_pct).toFixed(1),
+          'Odchylka komentářů': Math.abs(commentsPct - industryBenchmark.comments_pct).toFixed(1),
+          'Odchylka sdílení': Math.abs(sharesPct - industryBenchmark.shares_pct).toFixed(1),
+        },
+        result: `${avgDeviation.toFixed(1)}%`,
+      },
+      {
+        step: 6,
+        description: 'Určení skóre na základě odchylky',
+        formula: `if (avgDeviation ≤${TOLERANCE_EXCELLENT}%) → 95\nif (avgDeviation ≤${TOLERANCE_GOOD}%) → 75\nif (avgDeviation ≤30%) → 55\njinak → 35`,
+        inputs: { avgDeviation: `${avgDeviation.toFixed(1)}%` },
+        result: score,
+      },
+    ],
+    benchmarkContext: {
+      industryName: industryBenchmark.industry_name || 'Výchozí',
+      industryCode: industryBenchmark.industry_code || 'DEFAULT',
+      source: isDefaultBenchmark ? 'default' : 'database',
+      values: {
+        'Podíl reakcí': industryBenchmark.reactions_pct,
+        'Podíl komentářů': industryBenchmark.comments_pct,
+        'Podíl sdílení': industryBenchmark.shares_pct,
+      },
+    },
+    thresholdPosition: {
+      value: score,
+      status: getStatus(score),
+      ranges: [
+        { status: 'CRITICAL', min: 0, max: 39, label: 'Kritické' },
+        { status: 'NEEDS_IMPROVEMENT', min: 40, max: 69, label: 'Vyžaduje zlepšení' },
+        { status: 'GOOD', min: 70, max: 84, label: 'Dobré' },
+        { status: 'EXCELLENT', min: 85, max: 100, label: 'Výborné' },
+      ],
+    },
+  }
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -149,6 +233,7 @@ commentsPct = totalComments / totalEngagement * 100
 sharesPct = totalShares / totalEngagement * 100
 Porovnání: hodnota >= benchmark → ABOVE, jinak BELOW`,
         _categoryKey: categoryKey,
+        _debugData: JSON.stringify(debugData),
       },
     },
   }

@@ -1,7 +1,8 @@
 import type { TriggerRule, TriggerInput, TriggerEvaluation } from '../../types'
+import type { TriggerDebugData } from '../../debug-types'
 import { getStatus, createFallbackEvaluation, formatPercent } from '../../utils'
 import { registerTrigger } from '../../registry'
-import { analyzeContentMix } from '@/lib/utils/text-analysis'
+import { analyzeContentMixWithDebug } from '@/lib/utils/text-analysis'
 import { getCategoryKey } from '@/lib/constants/trigger-categories/cont-001'
 
 const TRIGGER_ID = 'CONT_001'
@@ -28,7 +29,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     )
   }
 
-  const analysis = analyzeContentMix(posts90d)
+  // Use debug variant to get both analysis and post classifications
+  const { analysis, postClassifications } = analyzeContentMixWithDebug(posts90d)
 
   // Use industry benchmark if available, otherwise use defaults
   const idealEngagement = industryBenchmark.ideal_engagement_pct || 60
@@ -91,6 +93,102 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
     { key: 'brandPct', label: 'Podíl brandových', value: formatPercent(analysis.brandPct, 1) },
   ]
 
+  // Build debug data
+  const debugData: TriggerDebugData = {
+    calculationSteps: [
+      {
+        step: 1,
+        description: 'Klasifikace postů pomocí keyword matchingu',
+        inputs: {
+          'Celkem postů': posts90d.length,
+        },
+        result: `${analysis.salesCount} SALES, ${analysis.brandCount} BRAND, ${analysis.engagementCount} ENGAGEMENT`,
+      },
+      {
+        step: 2,
+        description: 'Výpočet procentuálního zastoupení engagement obsahu',
+        formula: 'engagementPct = (engagementCount / totalPosts) * 100',
+        inputs: {
+          engagementCount: analysis.engagementCount,
+          totalPosts: analysis.total,
+        },
+        result: `${analysis.engagementPct.toFixed(1)}%`,
+      },
+      {
+        step: 3,
+        description: 'Výpočet procentuálního zastoupení prodejního obsahu',
+        formula: 'salesPct = (salesCount / totalPosts) * 100',
+        inputs: {
+          salesCount: analysis.salesCount,
+          totalPosts: analysis.total,
+        },
+        result: `${analysis.salesPct.toFixed(1)}%`,
+      },
+      {
+        step: 4,
+        description: 'Výpočet skóre - engagement složka',
+        formula: `if (engagement ≥ ${idealEngagement}%) → +15\nif (engagement ≥ ${idealEngagement - 15}%) → +5\njinak → -10`,
+        inputs: {
+          'Aktuální engagement': `${analysis.engagementPct.toFixed(1)}%`,
+          'Cílový engagement': `${idealEngagement}%`,
+        },
+        result:
+          analysis.engagementPct >= idealEngagement
+            ? '+15'
+            : analysis.engagementPct >= idealEngagement - 15
+              ? '+5'
+              : '-10',
+      },
+      {
+        step: 5,
+        description: 'Výpočet skóre - prodejní složka',
+        formula: `if (sales ≤ ${idealSales}%) → +10\nif (sales ≤ ${idealSales + 10}%) → -5\njinak → -20`,
+        inputs: {
+          'Aktuální sales': `${analysis.salesPct.toFixed(1)}%`,
+          'Maximální sales': `${idealSales}%`,
+        },
+        result:
+          analysis.salesPct <= idealSales
+            ? '+10'
+            : analysis.salesPct <= idealSales + 10
+              ? '-5'
+              : '-20',
+      },
+      {
+        step: 6,
+        description: 'Finální skóre (base 70 + úpravy)',
+        formula: 'score = max(20, min(95, baseScore + engagementBonus + salesPenalty))',
+        inputs: {
+          'Base score': '70',
+          'Engagement úprava':
+            analysis.engagementPct >= idealEngagement
+              ? '+15'
+              : analysis.engagementPct >= idealEngagement - 15
+                ? '+5'
+                : '-10',
+          'Sales úprava':
+            analysis.salesPct <= idealSales
+              ? '+10'
+              : analysis.salesPct <= idealSales + 10
+                ? '-5'
+                : '-20',
+        },
+        result: score,
+      },
+    ],
+    postClassifications,
+    thresholdPosition: {
+      value: score,
+      status: getStatus(score),
+      ranges: [
+        { status: 'CRITICAL', min: 0, max: 39, label: 'Kritické' },
+        { status: 'NEEDS_IMPROVEMENT', min: 40, max: 69, label: 'Vyžaduje zlepšení' },
+        { status: 'GOOD', min: 70, max: 84, label: 'Dobré' },
+        { status: 'EXCELLENT', min: 85, max: 100, label: 'Výborné' },
+      ],
+    },
+  }
+
   return {
     id: TRIGGER_ID,
     name: TRIGGER_NAME,
@@ -117,6 +215,7 @@ salesPct = salesCount / totalPosts * 100
 Kategorie: engagement ≥60% → HIGH, 45-60% → MEDIUM, <45% → LOW
           sales ≤15% → LOW, >15% → HIGH`,
         _categoryKey: categoryKey,
+        _debugData: JSON.stringify(debugData),
       },
     },
   }

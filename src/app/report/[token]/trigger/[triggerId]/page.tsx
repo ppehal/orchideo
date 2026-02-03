@@ -11,8 +11,13 @@ import {
   CategoryDisplay,
   PostListCard,
   LegacyAnalysisBanner,
+  CalculationStepsCard,
+  ThresholdVisualizationCard,
+  BenchmarkContextCard,
+  PostClassificationCard,
   type InputParameter,
 } from '@/components/report/trigger-detail'
+import type { TriggerDebugData } from '@/lib/triggers/debug-types'
 import { getPostIdsFromMetrics, getPostsByIds } from '@/lib/utils/post-utils'
 import type { NormalizedPost } from '@/lib/services/analysis/types'
 import { ArrowLeft } from 'lucide-react'
@@ -349,6 +354,17 @@ export default async function TriggerDetailPage({ params }: Props) {
   const formula = metrics._formula as string | undefined
   const categoryKey = metrics._categoryKey as string | undefined
 
+  // Parse debug data with error handling
+  let debugData: TriggerDebugData | null = null
+  try {
+    if (metrics._debugData) {
+      debugData = JSON.parse(metrics._debugData as string)
+    }
+  } catch (error) {
+    // Gracefully ignore parse errors (old analyses or corrupted data)
+    console.warn('Failed to parse debug data:', error)
+  }
+
   // 7. Load category definition for this trigger
   const categoryDefinition = await getCategoryDefinition(triggerId)
 
@@ -409,6 +425,31 @@ export default async function TriggerDetailPage({ params }: Props) {
         {/* Formula (debug mode only) */}
         {showFormulas && formula && (
           <FormulaCard formula={formula} categoryKey={categoryKey} metrics={metrics} />
+        )}
+
+        {/* Debug visualizations - controlled by SHOW_DEBUG_FORMULAS flag */}
+        {showFormulas && debugData && (
+          <div className="space-y-6">
+            {/* Step-by-step calculation - always useful */}
+            {debugData.calculationSteps && debugData.calculationSteps.length > 0 && (
+              <CalculationStepsCard steps={debugData.calculationSteps} />
+            )}
+
+            {/* Threshold visualization - shows where score falls */}
+            {debugData.thresholdPosition && (
+              <ThresholdVisualizationCard position={debugData.thresholdPosition} />
+            )}
+
+            {/* Benchmark context - for triggers using industry benchmarks */}
+            {debugData.benchmarkContext && (
+              <BenchmarkContextCard context={debugData.benchmarkContext} />
+            )}
+
+            {/* Post classifications - for content analysis triggers */}
+            {debugData.postClassifications && debugData.postClassifications.length > 0 && (
+              <PostClassificationCard classifications={debugData.postClassifications} />
+            )}
+          </div>
         )}
 
         {/* Intro text */}

@@ -3,6 +3,8 @@
  * Used by CONTENT triggers to categorize posts
  */
 
+import type { PostClassification } from '@/lib/triggers/debug-types'
+
 export type ContentType = 'SALES' | 'BRAND' | 'ENGAGEMENT'
 
 // Sales-oriented keywords (Czech and English)
@@ -148,6 +150,22 @@ function countKeywordMatches(text: string, keywords: string[]): number {
 }
 
 /**
+ * Find matched keywords and return them (for debug visualization)
+ */
+function findMatchedKeywords(text: string, keywords: string[]): string[] {
+  const normalized = normalizeText(text)
+  return keywords.filter((keyword) => {
+    const normalizedKeyword = normalizeText(keyword)
+    // Use word boundary matching for short keywords
+    if (normalizedKeyword.length <= 3) {
+      const regex = new RegExp(`\\b${normalizedKeyword}\\b`, 'i')
+      return regex.test(normalized)
+    }
+    return normalized.includes(normalizedKeyword)
+  })
+}
+
+/**
  * Classify a post's content type based on its text
  */
 export function classifyContent(text: string | null): ContentType {
@@ -226,6 +244,100 @@ export function analyzeContentMix(posts: Array<{ message: string | null }>): Con
     engagementPct: pct(engagementCount),
     total,
   }
+}
+
+/**
+ * Classify content and return debug information about matched keywords
+ * Handles edge cases: null text, empty text, non-Czech languages
+ */
+export function classifyContentWithDebug(text: string | null): {
+  classification: ContentType
+  salesMatches: string[]
+  brandMatches: string[]
+  reasoning: string
+} {
+  // EDGE CASE: No text
+  if (!text || text.trim().length === 0) {
+    return {
+      classification: 'ENGAGEMENT',
+      salesMatches: [],
+      brandMatches: [],
+      reasoning: 'Žádný text k analýze → výchozí ENGAGEMENT',
+    }
+  }
+
+  // Find matched keywords
+  const salesMatches = findMatchedKeywords(text, SALES_KEYWORDS)
+  const brandMatches = findMatchedKeywords(text, BRAND_KEYWORDS)
+
+  const hasPercentSymbol = text.includes('%')
+
+  // EDGE CASE: Truncate if too many matches (>20)
+  const truncatedSales = salesMatches.slice(0, 20)
+  const truncatedBrand = brandMatches.slice(0, 20)
+
+  // Determine classification with reasoning
+  let classification: ContentType
+  let reasoning: string
+
+  if (salesMatches.length >= 2 || (salesMatches.length >= 1 && hasPercentSymbol)) {
+    classification = 'SALES'
+    reasoning = hasPercentSymbol
+      ? `${salesMatches.length} prodejní${salesMatches.length > 1 ? 'ch' : ''} klíčov${salesMatches.length > 1 ? 'ých slov' : 'é slovo'} + % symbol → SALES`
+      : `${salesMatches.length} prodejních klíčových slov → SALES`
+  } else if (brandMatches.length >= 2) {
+    classification = 'BRAND'
+    reasoning = `${brandMatches.length} brandových klíčových slov → BRAND`
+  } else if (salesMatches.length === 1 && brandMatches.length === 0) {
+    classification = 'SALES'
+    reasoning = '1 prodejní klíčové slovo, 0 brandových → SALES'
+  } else if (brandMatches.length === 1 && salesMatches.length === 0) {
+    classification = 'BRAND'
+    reasoning = '1 brandové klíčové slovo, 0 prodejních → BRAND'
+  } else {
+    classification = 'ENGAGEMENT'
+    reasoning =
+      salesMatches.length === 0 && brandMatches.length === 0
+        ? 'Žádná klíčová slova nenalezena → ENGAGEMENT'
+        : `${salesMatches.length} prodejní, ${brandMatches.length} brandové → ENGAGEMENT (nedostatečné množství)`
+  }
+
+  return {
+    classification,
+    salesMatches: truncatedSales,
+    brandMatches: truncatedBrand,
+    reasoning,
+  }
+}
+
+/**
+ * Analyze content mix with debug information for sample posts
+ */
+export function analyzeContentMixWithDebug(posts: Array<{ id: string; message: string | null }>): {
+  analysis: ContentMixAnalysis
+  postClassifications: PostClassification[]
+} {
+  const analysis = analyzeContentMix(posts) // Use existing function for counts
+
+  // Get debug info for first 20 posts only (performance)
+  const sampleSize = Math.min(posts.length, 20)
+  const postClassifications: PostClassification[] = posts.slice(0, sampleSize).map((post) => {
+    const { classification, salesMatches, brandMatches, reasoning } = classifyContentWithDebug(
+      post.message
+    )
+
+    return {
+      postId: post.id,
+      classification,
+      matchedKeywords: {
+        sales: salesMatches,
+        brand: brandMatches,
+      },
+      reasoning,
+    }
+  })
+
+  return { analysis, postClassifications }
 }
 
 /**
