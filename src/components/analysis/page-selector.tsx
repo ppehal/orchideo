@@ -62,7 +62,10 @@ export function PageSelector({
         <div className="relative">
           <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
+            type="text"
             placeholder="Vyhledat stránku podle názvu nebo URL..."
+            value=""
+            onChange={() => {}}
             disabled
             className="pl-9"
           />
