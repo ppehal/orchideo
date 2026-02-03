@@ -97,6 +97,7 @@ export async function createAnalysis(
             page_name: pageMetadata.name,
             page_picture: pageMetadata.picture_url,
             page_fan_count: pageMetadata.fan_count,
+            fb_page_category: pageMetadata.category,
             industry_code: industryCode,
             expires_at: expiresAt,
             userId,

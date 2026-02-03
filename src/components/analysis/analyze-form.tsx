@@ -9,6 +9,7 @@ import { PageSelector } from './page-selector'
 import { UrlInputForm } from './url-input-form'
 import { FbConnectButton } from './fb-connect-button'
 import { IndustrySelector } from './industry-selector'
+import { CategoryMappingInfo } from './category-mapping-info'
 import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
 import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
 import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
@@ -181,6 +182,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
               value={selectedIndustry}
               onChange={setSelectedIndustry}
               suggestedIndustry={suggestedIndustry}
+              fbCategory={selectedPage?.category}
               disabled={isSubmitting}
             />
 
@@ -198,6 +200,9 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
           </CardContent>
         </Card>
       )}
+
+      {/* Category Mapping Reference - Separate informational card */}
+      <CategoryMappingInfo />
     </div>
   )
 }

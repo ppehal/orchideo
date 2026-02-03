@@ -232,15 +232,18 @@ const FB_CATEGORY_MAP: Record<string, IndustryCode> = {
  * @returns Industry code (defaults to 'DEFAULT' if not found)
  */
 export function getIndustryFromFbCategory(fbCategory: string | null | undefined): IndustryCode {
-  if (!fbCategory) return 'DEFAULT'
+  // CRITICAL: Trim whitespace
+  if (!fbCategory?.trim()) return 'DEFAULT'
+
+  const trimmed = fbCategory.trim()
 
   // Direct match
-  if (FB_CATEGORY_MAP[fbCategory]) {
-    return FB_CATEGORY_MAP[fbCategory]
+  if (FB_CATEGORY_MAP[trimmed]) {
+    return FB_CATEGORY_MAP[trimmed]
   }
 
   // Case-insensitive search
-  const normalized = fbCategory.toLowerCase()
+  const normalized = trimmed.toLowerCase()
   for (const [key, value] of Object.entries(FB_CATEGORY_MAP)) {
     if (key.toLowerCase() === normalized) {
       return value
@@ -272,4 +275,61 @@ export function getIndustryOptions(): Array<{ value: IndustryCode; label: string
     value: industry.code,
     label: industry.name,
   }))
+}
+
+// Pre-compute grouped mappings at module load (performance optimization)
+const GROUPED_MAPPINGS = (() => {
+  const grouped: Record<IndustryCode, string[]> = {
+    FOOD_RESTAURANT: [],
+    RETAIL: [],
+    BEAUTY_FITNESS: [],
+    EDUCATION: [],
+    HEALTHCARE: [],
+    NONPROFIT: [],
+    REAL_ESTATE: [],
+    ENTERTAINMENT: [],
+    PROFESSIONAL_SERVICES: [],
+    DEFAULT: [],
+  }
+
+  for (const [fbCategory, industryCode] of Object.entries(FB_CATEGORY_MAP)) {
+    grouped[industryCode].push(fbCategory)
+  }
+
+  // Sort alphabetically within each group
+  for (const code of Object.keys(grouped) as IndustryCode[]) {
+    grouped[code].sort()
+  }
+
+  return grouped
+})()
+
+/**
+ * Get all Facebook categories grouped by industry code (pre-computed)
+ * @returns Record of industry codes to sorted arrays of FB categories
+ */
+export function getGroupedMappings(): Record<IndustryCode, string[]> {
+  return GROUPED_MAPPINGS // O(1) lookup
+}
+
+/**
+ * Format category mapping for display
+ */
+export function formatCategoryMapping(fbCategory: string | null): {
+  fbCategory: string | null
+  industryCode: IndustryCode
+  industryName: string
+} {
+  if (!fbCategory?.trim()) {
+    return {
+      fbCategory: null,
+      industryCode: 'DEFAULT',
+      industryName: INDUSTRIES.DEFAULT.name,
+    }
+  }
+
+  const industryCode = getIndustryFromFbCategory(fbCategory)
+  const industryName = INDUSTRIES[industryCode].name
+
+  return { fbCategory: fbCategory.trim(), industryCode, industryName }
 }

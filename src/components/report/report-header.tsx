@@ -2,6 +2,8 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils/date-utils'
 import { Users, Calendar } from 'lucide-react'
+import { CategoryMappingBadge } from '@/components/ui/category-mapping-badge'
+import { sanitizeIndustryCode } from '@/lib/constants/industry-validation'
 
 interface ReportHeaderProps {
   pageName: string
@@ -9,6 +11,7 @@ interface ReportHeaderProps {
   fanCount: number | null
   createdAt: Date
   industry?: string
+  fbCategory?: string | null
 }
 
 export function ReportHeader({
@@ -17,6 +20,7 @@ export function ReportHeader({
   fanCount,
   createdAt,
   industry,
+  fbCategory,
 }: ReportHeaderProps) {
   return (
     <Card>
@@ -48,8 +52,12 @@ export function ReportHeader({
                 <Calendar className="h-4 w-4" />
                 <span>Analýza z {formatDate(createdAt)}</span>
               </div>
-              {industry && (
-                <span className="bg-muted rounded-full px-2 py-0.5 text-xs">{industry}</span>
+              {fbCategory && (
+                <CategoryMappingBadge
+                  fbCategory={fbCategory}
+                  industryCode={sanitizeIndustryCode(industry)}
+                  variant="compact"
+                />
               )}
             </div>
           </div>

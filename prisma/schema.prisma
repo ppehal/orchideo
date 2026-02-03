@@ -112,6 +112,7 @@ model Analysis {
   page_name       String?
   page_picture    String?
   page_fan_count  Int?
+  fb_page_category String?       // Original Facebook category (e.g., "Restaurant")
 
   // Industry benchmark
   industry_code   String         @default("DEFAULT")

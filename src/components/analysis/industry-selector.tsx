@@ -8,11 +8,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getIndustryOptions, type IndustryCode } from '@/lib/constants/fb-category-map'
+import { CategoryMappingBadge } from '@/components/ui/category-mapping-badge'
 
 interface IndustrySelectorProps {
   value: IndustryCode
   onChange: (value: IndustryCode) => void
   suggestedIndustry?: IndustryCode
+  fbCategory?: string | null
   disabled?: boolean
 }
 
@@ -22,6 +24,7 @@ export function IndustrySelector({
   value,
   onChange,
   suggestedIndustry,
+  fbCategory,
   disabled = false,
 }: IndustrySelectorProps) {
   return (
@@ -34,6 +37,17 @@ export function IndustrySelector({
           </span>
         )}
       </label>
+
+      {/* Show mapping if FB category exists */}
+      {fbCategory?.trim() && (
+        <CategoryMappingBadge
+          fbCategory={fbCategory}
+          industryCode={suggestedIndustry || value || 'DEFAULT'}
+          variant="full"
+          className="mb-2"
+        />
+      )}
+
       <Select value={value} onValueChange={(v) => onChange(v as IndustryCode)} disabled={disabled}>
         <SelectTrigger id="industry" className="w-full">
           <SelectValue placeholder="Vyberte obor" />

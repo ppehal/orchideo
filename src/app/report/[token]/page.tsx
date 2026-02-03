@@ -147,6 +147,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             fanCount={analysis.page_fan_count}
             createdAt={analysis.created_at}
             industry={analysis.industry_code !== 'DEFAULT' ? analysis.industry_code : undefined}
+            fbCategory={analysis.fb_page_category}
           />
         </div>
 
@@ -160,9 +161,6 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
         {/* Overall Score */}
         <OverallScore score={overallScore} />
-
-        {/* Top Recommendations */}
-        <TopRecommendations triggers={triggers} maxRecommendations={5} />
 
         {/* Trigger Sections */}
         <div className="space-y-6">
@@ -179,6 +177,9 @@ export default async function ReportPage({ params, searchParams }: Props) {
             reportToken={token}
           />
         </div>
+
+        {/* Top Recommendations - moved after trigger sections */}
+        <TopRecommendations triggers={triggers} maxRecommendations={5} />
 
         {/* Disclaimer */}
         <ReportDisclaimer

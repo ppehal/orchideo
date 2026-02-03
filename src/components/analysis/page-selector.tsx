@@ -3,7 +3,6 @@
 import * as React from 'react'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,8 @@ import { Search, X } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { FacebookPageItem } from '@/hooks/use-fb-pages'
+import { CategoryMappingBadge } from '@/components/ui/category-mapping-badge'
+import { getIndustryFromFbCategory } from '@/lib/constants/fb-category-map'
 
 interface PageSelectorProps {
   pages: FacebookPageItem[]
@@ -172,16 +173,19 @@ function PageCard({ page, isSelected, isHighlighted, onClick }: PageCardProps) {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-lg font-semibold">
-              {page.name.charAt(0).toUpperCase()}
+              {(page.name || 'U').charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{page.name}</p>
-          {page.category && (
-            <Badge variant="secondary" className="mt-1 text-xs">
-              {page.category}
-            </Badge>
+          {page.category?.trim() && (
+            <CategoryMappingBadge
+              fbCategory={page.category}
+              industryCode={getIndustryFromFbCategory(page.category)}
+              variant="compact"
+              className="mt-1"
+            />
           )}
         </div>
         {isSelected && (
