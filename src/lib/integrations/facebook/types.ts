@@ -172,6 +172,8 @@ export interface FacebookPost {
       }>
     }>
   }
+  // Processed insights in simplified format (set during enrichment)
+  processedInsights?: Record<string, number>
 }
 
 export interface FacebookFeedResponse {

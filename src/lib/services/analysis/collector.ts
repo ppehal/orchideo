@@ -1,7 +1,9 @@
 import { createLogger } from '@/lib/logging'
 import { getPageMetadata } from '@/lib/integrations/facebook/client'
-import { fetchPageFeed } from '@/lib/integrations/facebook/feed'
+import { fetchPageFeed, fetchPostInsights } from '@/lib/integrations/facebook/feed'
 import { fetchPageInsights } from '@/lib/integrations/facebook/insights'
+import { Semaphore } from '@/lib/utils/semaphore'
+import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import type { CollectedData, RawPost } from './types'
 import type { FacebookPost } from '@/lib/integrations/facebook/types'
 
@@ -43,7 +45,77 @@ function convertToRawPost(post: FacebookPost): RawPost {
     reactions: post.reactions,
     comments: post.comments,
     shares: post.shares,
+    insights: post.processedInsights,
   }
+}
+
+async function enrichPostsWithInsights(
+  posts: FacebookPost[],
+  accessToken: string,
+  pageId: string
+): Promise<{
+  posts: FacebookPost[]
+  stats: { total: number; enriched: number; failed: number }
+}> {
+  // Edge case: empty posts
+  if (posts.length === 0) {
+    return { posts: [], stats: { total: 0, enriched: 0, failed: 0 } }
+  }
+
+  const stats = { total: posts.length, enriched: 0, failed: 0 }
+  const semaphore = new Semaphore(5)
+  const rateLimiter = getRateLimiter('facebook-post-insights-enrichment', {
+    maxRequests: 100,
+    windowMs: 60_000,
+  })
+
+  log.info({ pageId, totalPosts: posts.length }, 'Starting post insights enrichment')
+
+  const promises = posts.map(async (post, index) => {
+    const release = await semaphore.acquire()
+    try {
+      await rateLimiter.acquire()
+
+      const insights = await fetchPostInsights(post.id, accessToken)
+
+      if (insights) {
+        post.processedInsights = insights
+
+        // Progress logging every 10 posts
+        if ((index + 1) % 10 === 0) {
+          log.debug(
+            { pageId, processed: index + 1, total: posts.length },
+            'Enrichment progress'
+          )
+        }
+
+        return { success: true }
+      }
+      return { success: false }
+    } catch (error) {
+      log.debug({ postId: post.id, error }, 'Failed to fetch post insights')
+      return { success: false }
+    } finally {
+      release()
+    }
+  })
+
+  const results = await Promise.allSettled(promises)
+
+  results.forEach((result) => {
+    if (result.status === 'fulfilled' && result.value.success) {
+      stats.enriched++
+    } else {
+      stats.failed++
+    }
+  })
+
+  log.info(
+    { pageId, enriched: stats.enriched, failed: stats.failed },
+    'Post insights enrichment completed'
+  )
+
+  return { posts, stats }
 }
 
 export async function collectAnalysisData(
@@ -99,7 +171,46 @@ export async function collectAnalysisData(
   }
 
   if (feedResult.status === 'fulfilled') {
-    posts = feedResult.value.posts.map(convertToRawPost)
+    // Enrich posts with post-level insights (if enabled)
+    let postsToConvert = feedResult.value.posts
+
+    if (options.fetchPostInsights !== false && postsToConvert.length > 0) {
+      try {
+        // Add timeout protection for enrichment
+        const ENRICHMENT_TIMEOUT_MS = 120_000 // 2 minutes
+
+        const enrichResult = await Promise.race([
+          enrichPostsWithInsights(feedResult.value.posts, accessToken, pageId),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Post insights enrichment timeout')),
+              ENRICHMENT_TIMEOUT_MS
+            )
+          ),
+        ])
+
+        postsToConvert = enrichResult.posts
+
+        log.info(
+          {
+            pageId,
+            enriched: enrichResult.stats.enriched,
+            failed: enrichResult.stats.failed,
+          },
+          'Post insights enrichment completed'
+        )
+      } catch (error) {
+        log.warn({ pageId, error }, 'Post insights enrichment failed, continuing with unenriched posts')
+        errors.push({
+          component: 'postInsights',
+          message: error instanceof Error ? error.message : 'Failed to enrich posts with insights',
+          recoverable: true,
+        })
+        // Continue with unenriched posts
+      }
+    }
+
+    posts = postsToConvert.map(convertToRawPost)
     feedMetadata = {
       postsCollected: feedResult.value.totalFetched,
       oldestPostDate: feedResult.value.oldestPostDate,
