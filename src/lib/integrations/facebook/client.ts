@@ -257,8 +257,8 @@ async function getBusinessOwnedPages(
   includeToken: boolean = false
 ): Promise<Array<PageListItem & { access_token?: string }>> {
   const fields = includeToken
-    ? 'id,name,category,picture.type(large),tasks,access_token'
-    : 'id,name,category,picture.type(large),tasks'
+    ? 'id,name,category,picture.type(large),tasks,access_token,username'
+    : 'id,name,category,picture.type(large),tasks,username'
   const url = `${GRAPH_API_BASE_URL}/${businessId}/owned_pages?fields=${fields}`
 
   try {
@@ -269,6 +269,7 @@ async function getBusinessOwnedPages(
       picture?: { data: { url: string } }
       tasks?: string[]
       access_token?: string
+      username?: string
     }>(url, accessToken)
 
     return pages.map((page) => ({
@@ -277,6 +278,7 @@ async function getBusinessOwnedPages(
       category: page.category ?? null,
       picture_url: page.picture?.data?.url ?? null,
       tasks: page.tasks ?? [],
+      username: page.username ?? null,
       ...(includeToken && page.access_token ? { access_token: page.access_token } : {}),
     }))
   } catch (error) {
@@ -299,13 +301,14 @@ function deduplicatePages<T extends { id: string }>(pages: T[]): T[] {
 // ============================================================================
 
 async function getPersonalPages(accessToken: string): Promise<PageListItem[]> {
-  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks`
+  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks,username`
   const pages = await fetchAllPaginated<{
     id: string
     name: string
     category?: string
     picture?: { data: { url: string } }
     tasks?: string[]
+    username?: string
   }>(url, accessToken)
 
   return pages.map((page) => ({
@@ -314,13 +317,14 @@ async function getPersonalPages(accessToken: string): Promise<PageListItem[]> {
     category: page.category ?? null,
     picture_url: page.picture?.data?.url ?? null,
     tasks: page.tasks ?? [],
+    username: page.username ?? null,
   }))
 }
 
 async function getPersonalPagesWithTokens(
   accessToken: string
 ): Promise<Array<PageListItem & { access_token: string }>> {
-  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks,access_token`
+  const url = `${GRAPH_API_BASE_URL}/me/accounts?fields=id,name,category,picture.type(large),tasks,access_token,username`
   const pages = await fetchAllPaginated<{
     id: string
     name: string
@@ -328,6 +332,7 @@ async function getPersonalPagesWithTokens(
     picture?: { data: { url: string } }
     tasks?: string[]
     access_token: string
+    username?: string
   }>(url, accessToken)
 
   return pages.map((page) => ({
@@ -336,6 +341,7 @@ async function getPersonalPagesWithTokens(
     category: page.category ?? null,
     picture_url: page.picture?.data?.url ?? null,
     tasks: page.tasks ?? [],
+    username: page.username ?? null,
     access_token: page.access_token,
   }))
 }

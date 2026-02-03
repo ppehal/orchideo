@@ -79,6 +79,7 @@ export function createMockPageListItem(overrides?: Partial<PageListItem>): PageL
     category: 'Local Business',
     picture_url: 'https://example.com/picture.jpg',
     tasks: ['ANALYZE', 'ADVERTISE', 'MODERATE', 'CREATE_CONTENT'],
+    username: 'testpage',
     ...overrides,
   }
 }

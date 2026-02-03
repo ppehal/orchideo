@@ -84,6 +84,7 @@ export interface PageListItem {
   category: string | null
   picture_url: string | null
   tasks: string[]
+  username: string | null
 }
 
 // Business Portfolio Types

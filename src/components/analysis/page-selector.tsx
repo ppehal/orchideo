@@ -1,9 +1,14 @@
 'use client'
 
+import * as React from 'react'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Search, X } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { FacebookPageItem } from '@/hooks/use-fb-pages'
 
@@ -22,12 +27,50 @@ export function PageSelector({
   isLoading,
   highlightedPageId,
 }: PageSelectorProps) {
+  const [searchQuery, setSearchQuery] = React.useState('')
+
+  const normalizeForSearch = React.useCallback((str: string): string => {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+  }, [])
+
+  const filteredPages = React.useMemo(() => {
+    if (!searchQuery.trim()) return pages
+
+    const normalizedQuery = normalizeForSearch(searchQuery)
+
+    return pages.filter((page) => {
+      const normalizedName = normalizeForSearch(page.name)
+      const normalizedUsername = page.username ? normalizeForSearch(page.username) : ''
+
+      return (
+        normalizedName.includes(normalizedQuery) || normalizedUsername.includes(normalizedQuery)
+      )
+    })
+  }, [pages, searchQuery, normalizeForSearch])
+
+  const handleClearSearch = React.useCallback(() => {
+    setSearchQuery('')
+  }, [])
+
   if (isLoading) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <PageCardSkeleton key={i} />
-        ))}
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <Input
+            placeholder="Vyhledat stránku podle názvu nebo URL..."
+            disabled
+            className="pl-9"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <PageCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -44,16 +87,58 @@ export function PageSelector({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {pages.map((page) => (
-        <PageCard
-          key={page.id}
-          page={page}
-          isSelected={selectedPageId === page.id}
-          isHighlighted={highlightedPageId === page.id}
-          onClick={() => onSelectPage(page)}
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+        <Input
+          type="text"
+          placeholder="Vyhledat stránku podle názvu nebo URL..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-9"
         />
-      ))}
+        {searchQuery && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
+            onClick={handleClearSearch}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Vymazat vyhledávání</span>
+          </Button>
+        )}
+      </div>
+
+      {searchQuery && (
+        <p className="text-muted-foreground text-sm">
+          {filteredPages.length === 0
+            ? 'Žádné stránky nenalezeny'
+            : filteredPages.length === 1
+              ? '1 stránka nalezena'
+              : `${filteredPages.length} stránek nalezeno`}
+        </p>
+      )}
+
+      {filteredPages.length === 0 ? (
+        <EmptyState
+          title="Žádné stránky nenalezeny"
+          description={`Zkuste jiný hledaný výraz nebo vymažte filtr`}
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {filteredPages.map((page) => (
+            <PageCard
+              key={page.id}
+              page={page}
+              isSelected={selectedPageId === page.id}
+              isHighlighted={highlightedPageId === page.id}
+              onClick={() => onSelectPage(page)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -36,7 +36,7 @@ export function UrlInputForm({ pages, onUrlParsed, disabled }: UrlInputFormProps
 
       // Try to match with available pages
       const matchedPage = matchPageByIdentifier(
-        pages.map((p) => ({ id: p.id, name: p.name })),
+        pages.map((p) => ({ id: p.id, name: p.name, username: p.username })),
         parsed.value
       )
 
@@ -64,7 +64,7 @@ export function UrlInputForm({ pages, onUrlParsed, disabled }: UrlInputFormProps
         const parsed = parseFacebookUrl(value)
         if (parsed) {
           const matchedPage = matchPageByIdentifier(
-            pages.map((p) => ({ id: p.id, name: p.name })),
+            pages.map((p) => ({ id: p.id, name: p.name, username: p.username })),
             parsed.value
           )
           if (matchedPage) {

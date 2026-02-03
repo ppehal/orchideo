@@ -66,6 +66,7 @@ export async function GET() {
         category: p.category,
         picture_url: p.picture_url,
         tasks: p.tasks,
+        username: p.username,
         // Don't expose access_token to client
       })),
     })

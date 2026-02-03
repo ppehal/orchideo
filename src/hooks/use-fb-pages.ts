@@ -9,6 +9,7 @@ export interface FacebookPageItem {
   category: string | null
   picture_url: string | null
   tasks: string[]
+  username: string | null
 }
 
 interface UseFbPagesResult {

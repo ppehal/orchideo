@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Page Selector - Search Functionality**
+  - Added search input to filter pages by name or username
+  - Real-time filtering with diacritics normalization (Czech characters support)
+  - Search result counter showing number of matching pages
+  - Clear search button (X icon) for quick filter reset
+  - Empty state when no pages match search query
+  - Disabled search input during loading state
+
 ### Fixed
+
+- **URL Matching - Username Support**
+  - Fixed URL matching for username-based Facebook URLs (e.g., `facebook.com/my-page-name`)
+  - Added `username` field to Facebook API requests and responses
+  - Previously only numeric page IDs were matched, now both ID and username work
+  - Updated types: `PageListItem`, `FacebookPageItem` now include `username: string | null`
 
 - **CategoryDisplay for 1D Triggers**
   - Added `CategoryDisplay1D` component for single-dimension triggers (18 triggers total)
