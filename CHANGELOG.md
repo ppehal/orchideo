@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Facebook Category Mapping Visualization**
+  - Added visual display of Facebook page category → Industry benchmark mapping
+  - New `CategoryMappingBadge` component showing "Category → Industry" with Unicode arrow
+  - Mapping displayed in 4 locations: PageSelector cards, IndustrySelector form, Report header, expandable reference section
+  - New `CategoryMappingInfo` expandable component listing all 220+ category mappings grouped by industry
+  - Pre-computed category groupings for O(1) lookup performance
+  - Database: Added `fb_page_category` field to Analysis model (nullable for backward compatibility)
+  - Runtime validation via `sanitizeIndustryCode()` prevents invalid industry codes
+  - String sanitization with `sanitizeForDisplay()` (max 200 chars) for security
+  - Enhanced `getIndustryFromFbCategory()` with whitespace trimming and partial matching
+  - New module: `src/lib/constants/industry-validation.ts` for type-safe industry code handling
+  - Updated `restart-analysis.ts` script with industry code validation
+  - NULL-safe rendering throughout all components
+  - Responsive design (mobile/tablet/desktop) with truncation for long category names
+
 - **Page Selector - Search Functionality**
   - Added search input to filter pages by name or username
   - Real-time filtering with diacritics normalization (Czech characters support)

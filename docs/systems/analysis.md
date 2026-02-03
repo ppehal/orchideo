@@ -274,6 +274,20 @@ interface AnalysisRawData {
 
 Stored as JSON in `Analysis.rawData` field.
 
+**Database Fields:**
+
+| Field              | Type     | Description                                              |
+| ------------------ | -------- | -------------------------------------------------------- |
+| `page_name`        | String?  | Snapshot of page name at analysis time                   |
+| `page_picture`     | String?  | Snapshot of page picture URL                             |
+| `page_fan_count`   | Int?     | Snapshot of fan count                                    |
+| `fb_page_category` | String?  | Original Facebook category (e.g., "Restaurant")          |
+| `industry_code`    | String   | Mapped industry for benchmarking (default: "DEFAULT")    |
+| `overall_score`    | Int?     | 0-100 overall score                                      |
+| `rawData`          | Json?    | Full normalized data (posts, insights, metadata)         |
+
+**Note:** `fb_page_category` added in v1.4.0 for category mapping visualization. Nullable for backward compatibility with analyses created before this feature.
+
 ### Trigger Results
 
 Each evaluation is stored in `TriggerResult` table:

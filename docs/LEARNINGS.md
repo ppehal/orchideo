@@ -118,7 +118,42 @@ _Zatím žádné záznamy._
 
 ## TypeScript
 
-_Zatím žádné záznamy._
+### Type System vs Database Schema Mismatch - IndustryCode Validation
+
+**Datum**: 2026-02-03
+**Kontext**: Implementace Facebook category mapping s IndustryCode enumem
+**Problém**: TypeScript očekává `IndustryCode` union type, ale databáze má `industry_code: String` bez constraints. Možnost uložit nevalidní hodnoty (např. "MALICIOUS_CODE") přes manuální DB edits nebo nevalidovaný input.
+**Příčina**:
+
+1. Prisma schema: `industry_code String @default("DEFAULT")` - povoluje libovolný string
+2. TypeScript type: `type IndustryCode = 'FOOD_RESTAURANT' | 'RETAIL' | ...` - compile-time only
+3. Unsafe type assertions: `(industry as IndustryCode)` obchází type checking
+4. Runtime data může být nevalidní bez kontroly
+
+**Řešení**:
+
+1. Vytvořen `src/lib/constants/industry-validation.ts` s runtime validací:
+   - `sanitizeIndustryCode(code)` - validuje a vrací platný kód nebo 'DEFAULT'
+   - `isValidIndustryCode(code)` - type guard
+   - `getIndustryNameSafe(code)` - bezpečný lookup s fallbackem
+2. Všude kde čteme z DB použít `sanitizeIndustryCode()` místo `as IndustryCode`
+3. Přidat validaci do scripts (např. `restart-analysis.ts`)
+4. Komponenty chráněny proti `INDUSTRIES[invalidCode]` → undefined crash
+
+**Prevence**:
+
+- NIKDY nepoužívat unsafe type assertions `(value as Type)` pro data z databáze
+- Vždy validovat runtime data pomocí type guards nebo validators
+- Pro enum hodnoty v DB zvážit Prisma enum místo String (breaking change pro existující data)
+- Přidat input validation ve všech server actions před zápisem do DB
+- Example validace:
+  ```typescript
+  // ❌ WRONG - Unsafe
+  const code = dbValue as IndustryCode
+
+  // ✅ CORRECT - Runtime validation
+  const code = sanitizeIndustryCode(dbValue)
+  ```
 
 ---
 
