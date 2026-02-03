@@ -128,11 +128,17 @@ export default async function ReportPage({ params, searchParams }: Props) {
     collectionMetadata?: {
       postsCollected?: number
       daysOfData?: number
+      insightsAvailable?: boolean
+      insightsError?: string | null
+      insightsErrorMessage?: string | null
     }
   } | null
 
   const postsAnalyzed = rawData?.collectionMetadata?.postsCollected ?? 0
   const daysOfData = rawData?.collectionMetadata?.daysOfData ?? 90
+  const insightsAvailable = rawData?.collectionMetadata?.insightsAvailable ?? false
+  const insightsError = rawData?.collectionMetadata?.insightsError ?? null
+  const insightsErrorMessage = rawData?.collectionMetadata?.insightsErrorMessage ?? null
 
   return (
     <ReportClientWrapper>
@@ -191,6 +197,11 @@ export default async function ReportPage({ params, searchParams }: Props) {
           expiresAt={analysis.expires_at}
           postsAnalyzed={postsAnalyzed}
           daysOfData={daysOfData}
+          insightsStatus={{
+            available: insightsAvailable,
+            errorCode: insightsError,
+            errorMessage: insightsErrorMessage,
+          }}
         />
 
         {/* Email Form - hidden in print mode */}

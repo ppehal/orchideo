@@ -1,12 +1,55 @@
+'use client'
+
 import { AlertTriangle } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 
 interface ReportDisclaimerProps {
   expiresAt: Date | null
   postsAnalyzed: number
   daysOfData: number
+  insightsStatus?: {
+    available: boolean
+    errorCode?: string | null
+    errorMessage?: string | null
+  }
 }
 
-export function ReportDisclaimer({ expiresAt, postsAnalyzed, daysOfData }: ReportDisclaimerProps) {
+export function ReportDisclaimer({
+  expiresAt,
+  postsAnalyzed,
+  daysOfData,
+  insightsStatus,
+}: ReportDisclaimerProps) {
+  // Determine insights message based on error code
+  const insightsMessage = (() => {
+    if (insightsStatus?.available) {
+      return 'Insights metriky (reach, impressions) jsou k dispozici'
+    }
+
+    switch (insightsStatus?.errorCode) {
+      case 'PERMISSION_DENIED':
+        return (
+          <>
+            Chybí oprávnění pro insights metriky (reach, impressions).{' '}
+            <button
+              type="button"
+              className="text-amber-800 underline hover:text-amber-900 dark:text-amber-200 dark:hover:text-amber-100"
+              onClick={() => signIn('facebook', { callbackUrl: '/analyze' })}
+            >
+              Přihlaste se znovu
+            </button>{' '}
+            přes Facebook pro opravu.
+          </>
+        )
+      case 'NOT_SUPPORTED':
+        return 'Insights metriky nejsou pro tuto stránku dostupné (např. málo sledujících)'
+      case 'RATE_LIMITED':
+        return 'Insights metriky dočasně nedostupné (Facebook API limit). Zkuste později.'
+      default:
+        return 'Některé insights metriky nemusí být dostupné'
+    }
+  })()
+
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
       <div className="flex gap-3">
@@ -17,10 +60,7 @@ export function ReportDisclaimer({ expiresAt, postsAnalyzed, daysOfData }: Repor
             <li>
               Analyzováno {postsAnalyzed} příspěvků za posledních {daysOfData} dní
             </li>
-            <li>
-              Některé metriky (např. reach, impressions) vyžadují oprávnění insights, které nemusí
-              být dostupné
-            </li>
+            <li>{insightsMessage}</li>
             <li>
               Skóre vychází z obecných best practices a nemusí odpovídat specifikům vašeho oboru
             </li>

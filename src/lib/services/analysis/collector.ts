@@ -232,22 +232,46 @@ export async function collectAnalysisData(
     })
   }
 
-  // Process insights result
+  // Process insights result - extract data and error context
   let insights = null
+  let insightsError: string | null = null
+  let insightsErrorMessage: string | null = null
+
   if (insightsResult.status === 'fulfilled') {
-    insights = insightsResult.value
+    const result = insightsResult.value // InsightsFetchResult
+    insights = result.data
+
     if (insights) {
       log.info(
         { pageId, impressions: insights.page_impressions, fans: insights.page_fans },
-        'Insights collected'
+        'Insights collected successfully'
       )
-    } else {
-      log.info({ pageId }, 'Insights not available for this page')
+    } else if (result.error) {
+      // Insights failed with known error
+      insightsError = result.error.code
+      insightsErrorMessage = result.error.userMessageCz
+
+      log.info(
+        { pageId, errorCode: result.error.code, fbErrorCode: result.error.fbErrorCode },
+        result.error.message
+      )
+
+      // Only add to errors array if it's a real problem (not NOT_SUPPORTED)
+      if (result.error.code !== 'NOT_SUPPORTED') {
+        errors.push({
+          component: 'insights',
+          message: result.error.message,
+          recoverable: true,
+        })
+      }
     }
   } else {
+    // Promise rejected (shouldn't happen with new implementation)
     const message =
       insightsResult.reason instanceof Error ? insightsResult.reason.message : 'Unknown error'
-    log.warn({ pageId, error: insightsResult.reason }, 'Failed to fetch insights')
+    log.error({ pageId, error: insightsResult.reason }, 'Failed to fetch insights')
+    insightsError = 'UNKNOWN'
+    insightsErrorMessage = 'Nepodařilo se načíst insights'
     errors.push({
       component: 'insights',
       message: `Failed to fetch insights: ${message}`,
@@ -293,6 +317,8 @@ export async function collectAnalysisData(
           metadata: {
             ...feedMetadata,
             insightsAvailable: !!insights,
+            insightsError,
+            insightsErrorMessage,
           },
         }
       : null,

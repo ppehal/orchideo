@@ -64,6 +64,8 @@ export interface CollectedData {
     oldestPostDate: Date | null
     newestPostDate: Date | null
     insightsAvailable: boolean
+    insightsError?: string | null
+    insightsErrorMessage?: string | null
     daysOfData: number
   }
 }
@@ -161,6 +163,8 @@ export interface AnalysisRawData {
     oldestPostDate: string | null
     newestPostDate: string | null
     insightsAvailable: boolean
+    insightsError?: string | null
+    insightsErrorMessage?: string | null
     daysOfData: number
   }
 }

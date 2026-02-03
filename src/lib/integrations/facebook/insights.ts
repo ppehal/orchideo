@@ -61,6 +61,16 @@ export interface FetchInsightsOptions {
   daysBack?: number
 }
 
+export interface InsightsFetchResult {
+  data: PageInsights | null
+  error: {
+    code: 'PERMISSION_DENIED' | 'NOT_SUPPORTED' | 'RATE_LIMITED' | 'UNKNOWN'
+    fbErrorCode?: number
+    message: string
+    userMessageCz: string
+  } | null
+}
+
 function sumDailyValues(insight: FacebookInsight): number {
   return insight.values.reduce((sum, v) => {
     if (typeof v.value === 'number') {
@@ -96,7 +106,7 @@ export async function fetchPageInsights(
   pageId: string,
   accessToken: string,
   options: FetchInsightsOptions = {}
-): Promise<PageInsights | null> {
+): Promise<InsightsFetchResult> {
   const daysBack = options.daysBack ?? INSIGHTS_DAYS
 
   const periodEnd = new Date()
@@ -214,22 +224,67 @@ export async function fetchPageInsights(
       'Page insights fetched successfully'
     )
 
-    return insights as PageInsights
+    return {
+      data: insights as PageInsights,
+      error: null,
+    }
   } catch (error) {
     if (error instanceof FacebookApiError) {
+      // Permission denied (codes 10, 200, 230)
       if (error.isPermissionDenied()) {
-        log.warn({ pageId }, 'No permission to access page insights')
-        return null
+        log.warn({ pageId, code: error.code }, 'Permission denied for insights')
+        return {
+          data: null,
+          error: {
+            code: 'PERMISSION_DENIED',
+            fbErrorCode: error.code,
+            message: 'Permission denied to access page insights',
+            userMessageCz:
+              'Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook.',
+          },
+        }
       }
+
+      // Page doesn't support insights (code 100)
       if (error.code === 100) {
-        // Insights not available for this page
-        log.warn({ pageId }, 'Insights not available for this page')
-        return null
+        log.info({ pageId }, 'Page does not support insights API')
+        return {
+          data: null,
+          error: {
+            code: 'NOT_SUPPORTED',
+            fbErrorCode: 100,
+            message: 'Page does not support insights API',
+            userMessageCz:
+              'Tato stránka nepodporuje insights (např. příliš málo sledujících).',
+          },
+        }
+      }
+
+      // Rate limited
+      if (error.isRateLimited()) {
+        log.warn({ pageId, code: error.code }, 'Rate limited')
+        return {
+          data: null,
+          error: {
+            code: 'RATE_LIMITED',
+            fbErrorCode: error.code,
+            message: 'Rate limited by Facebook API',
+            userMessageCz:
+              'Facebook API limit překročen. Zkuste to později.',
+          },
+        }
       }
     }
 
-    log.error({ pageId, error }, 'Error fetching page insights')
-    // Return null instead of throwing - insights are optional
-    return null
+    // Unknown error
+    log.error({ pageId, error }, 'Unknown error fetching insights')
+    return {
+      data: null,
+      error: {
+        code: 'UNKNOWN',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        userMessageCz: 'Nepodařilo se načíst insights. Zkuste to později.',
+      },
+    }
   }
 }
