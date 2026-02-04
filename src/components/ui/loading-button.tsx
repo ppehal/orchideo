@@ -18,7 +18,7 @@ interface LoadingButtonProps extends ButtonProps {
 export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
   ({ loading, loadingText, children, disabled, ...props }, ref) => {
     return (
-      <Button ref={ref} disabled={disabled || loading} {...props}>
+      <Button ref={ref} disabled={disabled || loading} aria-busy={loading} {...props}>
         {loading && <LoadingSpinner size="sm" className="mr-2" />}
         {loading && loadingText ? loadingText : children}
       </Button>

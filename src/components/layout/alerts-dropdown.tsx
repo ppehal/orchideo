@@ -36,6 +36,12 @@ export function AlertsDropdown() {
             </Badge>
           )}
           <span className="sr-only">Upozornění</span>
+          {/* Screen reader announcement for unread count changes */}
+          <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {unreadCount > 0
+              ? `${unreadCount} ${unreadCount === 1 ? 'nepřečtené upozornění' : 'nepřečtených upozornění'}`
+              : 'Žádná nepřečtená upozornění'}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 md:w-96">
@@ -62,7 +68,7 @@ export function AlertsDropdown() {
         ) : recentAlerts.length === 0 ? (
           <div className="text-muted-foreground p-4 text-center text-sm">Žádná nová upozornění</div>
         ) : (
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto" role="region" aria-live="polite" aria-atomic="false">
             {recentAlerts.map((alert) => (
               <AlertItem key={alert.id} alert={alert} onMarkRead={() => markAsRead(alert.id)} />
             ))}
