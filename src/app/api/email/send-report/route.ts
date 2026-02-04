@@ -1,29 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
-import { createLogger, logError } from '@/lib/logging'
+import { createLogger, logError, withRequestContext } from '@/lib/logging'
 import { sendReportEmail } from '@/lib/email'
 import { sendReportEmailSchema } from '@/lib/validators/email'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
+import { auth } from '@/lib/auth'
 
-const log = createLogger('api:email:send-report')
+const baseLog = createLogger('api:email:send-report')
 
 export async function POST(request: NextRequest) {
+  // Create request-scoped logger with tracing context
+  const log = withRequestContext(baseLog, request)
+
   let analysisToken: string | undefined
 
   try {
-    // Rate limiting by IP address
+    // Rate limiting - per user if authenticated, otherwise per IP
+    const session = await auth()
+    const userId = session?.user?.id
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-    const limiter = getRateLimiter(`email-send-${ip}`, {
-      maxRequests: 5,
-      windowMs: 60 * 60 * 1000,
+
+    const limitKey = userId ? `email-send-user-${userId}` : `email-send-ip-${ip}`
+    const maxRequests = userId ? 10 : 5 // Higher limit for authenticated users
+
+    const limiter = getRateLimiter(limitKey, {
+      maxRequests,
+      windowMs: 60 * 60 * 1000, // 1 hour
     })
 
     if (!limiter.canProceed()) {
       const stats = limiter.getStats()
-      log.warn({ ip }, 'Email send rate limit exceeded')
+      log.warn({ limitKey, user_id: userId, ip }, 'Email send rate limit exceeded')
       return NextResponse.json(
-        { error: 'Příliš mnoho požadavků. Zkuste to prosím později.' },
+        { error: 'Příliš mnoho požadavků. Zkuste to prosím později.', code: 'RATE_LIMIT_EXCEEDED' },
         {
           status: 429,
           headers: {

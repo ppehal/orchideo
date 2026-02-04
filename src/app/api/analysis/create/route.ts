@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { createAnalysis } from '@/lib/actions/analysis'
-import { createLogger, logError } from '@/lib/logging'
+import { createLogger, logError, withRequestContext } from '@/lib/logging'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import { z } from 'zod'
 
-const log = createLogger('api-analysis-create')
+const baseLog = createLogger('api-analysis-create')
 
 const requestSchema = z.object({
   pageId: z.string().min(1, 'ID stránky je povinné'),
@@ -13,6 +13,9 @@ const requestSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  // Create request-scoped logger with tracing context
+  const log = withRequestContext(baseLog, request)
+
   try {
     // Check authentication for rate limiting
     const session = await auth()
