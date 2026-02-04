@@ -122,11 +122,11 @@ export function useAlerts(): UseAlertsReturn {
 
         // Update actual state on success
         await fetchAlerts()
-      } catch {
-        // Automatic revert by React on error (useOptimistic)
-        // Just refresh to get the correct state
-        await fetchAlerts()
+      } catch (error) {
+        // Show error toast
         toast.error('Nepodařilo se označit jako přečtené')
+        // Re-throw to trigger useOptimistic automatic revert
+        throw error
       }
     },
     [updateOptimisticData, fetchAlerts]
@@ -152,10 +152,11 @@ export function useAlerts(): UseAlertsReturn {
 
       // Update actual state on success
       await fetchAlerts()
-    } catch {
-      // Automatic revert by React on error (useOptimistic)
-      await fetchAlerts()
+    } catch (error) {
+      // Show error toast
       toast.error('Nepodařilo se označit všechny jako přečtené')
+      // Re-throw to trigger useOptimistic automatic revert
+      throw error
     }
   }, [updateOptimisticData, fetchAlerts])
 
