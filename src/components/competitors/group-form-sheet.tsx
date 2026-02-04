@@ -16,6 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import {
+  createCompetitorGroupAction,
+  type CreateGroupFormState,
+} from '@/lib/actions/competitor-groups'
 
 interface Page {
   id: string
@@ -34,7 +38,12 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
   const [description, setDescription] = React.useState('')
   const [primaryPageId, setPrimaryPageId] = React.useState<string>('')
   const [competitorIds, setCompetitorIds] = React.useState<string[]>([])
-  const [isPending, setIsPending] = React.useState(false)
+
+  // React 19 useActionState for form submission with progressive enhancement
+  const [formState, formAction, isPending] = React.useActionState<
+    CreateGroupFormState | null,
+    FormData
+  >(createCompetitorGroupAction, null)
 
   // Reset form when sheet closes
   React.useEffect(() => {
@@ -68,10 +77,25 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
     })
   }, [])
 
+  // Handle form state changes (success/error)
+  React.useEffect(() => {
+    if (!formState) return
+
+    if (formState.success && formState.data) {
+      toast.success('Skupina vytvořena')
+      onOpenChange(false)
+      onSuccess()
+    } else if (!formState.success && formState.error) {
+      toast.error(formState.error)
+    }
+  }, [formState, onOpenChange, onSuccess])
+
+  // Handle form submission with Server Action
   const handleSubmit = React.useCallback(
-    async (e: React.FormEvent) => {
+    (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
 
+      // Client-side validation
       if (!name.trim()) {
         toast.error('Zadejte název skupiny')
         return
@@ -87,37 +111,23 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
         return
       }
 
-      setIsPending(true)
-
-      try {
-        const res = await fetch('/api/competitor-groups', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name.trim(),
-            description: description.trim() || undefined,
-            primaryPageId,
-            competitorPageIds: competitorIds,
-          }),
-          signal: AbortSignal.timeout(10000),
-        })
-
-        if (!res.ok) {
-          const data = await res.json()
-          throw new Error(data.error || 'Nepodařilo se vytvořit skupinu')
-        }
-
-        toast.success('Skupina vytvořena')
-        onOpenChange(false)
-        onSuccess()
-      } catch (error) {
-        console.error('[GroupFormSheet]', error)
-        toast.error(error instanceof Error ? error.message : 'Nepodařilo se vytvořit skupinu')
-      } finally {
-        setIsPending(false)
+      // Build FormData from form state
+      const formData = new FormData()
+      formData.append('name', name.trim())
+      if (description.trim()) {
+        formData.append('description', description.trim())
       }
+      formData.append('primaryPageId', primaryPageId)
+
+      // Add competitors as individual fields
+      competitorIds.forEach((id) => {
+        formData.append(`competitor_${id}`, 'on')
+      })
+
+      // Call Server Action
+      formAction(formData)
     },
-    [name, description, primaryPageId, competitorIds, onOpenChange, onSuccess]
+    [name, description, primaryPageId, competitorIds, formAction]
   )
 
   return (
@@ -138,6 +148,7 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
               onChange={(e) => setName(e.target.value)}
               placeholder="Např. Hlavní konkurenti"
               maxLength={100}
+              disabled={isPending}
             />
           </div>
 
@@ -149,6 +160,7 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Volitelný popis skupiny"
               maxLength={500}
+              disabled={isPending}
             />
           </div>
 
@@ -156,7 +168,7 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
             <Label>
               Primární stránka <span className="text-destructive">*</span>
             </Label>
-            <Select value={primaryPageId} onValueChange={setPrimaryPageId}>
+            <Select value={primaryPageId} onValueChange={setPrimaryPageId} disabled={isPending}>
               <SelectTrigger>
                 <SelectValue placeholder="Vyberte stránku" />
               </SelectTrigger>
@@ -194,7 +206,9 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
                       onCheckedChange={(checked) =>
                         handleCompetitorToggle(page.id, checked === true)
                       }
-                      disabled={!competitorIds.includes(page.id) && competitorIds.length >= 10}
+                      disabled={
+                        isPending || (!competitorIds.includes(page.id) && competitorIds.length >= 10)
+                      }
                     />
                     <label
                       htmlFor={`competitor-${page.id}`}
@@ -212,7 +226,12 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
             <LoadingButton type="submit" loading={isPending}>
               Vytvořit skupinu
             </LoadingButton>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+            >
               Zrušit
             </Button>
           </SheetFooter>
