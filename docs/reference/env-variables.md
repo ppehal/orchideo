@@ -27,23 +27,63 @@
 
 ## Optional Variables
 
+### Application
+
+| Variable                  | Default | Description                         |
+| ------------------------- | ------- | ----------------------------------- |
+| `NEXT_PUBLIC_APP_URL`     | -       | Public app URL                      |
+| `REPORT_EXPIRATION_DAYS`  | -       | Days before report expires          |
+| `MAX_FEED_POSTS`          | -       | Max posts to fetch from Facebook    |
+| `MAX_FEED_PAGES`          | -       | Max pages to fetch                  |
+| `FEED_TIMEOUT_MS`         | -       | Facebook API timeout (milliseconds) |
+| `ANALYSIS_TIMEOUT_MS`     | -       | Analysis timeout (milliseconds)     |
+
 ### Logging
 
 | Variable    | Default | Description    |
 | ----------- | ------- | -------------- |
 | `LOG_LEVEL` | `info`  | Pino log level |
 
+### Storage
+
+| Variable                 | Default | Description                  |
+| ------------------------ | ------- | ---------------------------- |
+| `STORAGE_TYPE`           | `local` | Storage type (local, r2)     |
+| `STORAGE_LOCAL_PATH`     | -       | Local storage path           |
+| `R2_ACCOUNT_ID`          | -       | Cloudflare R2 account ID     |
+| `R2_ENDPOINT`            | -       | Cloudflare R2 endpoint       |
+| `R2_ACCESS_KEY_ID`       | -       | Cloudflare R2 access key     |
+| `R2_SECRET_ACCESS_KEY`   | -       | Cloudflare R2 secret key     |
+| `R2_BUCKET_NAME`         | -       | Cloudflare R2 bucket name    |
+
+### Email
+
+| Variable              | Default | Description             |
+| --------------------- | ------- | ----------------------- |
+| `POSTMARK_API_TOKEN`  | -       | Postmark API token      |
+| `POSTMARK_FROM_EMAIL` | -       | From email address      |
+
+### Security
+
+| Variable        | Default | Description                          |
+| --------------- | ------- | ------------------------------------ |
+| `ADMIN_EMAILS`  | -       | Comma-separated admin emails         |
+
 ### Development
 
-| Variable | Default | Description         |
-| -------- | ------- | ------------------- |
-| `CI`     | -       | CI environment flag |
+| Variable           | Default | Description         |
+| ------------------ | ------- | ------------------- |
+| `CI`               | -       | CI environment flag |
+| `NODE_ENV`         | -       | Node environment    |
+| `NEXT_PUBLIC_ENV`  | -       | Public env indicator|
 
 ### Debug
 
 | Variable              | Default | Description                                       |
 | --------------------- | ------- | ------------------------------------------------- |
 | `SHOW_DEBUG_FORMULAS` | `false` | Show calculation formulas in trigger detail pages |
+
+> **Detailed guides:** See [ENVIRONMENT-VARIABLES.md](../development/ENVIRONMENT-VARIABLES.md) for troubleshooting and detailed usage.
 
 ## Example .env.local
 

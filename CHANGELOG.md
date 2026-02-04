@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: Refactored TriggerStatus and TriggerCategory to Centralized Constants**
+  - Moved `TriggerStatus` type and configuration from inline components to `src/lib/constants/trigger-status.ts`
+  - Moved `TriggerCategory` type and configuration from inline components to `src/lib/constants/trigger-categories.ts`
+  - Created centralized Single Source of Truth for all trigger-related enums and labels
+  - Updated components: `score-badge.tsx`, `trigger-section.tsx`, `trigger-detail-header.tsx`
+  - All constants now exported from `src/lib/constants/index.ts` for consistent imports
+  - **Rationale**: Enforces CLAUDE.md coding standard requiring centralized constants for all UI enums
+  - **Impact**: Better maintainability, easier to update labels and configuration across application
+
 - **UX Improvement: Unified Smart Search on /analyze Page**
   - Consolidated two separate search mechanisms (UrlInputForm + PageSelector) into single unified search interface
   - Smart auto-detection: automatically handles Facebook URLs, numeric page IDs, and page name searches
@@ -35,6 +44,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Backward compatible:** Posts without insights continue to work (graceful degradation)
 
 ### Fixed
+
+- **Documentation: Fixed Broken Link in DEBUG-VISUALIZATION-IMPLEMENTATION.md**
+  - Corrected link to trigger descriptions from `../TRIGGER-DESCRIPTIONS.md` to `../systems/trigger-definitions.md`
+
+- **Documentation: Updated CLAUDE.md Documentation Structure Section**
+  - Added missing directories: `README.md`, `ARCHITECTURE.md`, `DEPLOYMENT-README.md`, `LEARNINGS.md`, `decisions/`, `development/`, `security/`
+  - Updated descriptions to reflect actual content and organization
+  - Now accurately represents complete docs/ structure (13 entries vs previous 6)
+
+- **Documentation: Replaced Root README.md with Project-Specific Content**
+  - Removed generic Next.js template content
+  - Added Orchideo-specific quick start, tech stack, and documentation links
+  - Improved onboarding experience for new developers
+
+- **Documentation: Enhanced Environment Variables Reference**
+  - Added missing variables to `docs/reference/env-variables.md`: application config, storage, email, security
+  - Added cross-reference to detailed guide in `docs/development/ENVIRONMENT-VARIABLES.md`
+  - Clarified purpose: reference (quick lookup) vs development guide (troubleshooting)
 
 - **Trigger Error Messages - Now Show Actual Facebook API Errors**
   - Fixed misleading "vyžadují oprávnění read_insights" message in triggers BASIC_004, BASIC_005, and CONT_004

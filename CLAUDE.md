@@ -335,12 +335,19 @@ Před editací souboru >300 řádků VŽDY:
 
 ```
 docs/
-├── tech-context.md        # Technology stack & patterns from Invix
-├── systems/               # Business logic documentation
-├── ui/                    # UI/UX patterns
-├── integrations/          # External API integrations (Facebook, etc.)
-├── reference/             # API routes, database schema
-└── guides/                # How-to guides
+├── README.md              # Documentation index (Diataxis framework)
+├── ARCHITECTURE.md        # High-level architecture overview
+├── DEPLOYMENT-README.md   # Deployment central index
+├── LEARNINGS.md           # Gotchas, debugging knowledge, edge cases
+├── tech-context.md        # Technology stack & patterns
+├── decisions/             # ADRs (Architectural Decision Records)
+├── development/           # Development environment (logging, env vars, debug)
+├── guides/                # How-to guides (getting started, deployment)
+├── integrations/          # External API integrations (Facebook)
+├── reference/             # API routes, database schema, env variables
+├── security/              # Security audit reports & implementation plans
+├── systems/               # Business logic (triggers, analysis, recommendations)
+└── ui/                    # UI/UX patterns (design system, forms, tables)
 ```
 
 ---

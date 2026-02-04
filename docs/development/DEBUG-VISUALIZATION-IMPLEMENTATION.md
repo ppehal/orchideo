@@ -306,5 +306,5 @@ If issues arise:
 ## Related Documentation
 
 - [CLAUDE.md](../../CLAUDE.md) - Quick reference and coding standards
-- [Trigger Descriptions](../TRIGGER-DESCRIPTIONS.md) - Original trigger specifications
+- [Trigger Descriptions](../systems/trigger-definitions.md) - Original trigger specifications
 - [Logging Guide](./LOGGING-GUIDE.md) - Related logging patterns

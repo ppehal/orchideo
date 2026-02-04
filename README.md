@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orchideo - Facebook Triggers
 
-## Getting Started
+> **Nástroj pro analýzu Facebook stránek a generování AI doporučení**
 
-First, run the development server:
+Orchideo analyzuje Facebook stránky pomocí 27+ triggerů (pravidel) a poskytuje personalizovaná doporučení pro zlepšení engagement a růstu stránky.
+
+## 🚀 Quick Start
+
+### Lokální Development
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Setup environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
+
+# 3. Setup database
+npm run db:push
+npm run db:seed
+
+# 4. Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Otevřít [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### VPS Development (stage)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Start containers
+./QUICK-START.sh start
 
-## Learn More
+# View logs
+./QUICK-START.sh logs
 
-To learn more about Next.js, take a look at the following resources:
+# Check status
+./QUICK-START.sh status
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Více v [VPS-SETUP-COMPLETE.md](./VPS-SETUP-COMPLETE.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Dokumentace
 
-## Deploy on Vercel
+- **[CLAUDE.md](./CLAUDE.md)** - Quick reference pro coding standards
+- **[docs/](./docs/)** - Detailní dokumentace (architecture, guides, reference)
+- **[CHANGELOG.md](./CHANGELOG.md)** - Historie změn
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Klíčové dokumenty
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Getting Started](./docs/guides/getting-started.md) - Detailní setup guide
+- [Tech Stack](./docs/tech-context.md) - Technologický kontext
+- [Architecture](./docs/ARCHITECTURE.md) - Architektura systému
+- [Deployment](./docs/guides/deployment.md) - Deployment pokyny
+
+## 🛠️ Tech Stack
+
+| Technology | Version |
+| ---------- | ------- |
+| Next.js    | 16.x    |
+| React      | 19.x    |
+| TypeScript | 5.x     |
+| Prisma     | 6.x     |
+| PostgreSQL | 17.x    |
+| NextAuth   | 5.x     |
+| Tailwind   | 4.x     |
+
+## 🔧 Development Commands
+
+```bash
+npm run dev              # Dev server
+npm run build            # Production build
+npm run lint             # ESLint
+npm run type-check       # TypeScript check
+npm run db:studio        # Prisma Studio
+npm run db:push          # Push schema changes
+npm run db:seed          # Seed database
+```
+
+## 🌿 Git Workflow
+
+```
+feature-branch → stage → (PR) → main
+```
+
+⚠️ **PUSH POUZE DO `stage`** - nikdy přímo do `main`
+
+```bash
+git push origin stage    # ✅ ALLOWED
+git push origin main     # ❌ FORBIDDEN
+```
+
+## 📄 License
+
+Proprietary - Orchideo Project
+
+## 🤝 Contributing
+
+Viz [CLAUDE.md](./CLAUDE.md) pro coding standards a workflow pravidla.

@@ -2,66 +2,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { TriggerCard, type TriggerResult } from './trigger-card'
 import { ScoreBadge } from './score-badge'
 import { cn } from '@/lib/utils'
+import {
+  type TriggerCategory,
+  TRIGGER_CATEGORY_CONFIG,
+  CATEGORY_WEIGHTS,
+} from '@/lib/constants/trigger-categories'
 
-export type TriggerCategory =
-  | 'BASIC'
-  | 'CONTENT'
-  | 'TECHNICAL'
-  | 'TIMING'
-  | 'SHARING'
-  | 'PAGE_SETTINGS'
+export { type TriggerCategory, CATEGORY_WEIGHTS }
 
 interface TriggerSectionProps {
   category: TriggerCategory
   triggers: TriggerResult[]
   reportToken?: string
   className?: string
-}
-
-const CATEGORY_CONFIG: Record<
-  TriggerCategory,
-  { title: string; description: string; icon: string }
-> = {
-  BASIC: {
-    title: 'Základní metriky',
-    description: 'Engagement a interakce s fanoušky',
-    icon: '📊',
-  },
-  CONTENT: {
-    title: 'Obsah',
-    description: 'Kvalita a struktura příspěvků',
-    icon: '📝',
-  },
-  TECHNICAL: {
-    title: 'Technické aspekty',
-    description: 'Formáty, velikosti a technická kvalita',
-    icon: '⚙️',
-  },
-  TIMING: {
-    title: 'Časování',
-    description: 'Frekvence a načasování příspěvků',
-    icon: '⏰',
-  },
-  SHARING: {
-    title: 'Sdílení',
-    description: 'Strategie sdílení obsahu',
-    icon: '🔗',
-  },
-  PAGE_SETTINGS: {
-    title: 'Nastavení stránky',
-    description: 'Profilová a cover fotka',
-    icon: '🖼️',
-  },
-}
-
-// Category weights for overall score calculation
-export const CATEGORY_WEIGHTS: Record<TriggerCategory, number> = {
-  BASIC: 0.35,
-  CONTENT: 0.3,
-  TECHNICAL: 0.2,
-  TIMING: 0.05,
-  SHARING: 0.05,
-  PAGE_SETTINGS: 0.05,
 }
 
 export function calculateCategoryScore(triggers: TriggerResult[]): number {
@@ -76,7 +29,7 @@ export function TriggerSection({
   reportToken,
   className,
 }: TriggerSectionProps) {
-  const config = CATEGORY_CONFIG[category]
+  const config = TRIGGER_CATEGORY_CONFIG[category]
   const categoryScore = calculateCategoryScore(triggers)
   const weight = CATEGORY_WEIGHTS[category]
 
