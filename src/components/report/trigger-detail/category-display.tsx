@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronDown, ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { RecommendationCard } from './recommendation-card'
 
 interface CategoryDimension {
   id: string
@@ -173,11 +174,7 @@ function CategoryDisplay3D({
         </div>
 
         {/* Current recommendation */}
-        {currentRecommendation && (
-          <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
-            <p className="text-sm leading-relaxed">{currentRecommendation}</p>
-          </div>
-        )}
+        {currentRecommendation && <RecommendationCard text={currentRecommendation} />}
 
         {/* Toggle to show all categories */}
         <Button variant="ghost" size="sm" onClick={() => setShowAll(!showAll)} className="gap-2">
@@ -322,11 +319,7 @@ function CategoryDisplay2D({
         </div>
 
         {/* Current recommendation */}
-        {currentRecommendation && (
-          <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
-            <p className="text-sm leading-relaxed">{currentRecommendation}</p>
-          </div>
-        )}
+        {currentRecommendation && <RecommendationCard text={currentRecommendation} />}
 
         {/* Toggle to show all categories */}
         <Button variant="ghost" size="sm" onClick={() => setShowAll(!showAll)} className="gap-2">
@@ -490,11 +483,7 @@ function CategoryDisplay1D({
         </div>
 
         {/* Current recommendation */}
-        {currentRecommendation && (
-          <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
-            <p className="text-sm leading-relaxed">{currentRecommendation}</p>
-          </div>
-        )}
+        {currentRecommendation && <RecommendationCard text={currentRecommendation} />}
 
         {/* Toggle and category list - only show if currentKey is in dimensions */}
         {isInDimensions && (
@@ -592,11 +581,7 @@ export function CategoryDisplay({ definition, currentKey }: CategoryDisplayProps
         <CardTitle className="text-base font-medium">Vaše zařazení</CardTitle>
       </CardHeader>
       <CardContent>
-        {currentRecommendation && (
-          <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
-            <p className="text-sm leading-relaxed">{currentRecommendation}</p>
-          </div>
-        )}
+        {currentRecommendation && <RecommendationCard text={currentRecommendation} />}
       </CardContent>
     </Card>
   )

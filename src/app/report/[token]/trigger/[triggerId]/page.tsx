@@ -452,13 +452,13 @@ export default async function TriggerDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* Intro text */}
-        {categoryDefinition?.intro && <IntroText text={categoryDefinition.intro} />}
-
         {/* Categories */}
         {categoryDefinition && categoryKey && (
           <CategoryDisplay definition={categoryDefinition} currentKey={categoryKey} />
         )}
+
+        {/* Intro text */}
+        {categoryDefinition?.intro && <IntroText text={categoryDefinition.intro} />}
 
         {/* Legacy banner if no post examples exist */}
         {!hasAnyPostExamples && posts90d.length > 0 && <LegacyAnalysisBanner />}
