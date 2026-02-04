@@ -1,5 +1,7 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
+
 import {
   Select,
   SelectContent,
@@ -8,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ANALYSIS_STATUS_OPTIONS } from '@/lib/constants/analysis-progress'
+import { cn } from '@/lib/utils'
 
 interface Page {
   id: string
@@ -22,6 +25,7 @@ interface AnalysisFiltersProps {
   onStatusChange: (status: string) => void
   onPageChange: (pageId: string) => void
   onSortChange: (sort: string) => void
+  isPending?: boolean
 }
 
 const SORT_OPTIONS = [
@@ -39,13 +43,25 @@ export function AnalysisFilters({
   onStatusChange,
   onPageChange,
   onSortChange,
+  isPending = false,
 }: AnalysisFiltersProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      {/* Loading indicator during transition */}
+      {isPending && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          <span>Načítání...</span>
+        </div>
+      )}
       {/* Page filter */}
       {pages.length > 0 && (
-        <Select value={selectedPageId || 'ALL'} onValueChange={onPageChange}>
-          <SelectTrigger className="w-full sm:w-[200px]">
+        <Select
+          value={selectedPageId || 'ALL'}
+          onValueChange={onPageChange}
+          disabled={isPending}
+        >
+          <SelectTrigger className={cn('w-full sm:w-[200px]', isPending && 'opacity-50')}>
             <SelectValue placeholder="Vyberte stránku" />
           </SelectTrigger>
           <SelectContent>
@@ -60,8 +76,12 @@ export function AnalysisFilters({
       )}
 
       {/* Status filter */}
-      <Select value={selectedStatus || 'ALL'} onValueChange={onStatusChange}>
-        <SelectTrigger className="w-full sm:w-[180px]">
+      <Select
+        value={selectedStatus || 'ALL'}
+        onValueChange={onStatusChange}
+        disabled={isPending}
+      >
+        <SelectTrigger className={cn('w-full sm:w-[180px]', isPending && 'opacity-50')}>
           <SelectValue placeholder="Stav" />
         </SelectTrigger>
         <SelectContent>
@@ -74,8 +94,12 @@ export function AnalysisFilters({
       </Select>
 
       {/* Sort */}
-      <Select value={selectedSort || 'newest'} onValueChange={onSortChange}>
-        <SelectTrigger className="w-full sm:w-[180px]">
+      <Select
+        value={selectedSort || 'newest'}
+        onValueChange={onSortChange}
+        disabled={isPending}
+      >
+        <SelectTrigger className={cn('w-full sm:w-[180px]', isPending && 'opacity-50')}>
           <SelectValue placeholder="Řazení" />
         </SelectTrigger>
         <SelectContent>

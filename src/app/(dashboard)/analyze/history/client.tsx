@@ -28,6 +28,9 @@ export function AnalysisHistoryClient({
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  // React 19 useTransition for non-blocking filter updates
+  const [isPending, startTransition] = React.useTransition()
+
   // Read from URL or use initial values
   const status = searchParams.get('status') ?? initialFilters.status
   const pageId = searchParams.get('page') ?? initialFilters.pageId
@@ -48,11 +51,15 @@ export function AnalysisHistoryClient({
       })
 
       const queryString = params.toString()
-      router.replace(queryString ? `?${queryString}` : '/analyze/history', {
-        scroll: false,
+
+      // Wrap router navigation in transition for non-blocking updates
+      startTransition(() => {
+        router.replace(queryString ? `?${queryString}` : '/analyze/history', {
+          scroll: false,
+        })
       })
     },
-    [router, searchParams]
+    [router, searchParams, startTransition]
   )
 
   const handleStatusChange = React.useCallback(
@@ -77,8 +84,10 @@ export function AnalysisHistoryClient({
   )
 
   const clearFilters = React.useCallback(() => {
-    router.replace('/analyze/history', { scroll: false })
-  }, [router])
+    startTransition(() => {
+      router.replace('/analyze/history', { scroll: false })
+    })
+  }, [router, startTransition])
 
   // Empty state: no analyses at all
   if (initialAnalyses.length === 0 && !hasActiveFilters) {
@@ -108,6 +117,7 @@ export function AnalysisHistoryClient({
           onStatusChange={handleStatusChange}
           onPageChange={handlePageChange}
           onSortChange={handleSortChange}
+          isPending={isPending}
         />
 
         <EmptyState
@@ -134,6 +144,7 @@ export function AnalysisHistoryClient({
         onStatusChange={handleStatusChange}
         onPageChange={handlePageChange}
         onSortChange={handleSortChange}
+        isPending={isPending}
       />
 
       <div role="region" aria-label="Seznam analýz" aria-live="polite">
