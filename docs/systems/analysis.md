@@ -67,6 +67,8 @@ interface CollectedData {
     oldestPostDate: Date | null
     newestPostDate: Date | null
     insightsAvailable: boolean
+    insightsError?: string | null        // Error code (PERMISSION_DENIED, NOT_SUPPORTED, etc.)
+    insightsErrorMessage?: string | null // User-friendly Czech error message
     daysOfData: number
   }
 }
@@ -308,6 +310,8 @@ interface AnalysisRawData {
     oldestPostDate: string | null
     newestPostDate: string | null
     insightsAvailable: boolean
+    insightsError?: string | null        // Error code if insights failed (added 2026-02-04)
+    insightsErrorMessage?: string | null // User-friendly error message (added 2026-02-04)
     daysOfData: number
   }
 }

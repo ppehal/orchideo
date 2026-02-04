@@ -73,6 +73,84 @@ _Zatím žádné záznamy._
 
 ## Facebook API
 
+### Misleading "read_insights" Error Messages in Triggers
+
+**Datum**: 2026-02-04
+**Kontext**: Analýza malé stránky (<100 followers) zobrazovala matoucí error message v triggerech BASIC_004, BASIC_005, CONT_004
+
+**Problém**:
+- Stránka "Zastav Nemovitost" má 1 fanoušek
+- Facebook API vrací error code 100 "NOT_SUPPORTED" (stránka má příliš málo sledujících pro insights)
+- Ale triggery zobrazovaly: "vyžadují oprávnění read_insights" ❌
+- Uživatel si myslel že problém je v oprávněních, přitom byl v počtu fanoušků
+
+**Příčina**: Error metadata se ztrácela v data pipeline:
+```
+✅ Collector: Sbírá insightsError + insightsErrorMessage (z insights.ts)
+❌ Normalizer: Nezahrnuje do výstupu (ztráta dat)
+❌ Runner: Nepředává metadata do TriggerInput
+❌ Triggers: Hardcodují "vyžadují oprávnění read_insights"
+```
+
+**Řešení**: Propagovat error metadata celou pipeline:
+
+1. **TriggerInput type** - přidat optional metadata:
+```typescript
+export interface TriggerInput {
+  // ... existing fields
+  collectionMetadata?: {
+    insightsError?: string | null
+    insightsErrorMessage?: string | null
+  }
+}
+```
+
+2. **Normalizer** - zachovat error fields:
+```typescript
+collectionMetadata: {
+  // ... existing fields
+  insightsError: collectedData.metadata.insightsError ?? null,
+  insightsErrorMessage: collectedData.metadata.insightsErrorMessage ?? null,
+}
+```
+
+3. **Runner** - předat metadata triggerům:
+```typescript
+const triggerInput: TriggerInput = {
+  // ... existing fields
+  collectionMetadata: {
+    insightsError: normalizedData.collectionMetadata.insightsError,
+    insightsErrorMessage: normalizedData.collectionMetadata.insightsErrorMessage,
+  },
+}
+```
+
+4. **Triggers** - použít actual error message s fallback:
+```typescript
+input.collectionMetadata?.insightsErrorMessage ||
+  'Page Insights nejsou dostupné (vyžadují oprávnění read_insights)'
+```
+
+**Error messages z insights.ts:**
+- `PERMISSION_DENIED`: "Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook."
+- `NOT_SUPPORTED`: "Tato stránka nepodporuje insights (např. příliš málo sledujících)."
+- `RATE_LIMITED`: "Facebook API limit překročen. Zkuste to později."
+- `UNKNOWN`: "Nepodařilo se načíst insights. Zkuste to později."
+
+**Prevence**:
+- ✅ Error metadata MUSÍ projít celou pipeline (collector → normalizer → runner → triggers)
+- ✅ Nepoužívat hardcoded error messages pokud máme actual error z API
+- ✅ Optional fields pro backward compatibility
+- ✅ Vždy poskytovat fallback pro staré analýzy
+- ⚠️ Empty string `""` je falsy → použít `|| fallback` (ne `??`)
+
+**Impact:**
+- Staré analýzy: Fungují s fallback messages (backward compatible)
+- Nové analýzy: Zobrazují specifické error messages
+- UX: Uživatelé vidí správnou příčinu problému
+
+---
+
 ### Facebook Graph API requires appsecret_proof for insights
 
 **Datum**: 2026-02-01

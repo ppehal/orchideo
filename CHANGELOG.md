@@ -36,6 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Trigger Error Messages - Now Show Actual Facebook API Errors**
+  - Fixed misleading "vyžadují oprávnění read_insights" message in triggers BASIC_004, BASIC_005, and CONT_004
+  - Previously: All insights failures showed generic permission error, even when real issue was different
+  - Example bug: Page with <100 followers (Facebook error code 100 "NOT_SUPPORTED") incorrectly showed "missing read_insights permission"
+  - Now: Actual Facebook error messages propagate through entire analysis pipeline (Collector → Normalizer → Runner → Triggers)
+  - Added optional `collectionMetadata` field to `TriggerInput` type (backward compatible)
+  - Error messages now displayed: PERMISSION_DENIED, NOT_SUPPORTED, RATE_LIMITED, UNKNOWN
+  - Fallback messages preserved for backward compatibility with old analyses
+  - **Impact**: Users now see accurate error messages explaining why insights are unavailable
+  - **Files**: types.ts, normalizer.ts, runner.ts, basic-004, basic-005, cont-004
+
 - **Trigger Category Intro Texts - Restored Complete Content from Specification**
   - **CONT_004 (Promované posty)**: Restored full 30+ line mathematical ROI model with detailed 6 vs 10 posts example showing 20% reach improvement calculation
   - **CONT_001 (Obsahový mix)**: Restored complete 20/80 ratio explanation for business vs interaction posts balance

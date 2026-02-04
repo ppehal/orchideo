@@ -98,8 +98,38 @@ interface TriggerInput {
   posts90d: NormalizedPost[] // Last 90 days of posts
   insights28d: PageInsights | null // Page insights (if available)
   industryBenchmark: IndustryBenchmarkData // Industry-specific thresholds
+  collectionMetadata?: {
+    // Optional error context (added 2026-02-04)
+    insightsError?: string | null // Error code if insights failed
+    insightsErrorMessage?: string | null // User-friendly Czech error message
+  }
 }
 ```
+
+**Error Metadata Usage:**
+
+When insights are unavailable, triggers can access the actual Facebook error message instead of showing a generic fallback:
+
+```typescript
+// Example: BASIC_004 trigger
+if (!insights28d) {
+  return createFallbackEvaluation(
+    TRIGGER_ID,
+    TRIGGER_NAME,
+    TRIGGER_DESCRIPTION,
+    TRIGGER_CATEGORY,
+    'METRIC_UNAVAILABLE',
+    input.collectionMetadata?.insightsErrorMessage ||
+      'Page Insights nejsou dostupné (vyžadují oprávnění read_insights)' // Fallback
+  )
+}
+```
+
+**Available error messages:**
+- `PERMISSION_DENIED`: "Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook."
+- `NOT_SUPPORTED`: "Tato stránka nepodporuje insights (např. příliš málo sledujících)."
+- `RATE_LIMITED`: "Facebook API limit překročen. Zkuste to později."
+- `UNKNOWN`: "Nepodařilo se načíst insights. Zkuste to později."
 
 ---
 
