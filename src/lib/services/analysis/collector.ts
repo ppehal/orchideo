@@ -1,9 +1,7 @@
 import { createLogger } from '@/lib/logging'
 import { getPageMetadata } from '@/lib/integrations/facebook/client'
-import { fetchPageFeed, fetchPostInsights } from '@/lib/integrations/facebook/feed'
+import { fetchPageFeed, fetchPostInsightsBatch } from '@/lib/integrations/facebook/feed'
 import { fetchPageInsights } from '@/lib/integrations/facebook/insights'
-import { Semaphore } from '@/lib/utils/semaphore'
-import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import type { CollectedData, RawPost } from './types'
 import type { FacebookPost } from '@/lib/integrations/facebook/types'
 
@@ -63,57 +61,62 @@ async function enrichPostsWithInsights(
   }
 
   const stats = { total: posts.length, enriched: 0, failed: 0 }
-  const semaphore = new Semaphore(5)
-  const rateLimiter = getRateLimiter('facebook-post-insights-enrichment', {
-    maxRequests: 100,
-    windowMs: 60_000,
-  })
 
-  log.info({ pageId, totalPosts: posts.length }, 'Starting post insights enrichment')
+  log.info({ pageId, totalPosts: posts.length }, 'Starting post insights enrichment (batch mode)')
 
-  const promises = posts.map(async (post, index) => {
-    const release = await semaphore.acquire()
-    try {
-      await rateLimiter.acquire()
+  try {
+    // Extract all post IDs
+    const postIds = posts.map((post) => post.id)
 
-      const insights = await fetchPostInsights(post.id, accessToken)
+    // Fetch insights for all posts in batches (Facebook Batch API - 50 posts per request)
+    const insightsMap = await fetchPostInsightsBatch(postIds, accessToken)
 
-      if (insights) {
-        post.processedInsights = insights
-
-        // Progress logging every 10 posts
-        if ((index + 1) % 10 === 0) {
-          log.debug(
-            { pageId, processed: index + 1, total: posts.length },
-            'Enrichment progress'
-          )
+    // Map insights back to posts
+    posts.forEach((post) => {
+      const insights = insightsMap.get(post.id)
+      if (insights !== undefined) {
+        if (insights !== null) {
+          post.processedInsights = insights
+          stats.enriched++
+        } else {
+          stats.failed++
         }
-
-        return { success: true }
+      } else {
+        // Post not in results map (shouldn't happen)
+        stats.failed++
       }
-      return { success: false }
-    } catch (error) {
-      log.debug({ postId: post.id, error }, 'Failed to fetch post insights')
-      return { success: false }
-    } finally {
-      release()
-    }
-  })
+    })
 
-  const results = await Promise.allSettled(promises)
+    log.info(
+      {
+        pageId,
+        enriched: stats.enriched,
+        failed: stats.failed,
+        successRate: ((stats.enriched / stats.total) * 100).toFixed(1) + '%',
+      },
+      'Post insights enrichment completed (batch mode)'
+    )
+  } catch (error) {
+    log.error({ pageId, error }, 'Batch post insights enrichment failed')
 
-  results.forEach((result) => {
-    if (result.status === 'fulfilled' && result.value.success) {
-      stats.enriched++
-    } else {
-      stats.failed++
-    }
-  })
+    // Count partial results (some batches may have succeeded before exception)
+    posts.forEach((post) => {
+      if (post.processedInsights) {
+        stats.enriched++
+      } else {
+        stats.failed++
+      }
+    })
 
-  log.info(
-    { pageId, enriched: stats.enriched, failed: stats.failed },
-    'Post insights enrichment completed'
-  )
+    log.warn(
+      {
+        pageId,
+        partialEnriched: stats.enriched,
+        partialFailed: stats.failed,
+      },
+      'Partial enrichment results after exception'
+    )
+  }
 
   return { posts, stats }
 }

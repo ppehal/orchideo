@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     // Rate limiting - per user if authenticated, otherwise per IP
     const session = await auth()
     const userId = session?.user?.id
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+    const ipHeader = request.headers.get('x-forwarded-for')
+    const ip = ipHeader?.split(',')[0]?.trim() || 'unknown'
 
     const limitKey = userId ? `email-send-user-${userId}` : `email-send-ip-${ip}`
     const maxRequests = userId ? 10 : 5 // Higher limit for authenticated users

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { getAlertsForUser, markAllAlertsAsRead } from '@/lib/services/alerts'
 import { createLogger, logError, LogFields } from '@/lib/logging'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
+import { ApiErrors, handleApiError } from '@/lib/api/errors'
 
 const log = createLogger('api-user-alerts')
 
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
+      throw ApiErrors.UNAUTHORIZED()
     }
 
     userId = session.user.id
@@ -27,16 +28,7 @@ export async function GET(request: Request) {
     if (!limiter.canProceed()) {
       const stats = limiter.getStats()
       log.warn({ user_id: userId }, 'Alerts GET rate limit exceeded')
-      return NextResponse.json(
-        { error: 'Příliš mnoho požadavků. Zkuste to prosím později.', code: 'RATE_LIMITED' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil(stats.windowMs / 1000)),
-            'X-RateLimit-Remaining': '0',
-          },
-        }
-      )
+      throw ApiErrors.RATE_LIMIT(Math.ceil(stats.windowMs / 1000))
     }
 
     await limiter.acquire()
@@ -56,10 +48,7 @@ export async function GET(request: Request) {
       [LogFields.userId]: userId,
     })
 
-    return NextResponse.json(
-      { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -70,7 +59,7 @@ export async function PATCH(request: Request) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }, { status: 401 })
+      throw ApiErrors.UNAUTHORIZED()
     }
 
     userId = session.user.id
@@ -83,15 +72,12 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: true, markedCount: count })
     }
 
-    return NextResponse.json({ error: 'Neplatná akce', code: 'INVALID_ACTION' }, { status: 400 })
+    throw ApiErrors.VALIDATION_ERROR({ field: 'markAllRead', message: 'Neplatná akce' })
   } catch (error) {
     logError(log, error, 'Failed to update alerts', {
       [LogFields.userId]: userId,
     })
 
-    return NextResponse.json(
-      { error: 'Neočekávaná chyba', code: 'INTERNAL_ERROR' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

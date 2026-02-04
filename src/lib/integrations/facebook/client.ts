@@ -18,7 +18,12 @@ const log = createLogger('facebook-api')
 // App Secret Proof - Required by Facebook for secure API calls
 // ============================================================================
 
-function getAppSecretProof(accessToken: string): string {
+/**
+ * Generate app secret proof for secure Facebook API calls
+ * Required for all API requests to prevent token theft
+ * @see https://developers.facebook.com/docs/graph-api/securing-requests#appsecret_proof
+ */
+export function getAppSecretProof(accessToken: string): string {
   const appSecret = process.env.FACEBOOK_APP_SECRET
   if (!appSecret) {
     throw new Error('FACEBOOK_APP_SECRET is not configured')

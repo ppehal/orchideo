@@ -19,7 +19,8 @@ interface AnalysisProgressClientProps {
   publicToken: string
 }
 
-const POLL_INTERVAL_MS = 2500 // 2.5 seconds
+const POLL_INTERVAL_MS = 2500 // 2.5 seconds (fallback only)
+const SSE_RETRY_TIMEOUT = 5000 // Retry SSE after 5s if it fails
 
 export function AnalysisProgressClient({
   analysisId,
@@ -33,6 +34,7 @@ export function AnalysisProgressClient({
   const [status, setStatus] = useState<AnalysisStatus>(initialStatus)
   const [error, setError] = useState<string | null>(errorMessage)
   const [progress, setProgress] = useState(ANALYSIS_STATUS_PROGRESS[initialStatus])
+  const [useSSE, setUseSSE] = useState(true) // Try SSE first
 
   const pollStatus = useCallback(async () => {
     try {
@@ -42,20 +44,20 @@ export function AnalysisProgressClient({
       const data = await response.json()
 
       if (response.ok) {
-        setStatus(data.status)
-        setProgress(data.progress ?? ANALYSIS_STATUS_PROGRESS[data.status as AnalysisStatus])
+        setStatus(data.data.status)
+        setProgress(data.data.progress ?? ANALYSIS_STATUS_PROGRESS[data.data.status as AnalysisStatus])
 
-        if (data.status === 'COMPLETED') {
+        if (data.data.status === 'COMPLETED') {
           // Redirect to report after a short delay
           setTimeout(() => {
             router.push(`/report/${publicToken}`)
           }, 1000)
-        } else if (data.status === 'FAILED') {
-          setError(data.errorMessage || 'Analýza selhala')
+        } else if (data.data.status === 'FAILED') {
+          setError(data.data.errorMessage || 'Analýza selhala')
         }
       }
     } catch (err) {
-      console.error('[AnalysisProgress]', err)
+      console.error('[AnalysisProgress] Polling error:', err)
     }
   }, [analysisId, publicToken, router])
 
@@ -64,10 +66,50 @@ export function AnalysisProgressClient({
       return
     }
 
-    const interval = setInterval(pollStatus, POLL_INTERVAL_MS)
+    // Try SSE first
+    if (useSSE) {
+      const eventSource = new EventSource(`/api/analysis/${analysisId}/stream`)
 
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          setStatus(data.status)
+          setProgress(data.progress ?? ANALYSIS_STATUS_PROGRESS[data.status as AnalysisStatus])
+
+          if (data.status === 'COMPLETED') {
+            eventSource.close()
+            setTimeout(() => {
+              router.push(`/report/${publicToken}`)
+            }, 1000)
+          } else if (data.status === 'FAILED') {
+            setError(data.errorMessage || 'Analýza selhala')
+            eventSource.close()
+          }
+        } catch (err) {
+          console.error('[AnalysisProgress] SSE parse error:', err)
+        }
+      }
+
+      eventSource.onerror = (err) => {
+        console.error('[AnalysisProgress] SSE error:', err)
+        eventSource.close()
+
+        // Fallback to polling after delay
+        setTimeout(() => {
+          setUseSSE(false)
+        }, SSE_RETRY_TIMEOUT)
+      }
+
+      return () => {
+        eventSource.close()
+      }
+    }
+
+    // Fallback: use polling
+    const interval = setInterval(pollStatus, POLL_INTERVAL_MS)
     return () => clearInterval(interval)
-  }, [status, pollStatus])
+  }, [status, pollStatus, analysisId, publicToken, router, useSSE])
 
   const isFailed = status === 'FAILED'
   const isCompleted = status === 'COMPLETED'

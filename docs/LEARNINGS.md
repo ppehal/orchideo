@@ -478,6 +478,55 @@ async function enrichPostsWithInsights(posts, token, pageId) {
 
 ---
 
+### Batch API Security - Access Token in Request Body
+
+**Datum**: 2026-02-04
+**Kontext**: Implementace Facebook Batch API pro optimalizaci N+1 post insights queries
+**Problém**: Initial implementation passing access token in request body instead of secure URL params + appsecret_proof
+**Security Risk**: MEDIUM - tokens in body can be logged by middleware/proxies
+
+**Příčina**:
+- Facebook Batch API má flexibility v auth metodě (body vs query params)
+- Initial implementation zvolilo jednodušší body approach
+- Nekonzistentní s `client.ts` security pattern (používá appsecret_proof)
+
+**Řešení**:
+```typescript
+// ❌ ŠPATNĚ: Token v request body
+const response = await fetch(batchUrl, {
+  method: 'POST',
+  body: JSON.stringify({
+    access_token: accessToken,  // Security risk
+    batch: batchRequests,
+  }),
+})
+
+// ✅ SPRÁVNĚ: Token v URL params + appsecret_proof
+const batchUrl = new URL(`${GRAPH_API_BASE_URL}/`)
+batchUrl.searchParams.set('access_token', accessToken)
+batchUrl.searchParams.set('appsecret_proof', getAppSecretProof(accessToken))
+batchUrl.searchParams.set('batch', JSON.stringify(batchRequests))
+
+const response = await fetch(batchUrl.toString(), {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+})
+```
+
+**Best Practice**:
+- VŽDY používat `appsecret_proof` pro Facebook API calls (prevents token theft)
+- Export `getAppSecretProof()` z `client.ts` pro reuse v `feed.ts`
+- Konzistentní security pattern napříč celou codebase
+
+**Dodatečné opravy**:
+1. **Index Mismatch Check**: Přidán warning pokud `batchResults.length !== batch.length`
+2. **Partial Results Tracking**: Collector catch block nyní počítá již enriched posty místo slepého označení všech jako failed
+
+**Files**: `client.ts` (export getAppSecretProof), `feed.ts` (secure batch API), `collector.ts` (partial results)
+**References**: [Facebook App Secret Proof](https://developers.facebook.com/docs/graph-api/securing-requests#appsecret_proof)
+
+---
+
 ## Auth
 
 _Zatím žádné záznamy._
