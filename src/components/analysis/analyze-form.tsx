@@ -11,9 +11,12 @@ import { CategoryMappingInfo } from './category-mapping-info'
 import { AnalysisStickyActionBar } from './analysis-sticky-action-bar'
 import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
 import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
-import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import {
+  createAnalysisFormAction,
+  type CreateAnalysisFormState,
+} from '@/lib/actions/analysis-form'
 
 interface AnalyzeFormProps {
   hasFacebookAccount: boolean
@@ -24,9 +27,14 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
   const router = useRouter()
   const { pages, isLoading, error, errorCode } = useFbPages()
   const [selectedPage, setSelectedPage] = React.useState<FacebookPageItem | null>(null)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [selectedIndustry, setSelectedIndustry] = React.useState<IndustryCode>('DEFAULT')
   const [suggestedIndustry, setSuggestedIndustry] = React.useState<IndustryCode>('DEFAULT')
+
+  // React 19 useActionState for form submission with progressive enhancement
+  const [formState, formAction, isPending] = React.useActionState<
+    CreateAnalysisFormState | null,
+    FormData
+  >(createAnalysisFormAction, null)
 
   // Handle page selection
   const handleSelectPage = React.useCallback((page: FacebookPageItem) => {
@@ -38,44 +46,17 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
     setSelectedIndustry(detectedIndustry)
   }, [])
 
-  // Handle form submission
-  const handleSubmit = React.useCallback(async () => {
-    if (!selectedPage) {
-      toast.error('Vyberte stránku k analýze')
-      return
-    }
+  // Handle form state changes (success/error)
+  React.useEffect(() => {
+    if (!formState) return
 
-    setIsSubmitting(true)
-
-    try {
-      const response = await fetch('/api/analysis/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageId: selectedPage.id,
-          industryCode: selectedIndustry,
-        }),
-        signal: AbortSignal.timeout(CLIENT_FETCH_TIMEOUT_MS),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast.error(data.error || 'Nepodařilo se spustit analýzu')
-        return
-      }
-
+    if (formState.success && formState.data) {
       toast.success('Analýza zahájena')
-      router.push(`/analyze/${data.analysisId}`)
-    } catch (err) {
-      console.error('[AnalyzeForm]', err)
-      toast.error('Nepodařilo se spustit analýzu')
-    } finally {
-      setIsSubmitting(false)
+      router.push(`/analyze/${formState.data.analysisId}`)
+    } else if (!formState.success && formState.error) {
+      toast.error(formState.error)
     }
-  }, [selectedPage, selectedIndustry, router])
+  }, [formState, router])
 
   // Not connected to Facebook
   if (!hasFacebookAccount || errorCode === 'FACEBOOK_NOT_CONNECTED') {
@@ -159,7 +140,7 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
               onChange={setSelectedIndustry}
               suggestedIndustry={suggestedIndustry}
               fbCategory={selectedPage?.category}
-              disabled={isSubmitting}
+              disabled={isPending}
             />
 
             {/* Button moved to sticky action bar */}
@@ -171,12 +152,12 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
       <CategoryMappingInfo />
       </div>
 
-      {/* Sticky action bar */}
+      {/* Sticky action bar with Server Action */}
       <AnalysisStickyActionBar
         selectedPage={selectedPage}
         selectedIndustry={selectedIndustry}
-        isSubmitting={isSubmitting}
-        onSubmit={handleSubmit}
+        isPending={isPending}
+        formAction={formAction}
       />
     </div>
   )
