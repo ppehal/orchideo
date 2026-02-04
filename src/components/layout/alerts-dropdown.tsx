@@ -38,9 +38,13 @@ export function AlertsDropdown() {
           <span className="sr-only">Upozornění</span>
           {/* Screen reader announcement for unread count changes */}
           <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-            {unreadCount > 0
-              ? `${unreadCount} ${unreadCount === 1 ? 'nepřečtené upozornění' : 'nepřečtených upozornění'}`
-              : 'Žádná nepřečtená upozornění'}
+            {unreadCount === 0
+              ? 'Žádná nepřečtená upozornění'
+              : unreadCount === 1
+                ? '1 nepřečtené upozornění'
+                : unreadCount <= 4
+                  ? `${unreadCount} nepřečtená upozornění`
+                  : `${unreadCount} nepřečtených upozornění`}
           </span>
         </Button>
       </DropdownMenuTrigger>
