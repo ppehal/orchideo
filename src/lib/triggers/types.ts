@@ -27,6 +27,10 @@ export interface TriggerInput {
   posts90d: NormalizedPost[]
   insights28d: PageInsights | null
   industryBenchmark: IndustryBenchmarkData
+  collectionMetadata?: {
+    insightsError?: string | null
+    insightsErrorMessage?: string | null
+  }
 }
 
 // Details returned by a trigger evaluation

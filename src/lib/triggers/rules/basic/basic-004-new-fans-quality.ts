@@ -25,7 +25,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       TRIGGER_DESCRIPTION,
       TRIGGER_CATEGORY,
       'METRIC_UNAVAILABLE',
-      'Page Insights nejsou dostupné (vyžadují oprávnění read_insights)'
+      input.collectionMetadata?.insightsErrorMessage ||
+        'Page Insights nejsou dostupné (vyžadují oprávnění read_insights)'
     )
   }
 

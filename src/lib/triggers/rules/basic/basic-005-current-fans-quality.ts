@@ -88,7 +88,8 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       TRIGGER_DESCRIPTION,
       TRIGGER_CATEGORY,
       'METRIC_UNAVAILABLE',
-      'Data o organickém dosahu nejsou dostupná (vyžadují oprávnění read_insights)'
+      input.collectionMetadata?.insightsErrorMessage ||
+        'Data o organickém dosahu nejsou dostupná (vyžadují oprávnění read_insights)'
     )
   }
 

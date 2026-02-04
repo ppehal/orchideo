@@ -218,6 +218,10 @@ export async function runAnalysis(analysisId: string): Promise<RunnerResult> {
       posts90d: normalizedData.posts90d,
       insights28d: normalizedData.insights28d,
       industryBenchmark,
+      collectionMetadata: {
+        insightsError: normalizedData.collectionMetadata.insightsError,
+        insightsErrorMessage: normalizedData.collectionMetadata.insightsErrorMessage,
+      },
     }
 
     // Evaluate all triggers

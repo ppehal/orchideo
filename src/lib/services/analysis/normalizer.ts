@@ -250,6 +250,8 @@ export function normalizeCollectedData(collectedData: CollectedData): AnalysisRa
       oldestPostDate: collectedData.metadata.oldestPostDate?.toISOString() || null,
       newestPostDate: collectedData.metadata.newestPostDate?.toISOString() || null,
       insightsAvailable: collectedData.metadata.insightsAvailable,
+      insightsError: collectedData.metadata.insightsError ?? null,
+      insightsErrorMessage: collectedData.metadata.insightsErrorMessage ?? null,
       daysOfData: collectedData.metadata.daysOfData,
     },
   }

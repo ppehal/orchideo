@@ -44,7 +44,9 @@ function evaluate(input: TriggerInput): TriggerEvaluation {
       recommendation: undefined,
       details: {
         reason: 'METRIC_UNAVAILABLE',
-        context: 'Data o placených impressích nejsou dostupná. Vyžadují oprávnění read_insights.',
+        context:
+          input.collectionMetadata?.insightsErrorMessage ||
+          'Data o placených impressích nejsou dostupná. Vyžadují oprávnění read_insights.',
         metrics: {
           hasPaidImpressions: 0,
           postsWithPaidData: 0,
