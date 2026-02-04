@@ -66,6 +66,12 @@ services:
       # Logging
       - LOG_LEVEL=${LOG_LEVEL:-debug}
 
+      # Debug/Development
+      - SHOW_DEBUG_FORMULAS=${SHOW_DEBUG_FORMULAS:-false}
+
+      # Admin Configuration
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+
       # Puppeteer/Chromium Configuration
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
