@@ -13,9 +13,44 @@ interface UseAlertsReturn {
   refresh: () => Promise<void>
 }
 
+type OptimisticAction =
+  | { type: 'MARK_AS_READ'; alertId: string }
+  | { type: 'MARK_ALL_AS_READ' }
+
 export function useAlerts(): UseAlertsReturn {
   const [data, setData] = React.useState<UserAlertsResponse | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+
+  // React 19 useOptimistic for automatic optimistic updates with revert
+  const [optimisticData, updateOptimisticData] = React.useOptimistic(
+    data,
+    (state, action: OptimisticAction) => {
+      if (!state) return null
+
+      switch (action.type) {
+        case 'MARK_AS_READ': {
+          const alert = state.alerts.find((a) => a.id === action.alertId)
+          const wasUnread = alert && !alert.isRead
+
+          return {
+            ...state,
+            alerts: state.alerts.map((a) =>
+              a.id === action.alertId ? { ...a, isRead: true } : a
+            ),
+            unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+          }
+        }
+        case 'MARK_ALL_AS_READ':
+          return {
+            ...state,
+            alerts: state.alerts.map((a) => ({ ...a, isRead: true })),
+            unreadCount: 0,
+          }
+        default:
+          return state
+      }
+    }
+  )
 
   const fetchAlerts = React.useCallback(async () => {
     // Only fetch when tab is visible
@@ -65,23 +100,13 @@ export function useAlerts(): UseAlertsReturn {
     }
   }, [fetchAlerts])
 
-  // Optimistic mark as read
+  // Optimistic mark as read - React 19 useOptimistic handles revert automatically
   const markAsRead = React.useCallback(
     async (alertId: string) => {
-      // Find if alert exists and is unread
-      const alert = data?.alerts.find((a) => a.id === alertId)
-      const wasUnread = alert && !alert.isRead
-
-      // Optimistic update
-      setData((prev) =>
-        prev
-          ? {
-              ...prev,
-              alerts: prev.alerts.map((a) => (a.id === alertId ? { ...a, isRead: true } : a)),
-              unreadCount: wasUnread ? Math.max(0, prev.unreadCount - 1) : prev.unreadCount,
-            }
-          : null
-      )
+      // Apply optimistic update
+      React.startTransition(() => {
+        updateOptimisticData({ type: 'MARK_AS_READ', alertId })
+      })
 
       try {
         const res = await fetch(`/api/user/alerts/${alertId}`, {
@@ -94,26 +119,24 @@ export function useAlerts(): UseAlertsReturn {
         if (!res.ok) {
           throw new Error('Failed to mark as read')
         }
+
+        // Update actual state on success
+        await fetchAlerts()
       } catch {
-        // Revert on error
+        // Automatic revert by React on error (useOptimistic)
+        // Just refresh to get the correct state
         await fetchAlerts()
         toast.error('Nepodařilo se označit jako přečtené')
       }
     },
-    [data?.alerts, fetchAlerts]
+    [updateOptimisticData, fetchAlerts]
   )
 
   const markAllAsRead = React.useCallback(async () => {
-    // Optimistic update
-    setData((prev) =>
-      prev
-        ? {
-            ...prev,
-            alerts: prev.alerts.map((a) => ({ ...a, isRead: true })),
-            unreadCount: 0,
-          }
-        : null
-    )
+    // Apply optimistic update
+    React.startTransition(() => {
+      updateOptimisticData({ type: 'MARK_ALL_AS_READ' })
+    })
 
     try {
       const res = await fetch('/api/user/alerts', {
@@ -126,16 +149,19 @@ export function useAlerts(): UseAlertsReturn {
       if (!res.ok) {
         throw new Error('Failed to mark all as read')
       }
+
+      // Update actual state on success
+      await fetchAlerts()
     } catch {
-      // Revert on error
+      // Automatic revert by React on error (useOptimistic)
       await fetchAlerts()
       toast.error('Nepodařilo se označit všechny jako přečtené')
     }
-  }, [fetchAlerts])
+  }, [updateOptimisticData, fetchAlerts])
 
   return {
-    alerts: data?.alerts ?? [],
-    unreadCount: data?.unreadCount ?? 0,
+    alerts: optimisticData?.alerts ?? [],
+    unreadCount: optimisticData?.unreadCount ?? 0,
     isLoading,
     markAsRead,
     markAllAsRead,
