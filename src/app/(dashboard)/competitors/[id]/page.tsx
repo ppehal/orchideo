@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import { ComparisonView } from '@/components/competitors'
+import { Breadcrumbs } from '@/components/layout'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -35,7 +36,7 @@ export default async function CompetitorDetailPage({ params }: Props) {
       id,
       userId: session.user.id,
     },
-    select: { id: true },
+    select: { id: true, name: true },
   })
 
   if (!group) {
@@ -45,6 +46,12 @@ export default async function CompetitorDetailPage({ params }: Props) {
   return (
     <div className="container py-12">
       <div className="mx-auto max-w-6xl">
+        <Breadcrumbs
+          items={[
+            { label: 'Porovnání', href: '/competitors' },
+            { label: group.name },
+          ]}
+        />
         <ComparisonView groupId={id} />
       </div>
     </div>

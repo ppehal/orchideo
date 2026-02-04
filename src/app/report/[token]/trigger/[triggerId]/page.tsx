@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getTrigger } from '@/lib/triggers/registry'
 import '@/lib/triggers/rules' // Register all triggers
@@ -20,9 +19,8 @@ import {
 import type { TriggerDebugData } from '@/lib/triggers/debug-types'
 import { getPostIdsFromMetrics, getPostsByIds } from '@/lib/utils/post-utils'
 import type { NormalizedPost } from '@/lib/services/analysis/types'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import type { TriggerStatus } from '@/lib/triggers/types'
+import { Breadcrumbs } from '@/components/layout'
 
 interface Props {
   params: Promise<{ token: string; triggerId: string }>
@@ -403,13 +401,13 @@ export default async function TriggerDetailPage({ params }: Props) {
   return (
     <div className="bg-muted/30 min-h-screen">
       <div className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-        {/* Back to report */}
-        <Link href={`/report/${token}`}>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Zpět na report
-          </Button>
-        </Link>
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Report', href: `/report/${token}` },
+            { label: details?.name ?? triggerRule.name },
+          ]}
+        />
 
         {/* Header */}
         <TriggerDetailHeader

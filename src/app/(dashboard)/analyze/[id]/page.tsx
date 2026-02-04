@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { useAnalysisStatus } from '@/hooks/use-analysis-status'
 import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { Breadcrumbs } from '@/components/layout'
 
 const STATUS_MESSAGES = {
   PENDING: {
@@ -79,6 +80,12 @@ export default function AnalysisProgressPage() {
 
   return (
     <div className="container mx-auto max-w-2xl py-12">
+      <Breadcrumbs
+        items={[
+          { label: 'Analýza', href: '/analyze' },
+          { label: 'Detail analýzy' },
+        ]}
+      />
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
