@@ -23,6 +23,61 @@ export interface CreateGroupResult {
 export type CreateGroupFormState = ActionResult<CreateGroupResult>
 
 /**
+ * Server Action for deleting a competitor group.
+ *
+ * @param groupId - ID of the group to delete
+ * @returns ActionResult with success/error
+ */
+export async function deleteCompetitorGroupAction(groupId: string): Promise<ActionResult> {
+  let userId: string | undefined
+
+  try {
+    // Check authentication
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return failure('Nepřihlášen', 'UNAUTHORIZED')
+    }
+
+    userId = session.user.id
+
+    // Verify group belongs to user
+    const group = await prisma.competitorGroup.findUnique({
+      where: { id: groupId },
+      select: { userId: true },
+    })
+
+    if (!group) {
+      return failure('Skupina nebyla nalezena', 'NOT_FOUND')
+    }
+
+    if (group.userId !== userId) {
+      return failure('Nemáte oprávnění smazat tuto skupinu', 'FORBIDDEN')
+    }
+
+    // Delete group (cascade will delete related competitors and comparisons)
+    await prisma.competitorGroup.delete({
+      where: { id: groupId },
+    })
+
+    log.info({ groupId, userId }, 'Competitor group deleted')
+
+    // Revalidate the competitors page to show updated list
+    const { revalidatePath } = await import('next/cache')
+    revalidatePath('/competitors')
+
+    return success()
+  } catch (error) {
+    logError(log, error, 'Failed to delete competitor group', {
+      [LogFields.userId]: userId,
+      group_id: groupId,
+    })
+
+    return failure('Neočekávaná chyba při mazání skupiny', 'INTERNAL_ERROR')
+  }
+}
+
+/**
  * Server Action for creating competitor group from form submission.
  * Compatible with React 19's useActionState hook.
  *

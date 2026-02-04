@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { deleteCompetitorGroupAction } from '@/lib/actions/competitor-groups'
 
 interface Page {
   id: string
@@ -32,25 +33,30 @@ interface CompetitorGroup {
 
 interface GroupCardProps {
   group: CompetitorGroup
-  onDelete: (id: string) => Promise<void>
 }
 
-export function GroupCard({ group, onDelete }: GroupCardProps) {
+export function GroupCard({ group }: GroupCardProps) {
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
   const handleDelete = React.useCallback(async () => {
     setIsDeleting(true)
     try {
-      await onDelete(group.id)
-      toast.success('Skupina smazána')
+      const result = await deleteCompetitorGroupAction(group.id)
+
+      if (result.success) {
+        toast.success('Skupina smazána')
+        setDeleteOpen(false)
+        // Server Action triggers revalidation automatically
+      } else {
+        toast.error(result.error || 'Nepodařilo se smazat skupinu')
+        setIsDeleting(false)
+      }
     } catch {
       toast.error('Nepodařilo se smazat skupinu')
-    } finally {
       setIsDeleting(false)
-      setDeleteOpen(false)
     }
-  }, [group.id, onDelete])
+  }, [group.id])
 
   return (
     <>
