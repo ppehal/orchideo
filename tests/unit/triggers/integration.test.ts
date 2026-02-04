@@ -205,7 +205,7 @@ describe('Trigger Engine Integration Tests', () => {
 
       expect(results.length).toBe(5)
 
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         expect(result.evaluations.length).toBeGreaterThan(0)
         expect(result.overallScore).toBeGreaterThanOrEqual(0)
         expect(result.overallScore).toBeLessThanOrEqual(100)
