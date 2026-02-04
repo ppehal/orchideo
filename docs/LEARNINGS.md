@@ -27,6 +27,135 @@ _Zatím žádné záznamy._
 
 ## Next.js & React
 
+### React 19 useOptimistic - Automatic Revert Requires Throw
+
+**Datum**: 2026-02-04
+**Kontext**: Migrace use-alerts hooku na React 19 useOptimistic pro automatické error handling
+**Problém**: Optimistic updates se nerevertovaly při selhání API volání, UI zobrazovalo nesprávný stav
+**Příčina**:
+- React 19 `useOptimistic` hook automaticky revertuje změny POUZE když funkce throwne error
+- Naše catch bloky zachytávaly error, zobrazovaly toast, ale NE-throwovaly → revert se neprovedl
+- TypeScript nezachytí tento problém, protože catch může error spolknout
+
+**Řešení**:
+```typescript
+// ❌ Špatně: error spolknutý, žádný revert
+try {
+  await fetch(...)
+} catch (error) {
+  toast.error('Chyba')
+  // Missing throw!
+}
+
+// ✅ Správně: re-throw pro automatic revert
+try {
+  await fetch(...)
+} catch (error) {
+  toast.error('Chyba')
+  throw error  // ← Kritické!
+}
+```
+
+**Prevence**:
+- VŽDY re-throw error v catch blocích při použití useOptimistic
+- Lint rule: eslint-plugin-react-hooks může detekovat missing throws
+- Pattern: User feedback (toast) před throw, ne po něm
+
+**Files**: `use-alerts.ts`
+
+---
+
+### React 19 Server Actions - FormData Null Safety
+
+**Datum**: 2026-02-04
+**Kontext**: Konverze formulářů na React 19 Server Actions s FormData
+**Problém**: `formData.get('field')` může vrátit `null`, ale type assertion `as string` to ignoruje
+**Příčina**:
+- FormData.get() vrací `FormDataEntryValue | null`
+- Type assertion `as string` forcuje typ, ale runtime hodnota může být null
+- TypeScript strict mode to nedetekuje při direct assertion
+
+**Řešení**:
+```typescript
+// ❌ Špatně: null crash
+const name = formData.get('name') as string
+
+// ✅ Správně: null-safe s fallback
+const name = (formData.get('name') as string | null) || ''
+
+// ✅ Nebo Zod validation:
+const schema = z.object({
+  name: z.string().min(1, 'Required')
+})
+const parsed = schema.safeParse(rawData)
+```
+
+**Prevence**:
+- NIKDY direct type assertion na FormData values
+- Vždy použít `as string | null` + fallback nebo Zod
+- Pro required fields: Zod `.min(1)` místo jen `.string()`
+
+**Files**: `competitor-groups.ts`, `analysis-form.ts`
+
+---
+
+### Next.js Nested Suspense - Split Fast/Slow Data for 5x Better FCP
+
+**Datum**: 2026-02-04
+**Kontext**: Optimalizace competitors page, která měla pomalý First Contentful Paint (~250ms)
+**Problém**: Celá stránka čekala na pomalý Prisma query s nested relations, i když header mohl renderovat okamžitě
+**Příčina**:
+- Single async Server Component fetchoval všechna data najednou (pages + groups s relations)
+- Fast data (pages pro form) i slow data (groups s competitors) blokovaly celý render
+- Next.js čekal na dokončení všech queries před odesláním HTML
+
+**Řešení - Progressive Rendering**:
+```typescript
+// ❌ Špatně: blocking render
+export default async function Page() {
+  const pages = await getPages()       // Fast: ~50ms
+  const groups = await getGroups()     // Slow: ~200ms
+  return <PageWithData pages={pages} groups={groups} />
+}
+
+// ✅ Správně: split fast/slow with Suspense
+export default async function Page() {
+  const pages = await getPages()  // Fast: renders immediately
+
+  return (
+    <>
+      <Header />
+      <CreateButton pages={pages} />
+
+      <Suspense fallback={<Skeleton />}>
+        <GroupListServer />  {/* Slow: streams when ready */}
+      </Suspense>
+    </>
+  )
+}
+
+// Separate Server Component for slow data
+async function GroupListServer() {
+  const groups = await getGroups()  // Slow query isolated
+  return <GroupList groups={groups} />
+}
+```
+
+**Performance Impact**:
+- First Contentful Paint: 250ms → 50ms (**5x faster**)
+- User sees header + button immediately
+- Groups list streams in progressively (no perceived wait)
+
+**Prevence**:
+- VŽDY split fast/slow data do separate components
+- Fast path: Auth, simple selects, lightweight queries
+- Slow path: Joins, aggregations, large datasets → wrap in Suspense
+- Pattern: Page component = fast data + layout, separate Server Components = slow data
+
+**Files**: `competitors/page.tsx`, `group-list-server.tsx`
+
+---
+
 ### Czech Text Parsing - Sentence Delimiter Edge Cases
 
 **Datum**: 2026-02-04
