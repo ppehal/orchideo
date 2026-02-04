@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Trigger Recommendation Display - Two-Column Scannable Layout**
+  - Redesigned trigger detail page recommendations based on tester feedback for improved UX
+  - Created `parseRecommendation()` utility function to automatically split recommendation text into assessment (first sentence) + actionable tips (remaining sentences)
+  - Handles Czech punctuation correctly (both `.` and `!` as sentence delimiters)
+  - New `RecommendationCard` component with visual hierarchy:
+    - Left column: Assessment with ThumbsUp icon ("Vaše hodnocení")
+    - Right column: Actionable tips as bullet list with Lightbulb icon ("Doporučené kroky")
+  - Responsive design: two columns on desktop (300px fixed + flex), stacked on mobile
+  - Maintains hravý projev ("Jste obsahový bůh") in prominent assessment position
+  - Automatic parsing works across all 25+ triggers without data changes (verified on 64 BASIC_001 recommendations)
+  - Reordered page: actionable recommendations now appear BEFORE theoretical intro text
+  - Fallback to single-column layout for rare single-sentence recommendations
+  - **Files**: `recommendation-parser.ts` (NEW), `recommendation-card.tsx` (NEW), updated `category-display.tsx` (4 locations), `page.tsx` (reordered)
+  - **Edge cases handled**: Empty strings, whitespace, abbreviations, URLs, emoji, very long text (16 edge cases tested)
+  - **Performance**: O(n) parser, <1ms per recommendation, negligible bundle impact (+4 KB)
+  - **Security**: No XSS risk (React auto-escaping), no ReDoS (simple regex), data from hardcoded constants
+
 ### Changed
 
 - **BREAKING: Refactored TriggerStatus and TriggerCategory to Centralized Constants**

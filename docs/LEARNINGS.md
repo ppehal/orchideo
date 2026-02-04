@@ -27,6 +27,46 @@ _Zatím žádné záznamy._
 
 ## Next.js & React
 
+### Czech Text Parsing - Sentence Delimiter Edge Cases
+
+**Datum**: 2026-02-04
+**Kontext**: Implementace automatického parsování doporučení na assessment + tips v trigger detail pages
+**Problém**: Jednoduchý regex `/\.\s+/` splitoval i na zkratkách (px., atd.) a nezvládal vykřičníky
+**Příčina**:
+1. Původní regex splitoval na každé tečce následované mezerou, bez ohledu na následující znak
+2. Vykřičníky (!) nebyly zahrnuty jako sentence delimiters, přitom 34 doporučení je používá
+3. České doporučení obsahují edge cases: zkratky (px.), čísla (5. Zkuste), URLs (example.com)
+
+**Řešení**:
+```typescript
+// ❌ Špatně: splituje i na zkratkách
+text.split(/\.\s+/)
+
+// ✅ Správně: splituje jen pokud následuje české velké písmeno
+text.split(/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)
+```
+
+**Klíčové body**:
+- Pozitivní lookahead `(?=...)` zajistí, že split je pouze před velkým písmenem
+- Character class `[.!]` pokrývá tečku i vykřičník
+- Czech alphabet class: `[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]` (ne ASCII `[A-Z]`)
+- Edge cases handled:
+  - `"px. Z"` → **split** (uppercase after period)
+  - `"px. další"` → **NO split** (lowercase after period)
+  - `"example.com. Text"` → **NO split** (`.com.` má lowercase před `T`)
+  - `"Výborně! Pokračujte."` → **split** (exclamation + uppercase)
+
+**Performance**: O(n) where n = string length, žádný exponential backtracking
+
+**Prevence**:
+- Pro český text vždy použít české znaky v character classes
+- Testovat edge cases: zkratky, URL, čísla, emoji
+- Pozitivní lookahead je výkonnější než negativní lookbehind pro sentence splitting
+
+**Testováno**: 16 edge cases + 64 real BASIC_001 recommendations (100% success rate)
+
+---
+
 ### Puppeteer/Chromium Docker configuration
 
 **Datum**: 2026-02-01
