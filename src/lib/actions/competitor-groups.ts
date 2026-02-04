@@ -46,10 +46,10 @@ export async function createCompetitorGroupAction(
 
     userId = session.user.id
 
-    // Extract and parse form data
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const primaryPageId = formData.get('primaryPageId') as string
+    // Extract and parse form data (null-safe)
+    const name = (formData.get('name') as string | null) || ''
+    const description = (formData.get('description') as string | null) || ''
+    const primaryPageId = (formData.get('primaryPageId') as string | null) || ''
 
     // Parse competitor IDs from multiple form fields
     const competitorPageIds: string[] = []
@@ -106,7 +106,7 @@ export async function createCompetitorGroupAction(
         data: {
           name,
           ...(description ? { description } : {}),
-          userId,
+          userId: userId!, // Guaranteed by auth check above
           primary_page_id: primaryPageId,
         },
       })
