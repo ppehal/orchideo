@@ -45,8 +45,7 @@ export function CategoryMappingBadge({
   return (
     <div
       className={cn(
-        'flex items-center gap-2',
-        variant === 'full' && 'flex-wrap',
+        'flex items-center gap-2 flex-wrap',
         className
       )}
     >
@@ -55,7 +54,7 @@ export function CategoryMappingBadge({
       )}
       <Badge
         variant="secondary"
-        className="text-xs max-w-[180px]"
+        className="text-xs max-w-[120px] sm:max-w-[180px]"
         title={sanitizedCategory}
       >
         <span className="truncate">{sanitizedCategory}</span>

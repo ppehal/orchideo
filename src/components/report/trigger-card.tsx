@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScoreBadge, type TriggerStatus, getStatusFromScore } from './score-badge'
 import { cn } from '@/lib/utils'
-import { AlertCircle, CheckCircle2, AlertTriangle, XCircle, ExternalLink } from 'lucide-react'
+import { AlertCircle, CheckCircle2, AlertTriangle, XCircle, ChevronRight } from 'lucide-react'
 
 export interface TriggerResult {
   id: string
@@ -42,30 +44,48 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
   const status = getStatusFromScore(trigger.score)
   const Icon = STATUS_ICONS[status]
 
+  // Only show CTA for triggers that need attention AND have recommendations
+  const shouldShowCTA =
+    reportToken &&
+    (status === 'NEEDS_IMPROVEMENT' || status === 'CRITICAL') &&
+    trigger.recommendation
+
+  // Disable clickability for insufficient data
+  const isClickable = reportToken && trigger.details?.reason !== 'INSUFFICIENT_DATA'
+
   const content = (
     <Card
       className={cn(
         'relative overflow-hidden',
-        reportToken && 'cursor-pointer transition-shadow hover:shadow-md',
+        isClickable && [
+          'cursor-pointer',
+          'transition-[box-shadow,border-color] duration-200',
+          'hover:border-primary/50 hover:shadow-lg',
+          'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+        ],
         className
       )}
       data-trigger-id={trigger.id}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
             <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', STATUS_ICON_COLORS[status])} />
-            <div>
-              <CardTitle className="text-base font-medium">{trigger.name}</CardTitle>
-              <CardDescription className="mt-1">{trigger.description}</CardDescription>
+            <div className="min-w-0">
+              <CardTitle className="text-base font-medium line-clamp-2">
+                {trigger.name}
+              </CardTitle>
+              <CardDescription className="mt-1 line-clamp-2">
+                {trigger.description}
+              </CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {reportToken && <ExternalLink className="text-muted-foreground h-4 w-4 shrink-0" />}
+          <div className="flex items-center gap-2 shrink-0">
             <ScoreBadge score={trigger.score} size="sm" showLabel={false} />
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-3">
         {trigger.details?.currentValue !== undefined && (
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -101,13 +121,31 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
           </p>
         )}
       </CardContent>
+
+      {/* Footer CTA - only for problem triggers with recommendations */}
+      {shouldShowCTA && (
+        <CardFooter className="pt-0">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <span className="hidden sm:inline">Zobrazit detailní analýzu</span>
+            <span className="sm:hidden">Zobrazit detail</span>
+            <ChevronRight
+              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </div>
+        </CardFooter>
+      )}
     </Card>
   )
 
-  // Wrap in Link if reportToken is provided
-  if (reportToken) {
+  // Wrap in Link only if clickable
+  if (isClickable) {
     return (
-      <Link href={`/report/${reportToken}/trigger/${trigger.id}`} className="block">
+      <Link
+        href={`/report/${reportToken}/trigger/${trigger.id}`}
+        className="block group focus:outline-none rounded-xl"
+        aria-label={`Zobrazit detail: ${trigger.name}`}
+      >
         {content}
       </Link>
     )
