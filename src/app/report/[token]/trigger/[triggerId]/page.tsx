@@ -21,6 +21,7 @@ import { getPostIdsFromMetrics, getPostsByIds } from '@/lib/utils/post-utils'
 import type { NormalizedPost } from '@/lib/services/analysis/types'
 import type { TriggerStatus } from '@/lib/triggers/types'
 import { Breadcrumbs } from '@/components/layout'
+import { env } from '@/lib/config/env'
 
 interface Props {
   params: Promise<{ token: string; triggerId: string }>
@@ -303,7 +304,7 @@ async function getCategoryDefinition(triggerId: string): Promise<CategoryDefinit
 
 export default async function TriggerDetailPage({ params }: Props) {
   const { token, triggerId } = await params
-  const showFormulas = process.env.SHOW_DEBUG_FORMULAS === 'true'
+  const showFormulas = env.SHOW_DEBUG_FORMULAS
 
   // 1. Verify trigger definition exists
   const triggerRule = getTrigger(triggerId)

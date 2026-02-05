@@ -2,11 +2,12 @@ import { createLogger } from '@/lib/logging'
 import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { makeRequest, GRAPH_API_BASE_URL, getAppSecretProof } from './client'
 import type { FacebookFeedResponse, FacebookPost } from './types'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('facebook-feed')
 
-const MAX_FEED_POSTS = parseInt(process.env.MAX_FEED_POSTS || '300', 10)
-const MAX_FEED_PAGES = parseInt(process.env.MAX_FEED_PAGES || '5', 10)
+const MAX_FEED_POSTS = env.MAX_FEED_POSTS
+const MAX_FEED_PAGES = env.MAX_FEED_PAGES
 const FEED_TIMEOUT_MS = FB_API_TIMEOUT_MS
 const FEED_DAYS = 90
 

@@ -4,6 +4,7 @@ import Facebook from 'next-auth/providers/facebook'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import { createLogger } from '@/lib/logging'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('auth')
 
@@ -11,18 +12,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     Facebook({
-      clientId: process.env.FACEBOOK_APP_ID,
-      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      clientId: env.FACEBOOK_APP_ID,
+      clientSecret: env.FACEBOOK_APP_SECRET,
       authorization: {
         url: 'https://www.facebook.com/v21.0/dialog/oauth',
         params: {
           // Facebook Login for Business - uses config_id instead of scope
           // Config includes: email, pages_show_list, pages_read_engagement, pages_read_user_content, read_insights
-          config_id: process.env.FACEBOOK_CONFIG_ID,
+          config_id: env.FACEBOOK_CONFIG_ID,
           response_type: 'code',
           override_default_response_type: 'true',
         },

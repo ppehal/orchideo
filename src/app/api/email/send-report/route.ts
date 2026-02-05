@@ -6,6 +6,7 @@ import { sendReportEmail } from '@/lib/email'
 import { sendReportEmailSchema } from '@/lib/validators/email'
 import { getRateLimiter } from '@/lib/utils/rate-limiter'
 import { auth } from '@/lib/auth'
+import { env } from '@/lib/config/env'
 
 const baseLog = createLogger('api:email:send-report')
 
@@ -86,8 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build report URL
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const reportUrl = `${appUrl}/report/${analysis.public_token}`
+    const reportUrl = `${env.NEXT_PUBLIC_APP_URL}/report/${analysis.public_token}`
 
     // Send email
     const result = await sendReportEmail(email, reportUrl, analysis.page_name || 'Facebook stránka')

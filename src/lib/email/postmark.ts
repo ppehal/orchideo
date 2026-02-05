@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createLogger, logError } from '@/lib/logging'
 import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('email')
 
@@ -31,7 +32,7 @@ const PostmarkResponseSchema = z.object({
 async function sendEmail(
   request: PostmarkEmailRequest
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const apiToken = process.env.POSTMARK_API_TOKEN
+  const apiToken = env.POSTMARK_API_TOKEN
 
   if (!apiToken) {
     log.warn('POSTMARK_API_TOKEN not configured, email not sent')
@@ -198,7 +199,7 @@ export async function sendReportEmail(
   reportUrl: string,
   pageName: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const fromEmail = process.env.POSTMARK_FROM_EMAIL || 'noreply@ppsys.eu'
+  const fromEmail = env.POSTMARK_FROM_EMAIL
 
   const request: PostmarkEmailRequest = {
     From: fromEmail,

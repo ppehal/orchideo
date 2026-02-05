@@ -13,10 +13,11 @@ import { createLogger } from '@/lib/logging'
 import { startAnalysisInBackground } from '@/lib/services/analysis/runner'
 import { type AnalysisStatus } from '../../generated/prisma/enums'
 import { withAuth, success, failure, type ActionResult } from './action-wrapper'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('action-analysis')
 
-const REPORT_EXPIRATION_DAYS = parseInt(process.env.REPORT_EXPIRATION_DAYS || '30', 10)
+const REPORT_EXPIRATION_DAYS = env.REPORT_EXPIRATION_DAYS
 
 export interface CreateAnalysisResult {
   analysisId: string

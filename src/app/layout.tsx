@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
+import { env } from '@/lib/config/env'
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     template: '%s | Orchideo',
   },
   description: 'Analýza Facebook stránek a generování doporučení na základě triggerů',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
 }
 
 export default function RootLayout({

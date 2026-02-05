@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrGeneratePdf } from '@/lib/services/pdf'
 import { PDF_RATE_LIMIT } from '@/lib/constants/pdf'
 import { createLogger, logError } from '@/lib/logging'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('api-report-pdf')
 
@@ -138,9 +139,8 @@ export async function POST(request: Request, { params }: Props) {
       // Empty body is fine
     }
 
-    // Get base URL from request or environment
-    const url = new URL(request.url)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${url.protocol}//${url.host}`
+    // Get base URL from environment
+    const baseUrl = env.NEXT_PUBLIC_APP_URL
 
     // Generate or retrieve cached PDF
     const result = await getOrGeneratePdf(

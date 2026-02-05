@@ -13,6 +13,7 @@ import {
   PDF_CACHE_TTL_DAYS,
 } from '@/lib/constants/pdf'
 import { getPdfSemaphore } from '@/lib/utils/semaphore'
+import { env } from '@/lib/config/env'
 
 const log = createLogger('pdf-service')
 
@@ -112,11 +113,11 @@ async function generatePdf(
   // Launch Puppeteer with Chromium
   // Use system Chromium if available (Docker/production), fallback to @sparticuz/chromium
   const executablePath =
-    process.env.PUPPETEER_EXECUTABLE_PATH ||
+    env.PUPPETEER_EXECUTABLE_PATH ||
     (await chromium.executablePath())
 
   const browser = await puppeteer.launch({
-    args: process.env.PUPPETEER_EXECUTABLE_PATH
+    args: env.PUPPETEER_EXECUTABLE_PATH
       ? [
           '--no-sandbox',
           '--disable-setuid-sandbox',

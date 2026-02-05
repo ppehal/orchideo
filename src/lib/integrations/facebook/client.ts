@@ -3,6 +3,7 @@ import type { ZodType } from 'zod'
 import { createLogger } from '@/lib/logging'
 import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
 import { isFacebookError } from '@/lib/validators/facebook'
+import { env } from '@/lib/config/env'
 import type {
   FacebookBusiness,
   FacebookErrorResponse,
@@ -24,11 +25,7 @@ const log = createLogger('facebook-api')
  * @see https://developers.facebook.com/docs/graph-api/securing-requests#appsecret_proof
  */
 export function getAppSecretProof(accessToken: string): string {
-  const appSecret = process.env.FACEBOOK_APP_SECRET
-  if (!appSecret) {
-    throw new Error('FACEBOOK_APP_SECRET is not configured')
-  }
-  return crypto.createHmac('sha256', appSecret).update(accessToken).digest('hex')
+  return crypto.createHmac('sha256', env.FACEBOOK_APP_SECRET).update(accessToken).digest('hex')
 }
 
 export const GRAPH_API_VERSION = 'v19.0'

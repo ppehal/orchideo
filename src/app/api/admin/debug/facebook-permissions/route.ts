@@ -3,11 +3,12 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getGrantedPermissions } from '@/lib/integrations/facebook/introspection'
 import { FB_PERMISSIONS } from '@/lib/constants/fb-permissions'
+import { env } from '@/lib/config/env'
 
 // Admin emails for permission debugging - configured via env var
-// Format: comma-separated list of emails
+// Format: comma-separated list of emails (parsed in env.ts)
 // Example: ADMIN_EMAILS="admin@example.com,support@example.com"
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim()) || []
+const ADMIN_EMAILS = env.ADMIN_EMAILS
 
 export async function GET(request: Request) {
   const session = await auth()

@@ -1,4 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
+import { env } from '@/lib/config/env'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16 // 128 bits
@@ -6,10 +7,7 @@ const AUTH_TAG_LENGTH = 16 // 128 bits
 const ENCODING = 'base64' as const
 
 function getEncryptionKey(): Buffer {
-  const key = process.env.ENCRYPTION_KEY
-  if (!key) {
-    throw new Error('ENCRYPTION_KEY environment variable is not set')
-  }
+  const key = env.ENCRYPTION_KEY
 
   // Key should be base64 encoded 32 bytes (256 bits)
   const keyBuffer = Buffer.from(key, 'base64')
