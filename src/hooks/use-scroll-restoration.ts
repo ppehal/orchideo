@@ -39,10 +39,7 @@ interface SavedScrollPosition {
  * // Call before navigating away
  * saveScrollPosition()
  */
-export function useScrollRestoration({
-  key,
-  enabled = true,
-}: UseScrollRestorationOptions): {
+export function useScrollRestoration({ key, enabled = true }: UseScrollRestorationOptions): {
   saveScrollPosition: () => void
 } {
   const isValid = typeof window !== 'undefined' && !!key && key.trim() !== ''
@@ -107,9 +104,7 @@ export function useScrollRestoration({
       }
 
       // Check user's motion preference for accessibility
-      const prefersReducedMotion = window.matchMedia(
-        '(prefers-reduced-motion: reduce)'
-      ).matches
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
       // Double RAF ensures DOM is fully hydrated and layout is complete
       // First RAF: waits for browser paint

@@ -141,10 +141,9 @@ export function extractFacebookIdentifier(urlString: string): string | null {
   return parsed?.value ?? null
 }
 
-export function matchPageByIdentifier<T extends { id: string; name: string; username?: string | null }>(
-  pages: T[],
-  identifier: string
-): T | null {
+export function matchPageByIdentifier<
+  T extends { id: string; name: string; username?: string | null },
+>(pages: T[], identifier: string): T | null {
   const lowerIdentifier = identifier.toLowerCase()
 
   // First, try exact ID match

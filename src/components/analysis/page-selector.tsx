@@ -73,7 +73,7 @@ export function PageSelector({
     return (
       <div className="space-y-4">
         <div className="relative">
-          <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             type="text"
             placeholder="Vyhledat podle názvu, URL (facebook.com/stranka) nebo ID"
@@ -106,20 +106,20 @@ export function PageSelector({
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           type="text"
           placeholder="Vyhledat podle názvu, URL (facebook.com/stranka) nebo ID"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 pr-9"
+          className="pr-9 pl-9"
         />
         {searchQuery && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
+            className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
             onClick={handleClearSearch}
           >
             <X className="h-4 w-4" />

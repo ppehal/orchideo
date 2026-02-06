@@ -25,9 +25,7 @@ export function ReportClientWrapper({ children }: ReportClientWrapperProps) {
 
   // Type-safe token extraction - handle undefined, array, and empty string cases
   const token =
-    typeof params.token === 'string' && params.token.trim() !== ''
-      ? params.token
-      : undefined
+    typeof params.token === 'string' && params.token.trim() !== '' ? params.token : undefined
 
   const { saveScrollPosition } = useScrollRestoration({
     key: token ? `report_${token}` : 'report_fallback',
