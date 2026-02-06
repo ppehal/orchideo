@@ -98,6 +98,14 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_APP_URL: 'https://orchidea.ppsys.eu'
+          NEXTAUTH_URL: 'http://localhost:3000'
+          NEXTAUTH_SECRET: 'ci-dummy-secret-not-real'
+          FACEBOOK_APP_ID: '000000000000000'
+          FACEBOOK_APP_SECRET: 'ci-dummy-fb-secret'
+          FACEBOOK_CONFIG_ID: '000000000000000'
+          POSTMARK_API_TOKEN: 'ci-dummy-postmark-token'
+          POSTMARK_FROM_EMAIL: 'ci@example.com'
+          ENCRYPTION_KEY: 'ci-dummy-encryption-key-32chars!!'
 
   # Integration tests with database (uncomment when integration tests are added)
   # test-integration:
