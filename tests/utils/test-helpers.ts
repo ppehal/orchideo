@@ -273,6 +273,190 @@ export function createTestTriggerResult(overrides: Record<string, unknown> = {})
 }
 
 // ============================================================================
+// Facebook API Data Factories (for feed, insights, collector tests)
+// ============================================================================
+
+import type {
+  FacebookPost,
+  FacebookFeedResponse,
+  NormalizedFacebookPage,
+  FacebookInsightsResponse,
+  FacebookInsight,
+} from '@/lib/integrations/facebook/types'
+import type { FetchFeedResult } from '@/lib/integrations/facebook/feed'
+import type { PageInsights } from '@/lib/integrations/facebook/insights'
+
+/**
+ * Create a Facebook post for testing
+ */
+export function createMockFacebookPost(
+  overrides: Partial<FacebookPost> = {}
+): FacebookPost {
+  return {
+    id: 'post_123',
+    created_time: new Date().toISOString(),
+    message: 'Test post message',
+    reactions: { summary: { total_count: 50 } },
+    comments: { summary: { total_count: 10 } },
+    shares: { count: 5 },
+    is_published: true,
+    is_hidden: false,
+    permalink_url: 'https://facebook.com/post/123',
+    processedInsights: undefined,
+    ...overrides,
+  }
+}
+
+/**
+ * Create a mock Facebook feed response
+ * @param posts - Array of partials to convert to FacebookPost objects
+ * @param nextUrl - Optional pagination URL
+ */
+export function createMockFeedResponse(
+  posts: Array<Partial<FacebookPost>>,
+  nextUrl?: string
+): FacebookFeedResponse {
+  return {
+    data: posts.map((p) => createMockFacebookPost(p)),
+    paging: nextUrl ? { next: nextUrl } : undefined,
+  }
+}
+
+/**
+ * Create a mock post insights response
+ */
+export function createMockPostInsightsResponse(
+  insights: Record<string, number | Record<string, number>>
+): { data: Array<{ name: string; values: Array<{ value: number | Record<string, number> }> }> } {
+  return {
+    data: Object.entries(insights).map(([name, value]) => ({
+      name,
+      values: [{ value }],
+    })),
+  }
+}
+
+/**
+ * Create a mock batch API response
+ */
+export function createMockBatchResponse(
+  results: Array<{ code: number; body?: string }>
+): unknown[] {
+  return results
+}
+
+/**
+ * Create a mock Facebook insights response
+ */
+export function createMockInsightsResponse(
+  insights: Array<{
+    name: string
+    period: string
+    values: Array<{ value: number | Record<string, number>; end_time?: string }>
+  }>
+): FacebookInsightsResponse {
+  return {
+    data: insights.map((insight) => ({
+      ...insight,
+      id: `${insight.name}/insights`,
+    })) as FacebookInsight[],
+  }
+}
+
+/**
+ * Create a mock NormalizedFacebookPage
+ */
+export function createMockPageMetadata(
+  overrides: Partial<NormalizedFacebookPage> = {}
+): NormalizedFacebookPage {
+  return {
+    fb_page_id: '123456789',
+    name: 'Test Page',
+    category: 'Local Business',
+    fan_count: 1000,
+    picture_url: 'https://example.com/picture.jpg',
+    cover_url: 'https://example.com/cover.jpg',
+    page_access_token: 'test-page-token',
+    username: 'testpage',
+    ...overrides,
+  }
+}
+
+/**
+ * Create a mock FetchFeedResult
+ */
+export function createMockFetchFeedResult(
+  posts: FacebookPost[],
+  overrides: Partial<FetchFeedResult> = {}
+): FetchFeedResult {
+  const oldestPostDate = posts.length > 0 ? new Date(posts[posts.length - 1]!.created_time) : null
+  const newestPostDate = posts.length > 0 ? new Date(posts[0]!.created_time) : null
+
+  return {
+    posts,
+    totalFetched: posts.length,
+    pagesProcessed: 1,
+    oldestPostDate,
+    newestPostDate,
+    reachedMaxPosts: false,
+    reachedMaxPages: false,
+    reachedDateLimit: false,
+    ...overrides,
+  }
+}
+
+/**
+ * Create a mock PageInsights
+ */
+export function createMockPageInsights(
+  overrides: Partial<PageInsights> = {}
+): PageInsights {
+  const now = new Date()
+  const periodStart = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
+
+  return {
+    page_impressions: 10000,
+    page_impressions_unique: 8000,
+    page_impressions_organic: 7000,
+    page_impressions_paid: 3000,
+    page_engaged_users: 500,
+    page_post_engagements: 1200,
+    page_views_total: 2500,
+    page_fans: 1000,
+    page_fan_adds: 50,
+    page_fan_removes: 10,
+    page_actions_post_reactions_total: {
+      like: 300,
+      love: 150,
+      wow: 50,
+      haha: 30,
+      sad: 10,
+      angry: 5,
+    },
+    daily_impressions: [
+      { date: now.toISOString(), value: 400 },
+      { date: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), value: 350 },
+    ],
+    daily_engaged_users: [
+      { date: now.toISOString(), value: 20 },
+      { date: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), value: 18 },
+    ],
+    daily_fan_adds: [
+      { date: now.toISOString(), value: 2 },
+      { date: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), value: 3 },
+    ],
+    daily_fan_removes: [
+      { date: now.toISOString(), value: 0 },
+      { date: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), value: 1 },
+    ],
+    period_start: periodStart.toISOString(),
+    period_end: now.toISOString(),
+    fetched_at: now.toISOString(),
+    ...overrides,
+  }
+}
+
+// ============================================================================
 // Environment Variable Helpers
 // ============================================================================
 

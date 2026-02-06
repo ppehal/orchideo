@@ -9,8 +9,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/lib/triggers/**/*.ts'],
-      exclude: ['src/lib/triggers/**/index.ts'],
+      include: [
+        'src/lib/triggers/**/*.ts',
+        'src/lib/integrations/facebook/**/*.ts',
+        'src/lib/services/analysis/**/*.ts',
+      ],
+      exclude: [
+        'src/lib/triggers/**/index.ts',
+        '**/*.d.ts',
+        '**/types.ts',
+        '**/index.ts',
+      ],
     },
   },
   resolve: {

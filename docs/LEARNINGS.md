@@ -574,6 +574,60 @@ _Zatím žádné záznamy._
 
 ---
 
+## Vitest / Testing
+
+### vi.clearAllMocks() vs vi.resetAllMocks() - Mock Leakage
+
+**Datum**: 2026-02-06
+**Kontext**: Facebook feed testy s `mockResolvedValueOnce`
+**Problém**: Testy kontaminují následující testy. Pokud test nastaví 3 `mockResolvedValueOnce` ale spotřebuje jen 2 (např. `maxPages: 2`), třetí mock "uteče" do dalšího testu.
+**Příčina**:
+
+- `vi.clearAllMocks()` / `mockClear()` maže POUZE call tracking (calls, instances, results)
+- **NEMAŽE** `mockResolvedValueOnce` / `mockReturnValueOnce` fronty
+- `vi.resetAllMocks()` / `mockReset()` maže tracking I implementace/return values
+
+**Řešení**: Vždy používat `vi.resetAllMocks()` v `beforeEach`:
+
+```typescript
+// ❌ WRONG - mock queues leak between tests
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+// ✅ CORRECT - fully resets mock state
+beforeEach(() => {
+  vi.resetAllMocks()
+})
+```
+
+**Prevence**:
+
+- V `beforeEach` VŽDY `vi.resetAllMocks()`, nikdy `vi.clearAllMocks()`
+- V `afterEach` použít `vi.restoreAllMocks()` pro úplný reset
+
+### FacebookApiError in vi.mock - Hoisting Issue
+
+**Datum**: 2026-02-06
+**Kontext**: Mockování `@/lib/integrations/facebook/client` s třídou `FacebookApiError`
+**Problém**: `ReferenceError: Cannot access 'MockFacebookApiError' before initialization`
+**Příčina**: `vi.mock()` je hoistován na začátek souboru - proměnné definované před ním ještě neexistují.
+**Řešení**: Definovat třídu UVNITŘ factory funkce `vi.mock()`:
+
+```typescript
+// ❌ WRONG - class not available due to hoisting
+class MockError extends Error { ... }
+vi.mock('module', () => ({ Error: MockError }))
+
+// ✅ CORRECT - define inside factory
+vi.mock('module', () => {
+  class MockError extends Error { ... }
+  return { Error: MockError }
+})
+```
+
+---
+
 ## Template pro nový záznam
 
 ```markdown

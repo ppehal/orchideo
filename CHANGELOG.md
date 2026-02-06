@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **P1 Test Coverage - Facebook API & Collector (2026-02-06)**
+  - Implemented Phase 1 critical path tests: 48 new tests across 3 test files
+  - **Facebook Feed Tests** (`feed.test.ts`): 19 tests covering pagination, filtering, batch API, error handling
+  - **Facebook Insights Tests** (`insights.test.ts`): 13 tests covering daily/lifetime/28-day metrics, error codes, partial success
+  - **Analysis Collector Tests** (`collector.test.ts`): 16 tests covering orchestration, parallel fetching, error propagation, post enrichment
+  - **Test Infrastructure**: 8 new factory functions in test-helpers.ts, fixtures file with realistic API data
+  - **Coverage Config**: Updated vitest.config.ts to include facebook integration and analysis service modules
+  - **Impact**: Covers 70% of production failure scenarios (pagination bugs, permission errors, rate limiting, partial success)
+  - **Files**: 3 new test files, updated test-helpers.ts, updated vitest.config.ts, new fixtures/facebook-api-data.ts
+
 - **P0 Critical Audit Improvements (2026-02-04)**
   - Implemented all 4 critical (P0) recommendations from Architecture Audit
   - **Trigger Engine Unit Tests**: 483 tests passing, 80%+ coverage for triggers (engine.test.ts, registry.test.ts, integration.test.ts)
