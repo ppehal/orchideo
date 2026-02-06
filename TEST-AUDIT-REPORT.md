@@ -255,6 +255,7 @@ The test suite demonstrates **excellent edge case coverage** overall, with thoro
    - **Recommendation:** Test timeout during retry
 
 4. **Race conditions**
+
    ```typescript
    // Not tested:
    // - Multiple retries racing with timeout
@@ -321,6 +322,7 @@ The test suite demonstrates **excellent edge case coverage** overall, with thoro
    - **Recommendation:** Add mixed error sequence tests
 
 10. **Exponential backoff edge cases**
+
     ```typescript
     // Not tested:
     // - Very high retry counts (what happens at retry 50?)
