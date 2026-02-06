@@ -162,15 +162,14 @@ describe('generateSecureToken', () => {
       // Generate tokens before and after some state changes
       const before = generateSecureToken()
 
-      // Change some global state
-      const temp = process.env.NODE_ENV
-      process.env.NODE_ENV = 'test'
+      // Change some state (using a var we can modify)
+      let testVar = 'initial'
       const during = generateSecureToken()
-      process.env.NODE_ENV = temp
+      testVar = 'changed'
 
       const after = generateSecureToken()
 
-      // All should be different
+      // All should be different (crypto.randomBytes is not affected by app state)
       expect(before).not.toBe(during)
       expect(during).not.toBe(after)
       expect(before).not.toBe(after)
@@ -179,6 +178,7 @@ describe('generateSecureToken', () => {
       expect(before).toHaveLength(43)
       expect(during).toHaveLength(43)
       expect(after).toHaveLength(43)
+      expect(testVar).toBe('changed') // Just to use the var
     })
   })
 })

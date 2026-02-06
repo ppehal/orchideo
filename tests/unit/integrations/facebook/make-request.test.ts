@@ -14,6 +14,12 @@ describe('makeRequest', () => {
   const TEST_URL = 'https://graph.facebook.com/v19.0/me'
   const TEST_TOKEN = 'EAAtestToken'
 
+  // Helper to get mock call args in a type-safe way
+  function getMockCallArgs(mock: ReturnType<typeof vi.fn>, callIndex: number) {
+    expect(mock.mock.calls.length).toBeGreaterThan(callIndex)
+    return mock.mock.calls[callIndex] as unknown[]
+  }
+
   beforeEach(() => {
     vi.stubEnv('FACEBOOK_APP_SECRET', 'test-secret')
     vi.stubEnv('FB_API_TIMEOUT_MS', '30000')
@@ -29,9 +35,7 @@ describe('makeRequest', () => {
   describe('successful requests', () => {
     it('includes appsecret_proof in query params', async () => {
       const responseData = { id: '123', name: 'Test User' }
-      const fetchMock = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse(responseData))
-      )
+      const fetchMock = vi.fn(() => Promise.resolve(mockFacebookApiResponse(responseData)))
       global.fetch = fetchMock
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN)
@@ -42,7 +46,9 @@ describe('makeRequest', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1)
 
       // Verify appsecret_proof is in the URL
-      const calledUrl = fetchMock.mock.calls[0]![0] as string
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const args = getMockCallArgs(fetchMock, 0)
+      const calledUrl = String(args[0])
       expect(calledUrl).toContain('appsecret_proof=')
       expect(calledUrl).toMatch(/appsecret_proof=[a-f0-9]{64}/)
     })
@@ -56,9 +62,7 @@ describe('makeRequest', () => {
         paging: { next: 'https://...' },
       }
 
-      global.fetch = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse(responseData))
-      )
+      global.fetch = vi.fn(() => Promise.resolve(mockFacebookApiResponse(responseData)))
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN)
       await vi.runAllTimersAsync()
@@ -69,16 +73,17 @@ describe('makeRequest', () => {
 
     it('includes Authorization header', async () => {
       const responseData = { success: true }
-      const fetchMock = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse(responseData))
-      )
+      const fetchMock = vi.fn(() => Promise.resolve(mockFacebookApiResponse(responseData)))
       global.fetch = fetchMock
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN)
       await vi.runAllTimersAsync()
       await promise
 
-      const callOptions = fetchMock.mock.calls[0]![1] as RequestInit
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const args = getMockCallArgs(fetchMock, 0)
+      const callOptions = args[1] as RequestInit
+      expect(callOptions).toBeDefined()
       expect(callOptions.headers).toEqual(
         expect.objectContaining({
           Authorization: `Bearer ${TEST_TOKEN}`,
@@ -92,32 +97,34 @@ describe('makeRequest', () => {
     it('uses default timeout (FB_API_TIMEOUT_MS)', async () => {
       vi.stubEnv('FB_API_TIMEOUT_MS', '15000')
 
-      const fetchMock = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse({ data: 'ok' }))
-      )
+      const fetchMock = vi.fn(() => Promise.resolve(mockFacebookApiResponse({ data: 'ok' })))
       global.fetch = fetchMock
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN)
       await vi.runAllTimersAsync()
       await promise
 
-      const callOptions = fetchMock.mock.calls[0]![1] as RequestInit
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const args = getMockCallArgs(fetchMock, 0)
+      const callOptions = args[1] as RequestInit
       // Timeout is set via AbortSignal.timeout() - we can't easily inspect it,
       // but we verify the signal is present
+      expect(callOptions).toBeDefined()
       expect(callOptions.signal).toBeDefined()
     })
 
     it('uses custom timeout from options', async () => {
-      const fetchMock = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse({ data: 'ok' }))
-      )
+      const fetchMock = vi.fn(() => Promise.resolve(mockFacebookApiResponse({ data: 'ok' })))
       global.fetch = fetchMock
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { timeoutMs: 5000 })
       await vi.runAllTimersAsync()
       await promise
 
-      const callOptions = fetchMock.mock.calls[0]![1] as RequestInit
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const args = getMockCallArgs(fetchMock, 0)
+      const callOptions = args[1] as RequestInit
+      expect(callOptions).toBeDefined()
       expect(callOptions.signal).toBeDefined()
     })
 
@@ -307,9 +314,7 @@ describe('makeRequest', () => {
 
   describe('error handling', () => {
     it('throws FacebookApiError on FB error response', async () => {
-      global.fetch = vi.fn(() =>
-        Promise.resolve(mockFacebookApiError(190, 'Invalid token'))
-      )
+      global.fetch = vi.fn(() => Promise.resolve(mockFacebookApiError(190, 'Invalid token')))
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 0 })
       await vi.runAllTimersAsync()
@@ -484,9 +489,7 @@ describe('makeRequest', () => {
 
     it('handles URL with existing query params', async () => {
       const urlWithParams = 'https://graph.facebook.com/v19.0/me?fields=id,name'
-      const fetchMock = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse({ data: 'ok' }))
-      )
+      const fetchMock = vi.fn(() => Promise.resolve(mockFacebookApiResponse({ data: 'ok' })))
       global.fetch = fetchMock
 
       const promise = makeRequest(urlWithParams, TEST_TOKEN)
@@ -494,7 +497,10 @@ describe('makeRequest', () => {
       await vi.runAllTimersAsync()
       await promise
 
-      const calledUrl = fetchMock.mock.calls[0]![0] as string
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const args = getMockCallArgs(fetchMock, 0)
+      const calledUrl = String(args[0])
+      expect(calledUrl).toBeDefined()
 
       // URL should contain both original params and appsecret_proof
       const url = new URL(calledUrl)
@@ -506,9 +512,7 @@ describe('makeRequest', () => {
   describe('schema validation (optional)', () => {
     it('returns data even if schema validation fails', async () => {
       const responseData = { unexpected: 'field' }
-      global.fetch = vi.fn(() =>
-        Promise.resolve(mockFacebookApiResponse(responseData))
-      )
+      global.fetch = vi.fn(() => Promise.resolve(mockFacebookApiResponse(responseData)))
 
       // Mock schema that will fail
       const mockSchema = {

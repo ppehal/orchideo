@@ -24,13 +24,7 @@ describe('FacebookApiError', () => {
     })
 
     it('creates error with optional fields', () => {
-      const error = new FacebookApiError(
-        'Detailed error',
-        200,
-        'OAuthException',
-        1234,
-        'AbC123XyZ'
-      )
+      const error = new FacebookApiError('Detailed error', 200, 'OAuthException', 1234, 'AbC123XyZ')
 
       expect(error.subcode).toBe(1234)
       expect(error.fbtrace_id).toBe('AbC123XyZ')
