@@ -21,6 +21,13 @@ interface PageSelectorProps {
   isLoading?: boolean
 }
 
+function normalizeForSearch(str: string): string {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
 export function PageSelector({
   pages,
   selectedPageId,
@@ -29,13 +36,7 @@ export function PageSelector({
 }: PageSelectorProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
 
-  const normalizeForSearch = React.useCallback((str: string): string => {
-    return str
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-  }, [])
-
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const filteredPages = React.useMemo(() => {
     if (!searchQuery.trim()) return pages
 
@@ -62,7 +63,7 @@ export function PageSelector({
         normalizedName.includes(normalizedQuery) || normalizedUsername.includes(normalizedQuery)
       )
     })
-  }, [pages, searchQuery, normalizeForSearch])
+  }, [pages, searchQuery])
 
   const handleClearSearch = React.useCallback(() => {
     setSearchQuery('')
