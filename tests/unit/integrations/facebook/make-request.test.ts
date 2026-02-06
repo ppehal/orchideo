@@ -4,6 +4,10 @@
  * DATA INTEGRITY CRITICAL: Tests retry logic with exponential backoff,
  * timeout handling, and proper error propagation. This prevents cascading
  * failures and ensures reliable Facebook API communication.
+ *
+ * NOTE: All error-expecting tests attach the rejection handler BEFORE
+ * advancing fake timers. This prevents Node.js from flagging the promise
+ * rejection as "unhandled" during timer advancement.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -197,14 +201,10 @@ describe('makeRequest', () => {
       })
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN) // Uses default maxRetries=3
+      // Attach rejection handler BEFORE advancing timers to prevent unhandled rejection
+      const assertion = expect(promise).rejects.toBeInstanceOf(FacebookApiError)
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FacebookApiError)
-      }
+      await assertion
 
       expect(attempts).toBe(4) // Initial + 3 retries
     })
@@ -217,14 +217,9 @@ describe('makeRequest', () => {
       })
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 1 })
+      const assertion = expect(promise).rejects.toBeInstanceOf(FacebookApiError)
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FacebookApiError)
-      }
+      await assertion
 
       expect(attempts).toBe(2) // Initial + 1 retry
     })
@@ -237,15 +232,9 @@ describe('makeRequest', () => {
       })
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 3 })
+      const assertion = expect(promise).rejects.toThrow('Token expired')
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FacebookApiError)
-        expect((error as FacebookApiError).message).toContain('Token expired')
-      }
+      await assertion
 
       expect(attempts).toBe(1) // No retries for token expired
     })
@@ -258,14 +247,9 @@ describe('makeRequest', () => {
       })
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 3 })
+      const assertion = expect(promise).rejects.toBeInstanceOf(FacebookApiError)
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FacebookApiError)
-      }
+      await assertion
 
       expect(attempts).toBe(1) // No retries for permission denied
     })
@@ -317,16 +301,14 @@ describe('makeRequest', () => {
       global.fetch = vi.fn(() => Promise.resolve(mockFacebookApiError(190, 'Invalid token')))
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 0 })
-      await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
+      const assertion = expect(promise).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(FacebookApiError)
         expect((error as FacebookApiError).code).toBe(190)
         expect((error as FacebookApiError).message).toBe('Invalid token')
-      }
+        return true
+      })
+      await vi.runAllTimersAsync()
+      await assertion
     })
 
     it('preserves error details (code, type, subcode, fbtrace_id)', async () => {
@@ -347,20 +329,17 @@ describe('makeRequest', () => {
       )
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 0 })
-
-      await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
+      const assertion = expect(promise).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(FacebookApiError)
         const fbError = error as FacebookApiError
         expect(fbError.code).toBe(190)
         expect(fbError.type).toBe('OAuthException')
         expect(fbError.subcode).toBe(463)
         expect(fbError.fbtrace_id).toBe('ABC123XYZ')
-      }
+        return true
+      })
+      await vi.runAllTimersAsync()
+      await assertion
     })
 
     it('throws on network error after exhausting retries', async () => {
@@ -374,15 +353,9 @@ describe('makeRequest', () => {
         maxRetries: 2,
         retryDelayMs: 100,
       })
+      const assertion = expect(promise).rejects.toThrow('Network error')
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(TypeError)
-        expect((error as TypeError).message).toBe('Network error')
-      }
+      await assertion
 
       expect(attempts).toBe(3) // Initial + 2 retries
     })
@@ -420,15 +393,11 @@ describe('makeRequest', () => {
       )
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 0 })
+      const assertion = expect(promise).rejects.toThrow(
+        'Facebook API error: 500 Internal Server Error'
+      )
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('Facebook API error: 500 Internal Server Error')
-      }
+      await assertion
     })
   })
 
@@ -475,14 +444,9 @@ describe('makeRequest', () => {
       })
 
       const promise = makeRequest(TEST_URL, TEST_TOKEN, { maxRetries: 0 })
+      const assertion = expect(promise).rejects.toBeInstanceOf(FacebookApiError)
       await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FacebookApiError)
-      }
+      await assertion
 
       expect(attempts).toBe(1) // No retries
     })
