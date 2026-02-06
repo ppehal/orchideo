@@ -35,35 +35,15 @@ describe('saveTriggerResults', () => {
 
   describe('data transformation', () => {
     it('transforms trigger evaluations to database format', async () => {
-      const evaluations: TriggerEvaluation[] = [
-        {
-          id: 'T001',
-          name: 'Test Trigger',
-          description: 'Test description',
-          category: 'ENGAGEMENT',
-          score: 75,
-          status: 'GOOD',
-          recommendation: 'Keep it up',
-          details: {
-            currentValue: 100,
-            targetValue: 80,
-            context: { metric: 'engagement_rate' },
-            reason: 'Above benchmark',
-          },
-        },
-      ]
-
+      // Test the transformation logic used in saveTriggerResults
       mockTriggerResult.deleteMany.mockResolvedValue({ count: 0 })
       mockTriggerResult.createMany.mockResolvedValue({ count: 1 })
 
-      // We can't call saveTriggerResults directly, but we can verify the mock calls
-      // by triggering it through a complete analysis run (tested in runner.test.ts)
-      // Here we test the transformation logic separately
-
+      // Example transformation data
       const expectedData = {
         analysisId: TEST_ANALYSIS_ID,
         trigger_code: 'T001',
-        category: 'ENGAGEMENT',
+        category: 'CONTENT',
         score: 75,
         status: 'GOOD',
         value: 100,
@@ -74,8 +54,7 @@ describe('saveTriggerResults', () => {
           recommendation: 'Keep it up',
           currentValue: 100,
           targetValue: 80,
-          context: { metric: 'engagement_rate' },
-          reason: 'Above benchmark',
+          context: 'engagement_rate above benchmark',
         },
       }
 
@@ -111,11 +90,11 @@ describe('saveTriggerResults', () => {
         description: 'Test',
         category: 'CONTENT',
         score: 50,
-        status: 'NEUTRAL',
+        status: 'NEEDS_IMPROVEMENT',
         recommendation: 'No action needed',
         details: {
           // No currentValue or targetValue
-          reason: 'Insufficient data',
+          reason: 'INSUFFICIENT_DATA',
         },
       }
 
@@ -142,16 +121,12 @@ describe('saveTriggerResults', () => {
         description: 'Complex test',
         category: 'TIMING',
         score: 60,
-        status: 'WARNING',
+        status: 'NEEDS_IMPROVEMENT',
         recommendation: 'Adjust posting schedule',
         details: {
           currentValue: '2 posts/week',
           targetValue: '5 posts/week',
-          context: {
-            bestDays: ['Monday', 'Wednesday'],
-            bestHours: [9, 14, 18],
-          },
-          reason: 'Posting frequency below recommended',
+          context: 'Best days: Monday, Wednesday; Best hours: 9, 14, 18',
           metrics: {
             avgPostsPerWeek: 2,
             targetPostsPerWeek: 5,
@@ -176,11 +151,8 @@ describe('saveTriggerResults', () => {
         recommendation: 'Adjust posting schedule',
         currentValue: '2 posts/week',
         targetValue: '5 posts/week',
-        context: {
-          bestDays: ['Monday', 'Wednesday'],
-          bestHours: [9, 14, 18],
-        },
-        reason: 'Posting frequency below recommended',
+        context: 'Best days: Monday, Wednesday; Best hours: 9, 14, 18',
+        reason: undefined,
         metrics: {
           avgPostsPerWeek: 2,
           targetPostsPerWeek: 5,
@@ -211,7 +183,7 @@ describe('saveTriggerResults', () => {
           id: 'T001',
           name: 'Trigger 1',
           description: 'Test',
-          category: 'ENGAGEMENT',
+          category: 'CONTENT',
           score: 75,
           status: 'GOOD',
           recommendation: 'Keep going',
@@ -223,7 +195,7 @@ describe('saveTriggerResults', () => {
           description: 'Test 2',
           category: 'CONTENT',
           score: 50,
-          status: 'NEUTRAL',
+          status: 'NEEDS_IMPROVEMENT',
           recommendation: 'Monitor',
           details: { currentValue: 50, targetValue: 60 },
         },
@@ -341,7 +313,7 @@ describe('saveTriggerResults', () => {
         id: `T${String(i + 1).padStart(3, '0')}`,
         name: `Trigger ${i + 1}`,
         description: `Test trigger ${i + 1}`,
-        category: 'ENGAGEMENT' as const,
+        category: 'CONTENT' as const,
         score: Math.floor(Math.random() * 100),
         status: 'GOOD' as const,
         recommendation: 'Test recommendation',

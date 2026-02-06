@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts.client'
 
 export interface FacebookPageItem {
   id: string

@@ -1,5 +1,5 @@
 import { createLogger } from '@/lib/logging'
-import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts.server'
 import { makeRequest, GRAPH_API_BASE_URL, FacebookApiError } from './client'
 import type { FacebookInsightsResponse, FacebookInsight } from './types'
 

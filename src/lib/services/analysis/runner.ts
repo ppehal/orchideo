@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { createLogger, withContext, logError, LogFields } from '@/lib/logging'
 import { decrypt } from '@/lib/utils/encryption'
-import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts.server'
 import { collectAnalysisData } from './collector'
 import { normalizeCollectedData } from './normalizer'
 import { updateAnalysisStatus, logAnalysisCompleted, logAnalysisFailed } from './status-manager'

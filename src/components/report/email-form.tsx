@@ -7,7 +7,7 @@ import { Mail } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { isValidEmail } from '@/lib/validators/email'
-import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts.client'
 
 interface EmailFormProps {
   analysisToken: string

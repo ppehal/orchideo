@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { CLIENT_FETCH_TIMEOUT_MS } from '@/lib/config/timeouts.client'
 import { ANALYSIS_STATUS_LABELS, ANALYSIS_STATUS_PROGRESS } from '@/lib/constants'
 import type { AnalysisStatus } from '@/generated/prisma/enums'
 

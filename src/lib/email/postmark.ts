@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createLogger, logError } from '@/lib/logging'
-import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { EMAIL_TIMEOUT_MS } from '@/lib/config/timeouts.server'
 import { env } from '@/lib/config/env'
 
 const log = createLogger('email')

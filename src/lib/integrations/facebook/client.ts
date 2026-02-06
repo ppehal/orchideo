@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import type { ZodType } from 'zod'
 import { createLogger } from '@/lib/logging'
-import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { FB_API_TIMEOUT_MS } from '@/lib/config/timeouts.server'
 import { isFacebookError } from '@/lib/validators/facebook'
 import { env } from '@/lib/config/env'
 import type {

@@ -10,9 +10,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createTestAnalysis, createTestFacebookPage } from '../../../utils/test-helpers'
-import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts'
+import { ANALYSIS_TIMEOUT_MS } from '@/lib/config/timeouts.server'
 import type { TriggerEvaluation } from '@/lib/triggers'
-import type { CollectedData } from '@/lib/services/analysis/types'
 
 // Mock all dependencies before importing
 const mockPrisma = {
@@ -164,7 +163,7 @@ describe('runAnalysis', () => {
           id: 'T001',
           name: 'Engagement Rate',
           description: 'Test trigger',
-          category: 'ENGAGEMENT',
+          category: 'CONTENT',
           score: 75,
           status: 'GOOD',
           recommendation: 'Keep it up',
