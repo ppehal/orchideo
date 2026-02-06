@@ -223,15 +223,17 @@ export function createTestAnalysis(overrides: Record<string, unknown> = {}) {
  */
 export function createTestFacebookPage(overrides: Record<string, unknown> = {}) {
   return {
+    id: 'fb-page-1',
     fb_page_id: '123456789',
-    user_id: 'user-1',
+    userId: 'user-1',
     name: 'Test Page',
     username: 'testpage',
     category: 'Local Business',
     fan_count: 1000,
     picture_url: 'https://example.com/picture.jpg',
     cover_url: 'https://example.com/cover.jpg',
-    access_token_encrypted: 'encrypted:test-token',
+    page_access_token: 'encrypted:test-token',
+    token_expires_at: null,
     created_at: new Date(),
     updated_at: new Date(),
     ...overrides,
