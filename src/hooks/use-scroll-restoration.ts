@@ -45,23 +45,14 @@ export function useScrollRestoration({
 }: UseScrollRestorationOptions): {
   saveScrollPosition: () => void
 } {
-  // SSR guard - return no-op if window is not available
-  if (typeof window === 'undefined') {
-    return { saveScrollPosition: () => {} }
-  }
-
-  // Validate key - prevent empty string key collision
-  if (!key || key.trim() === '') {
-    console.warn('[useScrollRestoration] Invalid key provided (empty string)')
-    return { saveScrollPosition: () => {} }
-  }
+  const isValid = typeof window !== 'undefined' && !!key && key.trim() !== ''
 
   /**
    * Saves current scroll position with viewport width to sessionStorage.
    * Viewport width is saved to detect responsive layout changes.
    */
   const saveScrollPosition = useCallback(() => {
-    if (!enabled || typeof window === 'undefined') return
+    if (!isValid || !enabled || typeof window === 'undefined') return
 
     try {
       const data: SavedScrollPosition = {
@@ -75,14 +66,14 @@ export function useScrollRestoration({
       // Fail silently - scroll restoration is a nice-to-have feature
       console.warn('[useScrollRestoration] Failed to save scroll position:', error)
     }
-  }, [key, enabled])
+  }, [key, enabled, isValid])
 
   /**
    * Restores scroll position from sessionStorage on mount.
    * Uses double RAF to ensure DOM is fully hydrated and layout is complete.
    */
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return
+    if (!isValid || !enabled || typeof window === 'undefined') return
 
     const savedData = sessionStorage.getItem(`scroll_${key}`)
     if (!savedData) return
@@ -139,7 +130,7 @@ export function useScrollRestoration({
       sessionStorage.removeItem(`scroll_${key}`)
       console.warn('[useScrollRestoration] Failed to restore scroll position:', error)
     }
-  }, [key, enabled])
+  }, [key, enabled, isValid])
 
   return { saveScrollPosition }
 }
