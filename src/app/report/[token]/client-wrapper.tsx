@@ -41,7 +41,9 @@ export function ReportClientWrapper({ children }: ReportClientWrapperProps) {
      * Event delegation handler - captures clicks on trigger card links.
      * Uses narrow scope (container) instead of document for better performance.
      */
-    const handleClick = (e: MouseEvent) => {
+    const handleClick = (e: Event) => {
+      // Only handle mouse clicks
+      if (!(e instanceof MouseEvent)) return
       // Only handle left-click (button 0), ignore right-click and middle-click
       if (e.button !== 0) return
 
