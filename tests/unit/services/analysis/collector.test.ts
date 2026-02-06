@@ -22,8 +22,7 @@ const mockFetchPostInsightsBatch = vi.fn()
 const mockFetchPageInsights = vi.fn()
 
 vi.mock('@/lib/integrations/facebook/client', () => ({
-  getPageMetadata: (pageId: string, token: string) =>
-    mockGetPageMetadata(pageId, token),
+  getPageMetadata: (pageId: string, token: string) => mockGetPageMetadata(pageId, token),
 }))
 
 vi.mock('@/lib/integrations/facebook/feed', () => ({
@@ -62,8 +61,14 @@ describe('collectAnalysisData', () => {
   // Default successful mocks for most tests
   function setupDefaultMocks() {
     const posts = [
-      createMockFacebookPost({ id: 'post_1', created_time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }),
-      createMockFacebookPost({ id: 'post_2', created_time: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() }),
+      createMockFacebookPost({
+        id: 'post_1',
+        created_time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+      createMockFacebookPost({
+        id: 'post_2',
+        created_time: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
     ]
 
     mockGetPageMetadata.mockResolvedValue(createMockPageMetadata())
@@ -108,10 +113,7 @@ describe('collectAnalysisData', () => {
       await collectAnalysisData(PAGE_ID, ACCESS_TOKEN)
 
       // fetchPostInsightsBatch should be called with post IDs
-      expect(mockFetchPostInsightsBatch).toHaveBeenCalledWith(
-        ['post_1', 'post_2'],
-        ACCESS_TOKEN
-      )
+      expect(mockFetchPostInsightsBatch).toHaveBeenCalledWith(['post_1', 'post_2'], ACCESS_TOKEN)
     })
 
     it('calculates daysOfData from oldest post correctly', async () => {
@@ -203,9 +205,7 @@ describe('collectAnalysisData', () => {
 
     it('fails if feed returns 0 posts (no data to analyze)', async () => {
       mockGetPageMetadata.mockResolvedValue(createMockPageMetadata())
-      mockFetchPageFeed.mockResolvedValue(
-        createMockFetchFeedResult([], { totalFetched: 0 })
-      )
+      mockFetchPageFeed.mockResolvedValue(createMockFetchFeedResult([], { totalFetched: 0 }))
       mockFetchPageInsights.mockResolvedValue({
         data: createMockPageInsights(),
         error: null,

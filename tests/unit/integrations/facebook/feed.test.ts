@@ -6,11 +6,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { fetchPageFeed, fetchPostInsights, fetchPostInsightsBatch } from '@/lib/integrations/facebook/feed'
 import {
-  createMockFeedResponse,
-  createMockPostInsightsResponse,
-} from '../../../utils/test-helpers'
+  fetchPageFeed,
+  fetchPostInsights,
+  fetchPostInsightsBatch,
+} from '@/lib/integrations/facebook/feed'
+import { createMockFeedResponse, createMockPostInsightsResponse } from '../../../utils/test-helpers'
 
 // Mock functions - declared outside to avoid hoisting issues
 const mockMakeRequest = vi.fn()
@@ -131,8 +132,12 @@ describe('fetchPageFeed', () => {
 
     it('follows pagination until no next URL', async () => {
       mockMakeRequest
-        .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_1' }], 'https://graph.facebook.com/next1'))
-        .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_2' }], 'https://graph.facebook.com/next2'))
+        .mockResolvedValueOnce(
+          createMockFeedResponse([{ id: 'post_1' }], 'https://graph.facebook.com/next1')
+        )
+        .mockResolvedValueOnce(
+          createMockFeedResponse([{ id: 'post_2' }], 'https://graph.facebook.com/next2')
+        )
         .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_3' }])) // No next URL
 
       const result = await fetchPageFeed('123456789', 'test-token')
@@ -144,9 +149,15 @@ describe('fetchPageFeed', () => {
 
     it('stops at maxPages limit', async () => {
       mockMakeRequest
-        .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_1' }], 'https://graph.facebook.com/next1'))
-        .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_2' }], 'https://graph.facebook.com/next2'))
-        .mockResolvedValueOnce(createMockFeedResponse([{ id: 'post_3' }], 'https://graph.facebook.com/next3'))
+        .mockResolvedValueOnce(
+          createMockFeedResponse([{ id: 'post_1' }], 'https://graph.facebook.com/next1')
+        )
+        .mockResolvedValueOnce(
+          createMockFeedResponse([{ id: 'post_2' }], 'https://graph.facebook.com/next2')
+        )
+        .mockResolvedValueOnce(
+          createMockFeedResponse([{ id: 'post_3' }], 'https://graph.facebook.com/next3')
+        )
 
       const result = await fetchPageFeed('123456789', 'test-token', { maxPages: 2 })
 

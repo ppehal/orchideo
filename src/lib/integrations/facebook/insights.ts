@@ -239,8 +239,7 @@ export async function fetchPageInsights(
             code: 'PERMISSION_DENIED',
             fbErrorCode: error.code,
             message: 'Permission denied to access page insights',
-            userMessageCz:
-              'Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook.',
+            userMessageCz: 'Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook.',
           },
         }
       }
@@ -254,8 +253,7 @@ export async function fetchPageInsights(
             code: 'NOT_SUPPORTED',
             fbErrorCode: 100,
             message: 'Page does not support insights API',
-            userMessageCz:
-              'Tato stránka nepodporuje insights (např. příliš málo sledujících).',
+            userMessageCz: 'Tato stránka nepodporuje insights (např. příliš málo sledujících).',
           },
         }
       }
@@ -269,8 +267,7 @@ export async function fetchPageInsights(
             code: 'RATE_LIMITED',
             fbErrorCode: error.code,
             message: 'Rate limited by Facebook API',
-            userMessageCz:
-              'Facebook API limit překročen. Zkuste to později.',
+            userMessageCz: 'Facebook API limit překročen. Zkuste to později.',
           },
         }
       }

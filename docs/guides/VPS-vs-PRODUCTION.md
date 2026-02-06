@@ -19,18 +19,18 @@ Tento dokument vysvětluje **rozdíly** mezi VPS development a production prost�
 
 ## 📊 Vysokoúrovňový Přehled
 
-| Aspekt | VPS Dev | Production | Důvod Rozdílu |
-|--------|---------|-----------|---------------|
-| **Domain** | `orchideo.ppsys.eu` | `app.orchideo.ppsys.eu` | Separace prostředí |
-| **Docker Compose** | `docker-compose.vps.yml` | `docker-compose.prod.yml` | Odlišná konfigurace |
-| **Env File** | `.env.vps` | `.env.production` | Odlišné secrets |
-| **NODE_ENV** | `development` | `production` | Build optimalizace |
-| **Hot Reload** | ✅ Enabled | ❌ Disabled | Development feature |
-| **Log Level** | `debug` | `info` / `warn` | Debug vs performance |
-| **Storage** | Local (`./storage`) | Cloudflare R2 | Scalability |
-| **Facebook App** | **SAME** | **SAME** | Shared production app |
-| **Database** | Docker local | Docker nebo managed | Dev vs prod reliability |
-| **SSL** | Let's Encrypt (Traefik) | Let's Encrypt (Traefik) | Same cert provider |
+| Aspekt             | VPS Dev                  | Production                | Důvod Rozdílu           |
+| ------------------ | ------------------------ | ------------------------- | ----------------------- |
+| **Domain**         | `orchideo.ppsys.eu`      | `app.orchideo.ppsys.eu`   | Separace prostředí      |
+| **Docker Compose** | `docker-compose.vps.yml` | `docker-compose.prod.yml` | Odlišná konfigurace     |
+| **Env File**       | `.env.vps`               | `.env.production`         | Odlišné secrets         |
+| **NODE_ENV**       | `development`            | `production`              | Build optimalizace      |
+| **Hot Reload**     | ✅ Enabled               | ❌ Disabled               | Development feature     |
+| **Log Level**      | `debug`                  | `info` / `warn`           | Debug vs performance    |
+| **Storage**        | Local (`./storage`)      | Cloudflare R2             | Scalability             |
+| **Facebook App**   | **SAME**                 | **SAME**                  | Shared production app   |
+| **Database**       | Docker local             | Docker nebo managed       | Dev vs prod reliability |
+| **SSL**            | Let's Encrypt (Traefik)  | Let's Encrypt (Traefik)   | Same cert provider      |
 
 ---
 
@@ -40,16 +40,16 @@ Tento dokument vysvětluje **rozdíly** mezi VPS development a production prost�
 
 Tyto hodnoty **NESMÍ** být stejné mezi VPS dev a production:
 
-| Variable | VPS Dev Value | Production Value | Důvod |
-|----------|---------------|------------------|-------|
-| `NODE_ENV` | `development` | `production` | Build optimalizace, error handling |
-| `NEXT_PUBLIC_ENV` | `development` | `production` | Frontend environment detection |
-| `NEXTAUTH_SECRET` | `ePRrbkb...AdLw=` (dev) | `<UNIQUE>` (prod) | Bezpečnostní separace sessions |
-| `POSTGRES_PASSWORD` | `5aedc92...59fad` (dev) | `<UNIQUE>` (prod) | Database security |
-| `LOG_LEVEL` | `debug` | `info` nebo `warn` | Performance vs troubleshooting |
-| `STORAGE_TYPE` | `local` | `r2` | Development vs production storage |
-| `NEXTAUTH_URL` | `https://orchideo.ppsys.eu` | `https://app.orchideo.ppsys.eu` | Odlišná subdoména |
-| `NEXT_PUBLIC_APP_URL` | `https://orchideo.ppsys.eu` | `https://app.orchideo.ppsys.eu` | Odlišná subdoména |
+| Variable              | VPS Dev Value               | Production Value                | Důvod                              |
+| --------------------- | --------------------------- | ------------------------------- | ---------------------------------- |
+| `NODE_ENV`            | `development`               | `production`                    | Build optimalizace, error handling |
+| `NEXT_PUBLIC_ENV`     | `development`               | `production`                    | Frontend environment detection     |
+| `NEXTAUTH_SECRET`     | `ePRrbkb...AdLw=` (dev)     | `<UNIQUE>` (prod)               | Bezpečnostní separace sessions     |
+| `POSTGRES_PASSWORD`   | `5aedc92...59fad` (dev)     | `<UNIQUE>` (prod)               | Database security                  |
+| `LOG_LEVEL`           | `debug`                     | `info` nebo `warn`              | Performance vs troubleshooting     |
+| `STORAGE_TYPE`        | `local`                     | `r2`                            | Development vs production storage  |
+| `NEXTAUTH_URL`        | `https://orchideo.ppsys.eu` | `https://app.orchideo.ppsys.eu` | Odlišná subdoména                  |
+| `NEXT_PUBLIC_APP_URL` | `https://orchideo.ppsys.eu` | `https://app.orchideo.ppsys.eu` | Odlišná subdoména                  |
 
 **⚠️ Kritické:**
 
@@ -63,19 +63,19 @@ Tyto hodnoty **NESMÍ** být stejné mezi VPS dev a production:
 
 Tyto hodnoty **MUSÍ** být identické mezi VPS dev a production:
 
-| Variable | Shared Value | Důvod |
-|----------|--------------|-------|
-| `FACEBOOK_APP_ID` | `1605455470467424` | Stejná FB app pro dev i prod |
-| `FACEBOOK_APP_SECRET` | `9651f82b...e6e1ee0` | Stejná FB app credentials |
-| `FACEBOOK_CONFIG_ID` | `655031237668794` | Stejná FB config |
-| `ENCRYPTION_KEY` | `9NV0ifa...ApkkJk=` | **KRITICKÉ** - šifrované FB tokeny v DB |
-| `POSTMARK_API_TOKEN` | `c82f254...9172c9` | Stejný email provider |
-| `POSTMARK_FROM_EMAIL` | `noreply@invix.cz` | Stejný sender email |
-| `MAX_FEED_POSTS` | `300` | Konzistentní business logic |
-| `MAX_FEED_PAGES` | `5` | Konzistentní business logic |
-| `FEED_TIMEOUT_MS` | `10000` | Konzistentní timeouts |
-| `ANALYSIS_TIMEOUT_MS` | `60000` | Konzistentní timeouts |
-| `REPORT_EXPIRATION_DAYS` | `30` | Konzistentní business rules |
+| Variable                 | Shared Value         | Důvod                                   |
+| ------------------------ | -------------------- | --------------------------------------- |
+| `FACEBOOK_APP_ID`        | `1605455470467424`   | Stejná FB app pro dev i prod            |
+| `FACEBOOK_APP_SECRET`    | `9651f82b...e6e1ee0` | Stejná FB app credentials               |
+| `FACEBOOK_CONFIG_ID`     | `655031237668794`    | Stejná FB config                        |
+| `ENCRYPTION_KEY`         | `9NV0ifa...ApkkJk=`  | **KRITICKÉ** - šifrované FB tokeny v DB |
+| `POSTMARK_API_TOKEN`     | `c82f254...9172c9`   | Stejný email provider                   |
+| `POSTMARK_FROM_EMAIL`    | `noreply@invix.cz`   | Stejný sender email                     |
+| `MAX_FEED_POSTS`         | `300`                | Konzistentní business logic             |
+| `MAX_FEED_PAGES`         | `5`                  | Konzistentní business logic             |
+| `FEED_TIMEOUT_MS`        | `10000`              | Konzistentní timeouts                   |
+| `ANALYSIS_TIMEOUT_MS`    | `60000`              | Konzistentní timeouts                   |
+| `REPORT_EXPIRATION_DAYS` | `30`                 | Konzistentní business rules             |
 
 **🚨 KRITICKÉ - ENCRYPTION_KEY:**
 
@@ -96,11 +96,11 @@ Nikdy neměňte ENCRYPTION_KEY po prvním deploymenty!
 
 Tyto hodnoty mohou být odlišné podle potřeby:
 
-| Variable | VPS Dev | Production | Poznámka |
-|----------|---------|-----------|----------|
-| `R2_*` | N/A (local storage) | Configured | R2 jen pro production |
-| `SENTRY_DSN` | N/A | Configured | Error tracking jen pro prod |
-| `GOOGLE_CLIENT_ID/SECRET` | Test app | Prod app | Pokud implementováno |
+| Variable                  | VPS Dev             | Production | Poznámka                    |
+| ------------------------- | ------------------- | ---------- | --------------------------- |
+| `R2_*`                    | N/A (local storage) | Configured | R2 jen pro production       |
+| `SENTRY_DSN`              | N/A                 | Configured | Error tracking jen pro prod |
+| `GOOGLE_CLIENT_ID/SECRET` | Test app            | Prod app   | Pokud implementováno        |
 
 ---
 
@@ -113,12 +113,12 @@ Tyto hodnoty mohou být odlišné podle potřeby:
 services:
   app:
     container_name: orchideo-app
-    command: npm run dev  # Hot reload
+    command: npm run dev # Hot reload
     ports:
       - (none - Traefik proxy)
     volumes:
-      - ./:/app:cached  # Source code mount
-      - /app/node_modules  # Exclude
+      - ./:/app:cached # Source code mount
+      - /app/node_modules # Exclude
     environment:
       - NODE_ENV=development
     labels:
@@ -133,6 +133,7 @@ services:
 ```
 
 **Charakteristiky:**
+
 - ✅ Hot reload enabled (npm run dev)
 - ✅ Source code mounted (./:/app)
 - ✅ Debug logging
@@ -148,11 +149,11 @@ services:
   app:
     container_name: orchideo-app-prod
     build:
-      dockerfile: Dockerfile  # Production build
+      dockerfile: Dockerfile # Production build
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
-      - ./storage:/app/storage  # Only storage
+      - ./storage:/app/storage # Only storage
     environment:
       - NODE_ENV=production
     labels:
@@ -169,6 +170,7 @@ services:
 ```
 
 **Charakteristiky:**
+
 - ✅ Production build (optimized)
 - ✅ No source code mount
 - ✅ Health checks enabled
@@ -197,6 +199,7 @@ postgres:
 ```
 
 **Přístup:**
+
 ```bash
 # Database URL
 DATABASE_URL="postgresql://orchideo:PASSWORD@postgres:5432/orchideo"
@@ -206,6 +209,7 @@ docker exec -it orchideo-postgres psql -U orchideo -d orchideo
 ```
 
 **Backup:**
+
 - Manuální: `docker exec orchideo-postgres pg_dump ...`
 - Retention: 7-14 dní
 
@@ -221,6 +225,7 @@ DATABASE_URL="postgresql://user:pass@host.region.provider.com:5432/orchideo?sslm
 ```
 
 **Výhody Managed DB:**
+
 - ✅ Automatické backupy (point-in-time recovery)
 - ✅ High availability
 - ✅ Automatic failover
@@ -228,6 +233,7 @@ DATABASE_URL="postgresql://user:pass@host.region.provider.com:5432/orchideo?sslm
 - ✅ Easy scaling
 
 **Backup:**
+
 - Automatický: Provider-managed
 - Retention: 30+ dní
 - Point-in-time recovery: 7 dní
@@ -244,6 +250,7 @@ STORAGE_LOCAL_PATH=./storage
 ```
 
 **Directory:**
+
 ```
 /home/app/projects/orchideo/storage/
 ├── reports/
@@ -252,6 +259,7 @@ STORAGE_LOCAL_PATH=./storage
 ```
 
 **Charakteristiky:**
+
 - ✅ Jednoduché
 - ✅ Rychlé pro development
 - ✅ Žádné additional costs
@@ -272,6 +280,7 @@ R2_PUBLIC_URL=https://cdn.orchideo.ppsys.eu
 ```
 
 **Charakteristiky:**
+
 - ✅ Scalable
 - ✅ CDN enabled
 - ✅ Geograficky distribuované
@@ -287,6 +296,7 @@ R2_PUBLIC_URL=https://cdn.orchideo.ppsys.eu
 ### VPS Development
 
 **Git workflow:**
+
 ```bash
 git checkout stage
 git pull origin stage
@@ -294,6 +304,7 @@ git pull origin stage
 ```
 
 **Manual restart:**
+
 ```bash
 cd /home/app/projects/orchideo
 docker compose --env-file .env.vps -f docker-compose.vps.yml restart app
@@ -304,6 +315,7 @@ docker compose --env-file .env.vps -f docker-compose.vps.yml restart app
 ### Production
 
 **Git workflow:**
+
 ```bash
 git checkout main
 git pull origin main
@@ -314,6 +326,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 **Deployment frequency:** Scheduled releases (weekly/biweekly)
 
 **Release process:**
+
 1. Merge `stage` → `main`
 2. Tag release: `git tag v1.2.3`
 3. Build Docker image
@@ -329,11 +342,13 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ### VPS Development
 
 **Logging:**
+
 ```env
 LOG_LEVEL=debug
 ```
 
 **Output:**
+
 ```json
 {
   "level": 20,
@@ -345,6 +360,7 @@ LOG_LEVEL=debug
 ```
 
 **Monitoring:**
+
 - Manual log checking: `docker logs orchideo-app -f`
 - No automated alerts
 - No metrics aggregation
@@ -352,11 +368,13 @@ LOG_LEVEL=debug
 ### Production
 
 **Logging:**
+
 ```env
 LOG_LEVEL=info
 ```
 
 **Output:**
+
 ```json
 {
   "level": 30,
@@ -369,6 +387,7 @@ LOG_LEVEL=info
 ```
 
 **Monitoring:**
+
 - Automated log aggregation (optional: Loki, CloudWatch)
 - Error tracking: Sentry
 - Metrics: Prometheus + Grafana
@@ -382,6 +401,7 @@ LOG_LEVEL=info
 ### VPS Development
 
 **Security Posture:**
+
 - ⚠️ `X-Robots-Tag: noindex, nofollow` (prevent search indexing)
 - ⚠️ Development secrets (less critical)
 - ⚠️ Shared server with other dev projects
@@ -389,6 +409,7 @@ LOG_LEVEL=info
 - ✅ Security headers (HSTS, X-Frame-Options)
 
 **Access Control:**
+
 - SSH access: Development team
 - Database access: Docker container + admins
 - Facebook App: Development Mode (<100 users)
@@ -396,6 +417,7 @@ LOG_LEVEL=info
 ### Production
 
 **Security Posture:**
+
 - ✅ Production secrets (high security)
 - ✅ Dedicated server/resources
 - ✅ HTTPS enforced
@@ -404,6 +426,7 @@ LOG_LEVEL=info
 - ✅ WAF (optional)
 
 **Access Control:**
+
 - SSH access: Limited (ops team only)
 - Database access: Limited (read-only replicas)
 - Facebook App: Live Mode (public access)
@@ -415,6 +438,7 @@ LOG_LEVEL=info
 ### VPS Development
 
 **Files:**
+
 ```
 /home/app/projects/orchideo/
 ├── .env.vps                      # Environment variables
@@ -424,11 +448,12 @@ LOG_LEVEL=info
 ```
 
 **Key Config:**
+
 ```yaml
 # docker-compose.vps.yml
 command: npm run dev
 volumes:
-  - ./:/app:cached  # Source mount
+  - ./:/app:cached # Source mount
 environment:
   - NODE_ENV=development
 labels:
@@ -438,6 +463,7 @@ labels:
 ### Production
 
 **Files:**
+
 ```
 /opt/orchideo/
 ├── .env.production               # Environment variables
@@ -447,12 +473,13 @@ labels:
 ```
 
 **Key Config:**
+
 ```yaml
 # docker-compose.prod.yml
 build:
   dockerfile: Dockerfile
 volumes:
-  - ./storage:/app/storage  # Only storage mount
+  - ./storage:/app/storage # Only storage mount
 environment:
   - NODE_ENV=production
 labels:
@@ -475,6 +502,7 @@ ENCRYPTION_KEY="9NV0ifaDaw1ZobhavkvXDXE7t4MnOp7/gdAUzApkkJk="
 ```
 
 **Důvod:**
+
 - Facebook `page_access_token` jsou šifrované
 - Dev i prod musí používat stejný klíč pro dešifrování
 - Změna klíče = invaliduje všechny tokeny
@@ -482,11 +510,13 @@ ENCRYPTION_KEY="9NV0ifaDaw1ZobhavkvXDXE7t4MnOp7/gdAUzApkkJk="
 ### Separate Database Scenario
 
 **VPS Dev:**
+
 ```env
 DATABASE_URL="postgresql://orchideo:DEV_PASS@postgres:5432/orchideo"
 ```
 
 **Production:**
+
 ```env
 DATABASE_URL="postgresql://orchideo:PROD_PASS@prod-db.amazonaws.com:5432/orchideo"
 ```
@@ -529,21 +559,21 @@ pg_dump -h prod-db.amazonaws.com -U orchideo orchideo | \
 
 ## 📊 Quick Reference Table
 
-| Feature | VPS Dev | Production |
-|---------|---------|-----------|
-| **Domain** | orchideo.ppsys.eu | app.orchideo.ppsys.eu |
-| **NODE_ENV** | development | production |
-| **Hot Reload** | ✅ Yes | ❌ No |
-| **Source Mount** | ✅ Yes | ❌ No |
-| **Log Level** | debug | info/warn |
-| **Storage** | local | R2 |
-| **Database** | Docker local | Managed DB |
-| **Health Checks** | ❌ Optional | ✅ Required |
-| **Monitoring** | Manual | Automated |
-| **Backups** | Manual | Automated |
-| **X-Robots** | noindex | (none) |
-| **Facebook App** | **SAME** | **SAME** |
-| **ENCRYPTION_KEY** | **SAME** | **SAME** |
+| Feature            | VPS Dev           | Production            |
+| ------------------ | ----------------- | --------------------- |
+| **Domain**         | orchideo.ppsys.eu | app.orchideo.ppsys.eu |
+| **NODE_ENV**       | development       | production            |
+| **Hot Reload**     | ✅ Yes            | ❌ No                 |
+| **Source Mount**   | ✅ Yes            | ❌ No                 |
+| **Log Level**      | debug             | info/warn             |
+| **Storage**        | local             | R2                    |
+| **Database**       | Docker local      | Managed DB            |
+| **Health Checks**  | ❌ Optional       | ✅ Required           |
+| **Monitoring**     | Manual            | Automated             |
+| **Backups**        | Manual            | Automated             |
+| **X-Robots**       | noindex           | (none)                |
+| **Facebook App**   | **SAME**          | **SAME**              |
+| **ENCRYPTION_KEY** | **SAME**          | **SAME**              |
 
 ---
 

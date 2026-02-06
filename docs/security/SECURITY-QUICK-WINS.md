@@ -11,6 +11,7 @@
 Tento dokument obsahuje **nejrychlejší bezpečnostní opravy**, které můžete implementovat **během 1 hodiny** a odstranit tím všechny **kritické vulnerabilities**.
 
 **Co získáte:**
+
 - ✅ Eliminace Account Takeover rizika
 - ✅ Základní security headers (XSS, Clickjacking protection)
 - ✅ Kratší session lifetime v production
@@ -118,10 +119,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), payment=()'
-  )
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
   response.headers.set('X-XSS-Protection', '1; mode=block')
 
   // HTTPS only in production
@@ -140,7 +138,7 @@ export function middleware(request: NextRequest) {
     "img-src 'self' data: https://platform-lookaside.fbsbx.com https://*.fbcdn.net",
     "font-src 'self' data:",
     "connect-src 'self' https://graph.facebook.com https://www.facebook.com",
-    "frame-src https://www.facebook.com",
+    'frame-src https://www.facebook.com',
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -152,9 +150,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
 ```
 

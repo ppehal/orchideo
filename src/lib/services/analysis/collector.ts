@@ -203,7 +203,10 @@ export async function collectAnalysisData(
           'Post insights enrichment completed'
         )
       } catch (error) {
-        log.warn({ pageId, error }, 'Post insights enrichment failed, continuing with unenriched posts')
+        log.warn(
+          { pageId, error },
+          'Post insights enrichment failed, continuing with unenriched posts'
+        )
         errors.push({
           component: 'postInsights',
           message: error instanceof Error ? error.message : 'Failed to enrich posts with insights',

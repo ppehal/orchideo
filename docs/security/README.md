@@ -6,11 +6,11 @@
 
 ## 📚 Documentation Index
 
-| Document | Purpose | For |
-|----------|---------|-----|
-| **[SECURITY-AUDIT-REPORT.md](./SECURITY-AUDIT-REPORT.md)** | Detailní bezpečnostní audit | CTO, Security Team |
-| **[SECURITY-IMPLEMENTATION-PLAN.md](./SECURITY-IMPLEMENTATION-PLAN.md)** | Implementační plán s kódem | Developers |
-| **[SECURITY-QUICK-WINS.md](./SECURITY-QUICK-WINS.md)** | Quick fixes (< 1 hodina) | Developers |
+| Document                                                                 | Purpose                     | For                |
+| ------------------------------------------------------------------------ | --------------------------- | ------------------ |
+| **[SECURITY-AUDIT-REPORT.md](./SECURITY-AUDIT-REPORT.md)**               | Detailní bezpečnostní audit | CTO, Security Team |
+| **[SECURITY-IMPLEMENTATION-PLAN.md](./SECURITY-IMPLEMENTATION-PLAN.md)** | Implementační plán s kódem  | Developers         |
+| **[SECURITY-QUICK-WINS.md](./SECURITY-QUICK-WINS.md)**                   | Quick fixes (< 1 hodina)    | Developers         |
 
 ---
 
@@ -42,13 +42,13 @@
 
 ## 📊 Summary
 
-| Severity | Count | Estimated Effort |
-|----------|-------|------------------|
-| 🔴 Critical | 3 | 2 hodiny |
-| 🟠 High | 5 | 5 hodin |
-| 🟡 Medium | 6 | 6 hodin |
-| 🔵 Low | 3 | 2 hodiny |
-| **Total** | **17** | **~15 hodin** |
+| Severity    | Count  | Estimated Effort |
+| ----------- | ------ | ---------------- |
+| 🔴 Critical | 3      | 2 hodiny         |
+| 🟠 High     | 5      | 5 hodin          |
+| 🟡 Medium   | 6      | 6 hodin          |
+| 🔵 Low      | 3      | 2 hodiny         |
+| **Total**   | **17** | **~15 hodin**    |
 
 ---
 

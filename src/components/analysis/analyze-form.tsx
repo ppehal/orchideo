@@ -13,10 +13,7 @@ import { useFbPages, type FacebookPageItem } from '@/hooks/use-fb-pages'
 import { getIndustryFromFbCategory, type IndustryCode } from '@/lib/constants/fb-category-map'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import {
-  createAnalysisFormAction,
-  type CreateAnalysisFormState,
-} from '@/lib/actions/analysis-form'
+import { createAnalysisFormAction, type CreateAnalysisFormState } from '@/lib/actions/analysis-form'
 
 interface AnalyzeFormProps {
   hasFacebookAccount: boolean
@@ -118,38 +115,38 @@ export function AnalyzeForm({ hasFacebookAccount, onConnectFacebook }: AnalyzeFo
           </CardContent>
         </Card>
 
-      {selectedPage && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Nastavení analýzy</CardTitle>
-            <CardDescription>Vyberte obor pro porovnání s oborovým benchmarkem</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-muted/30 flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
-              <div className="flex-1">
-                <p className="font-medium">{selectedPage.name}</p>
-                {selectedPage.category && (
-                  <p className="text-muted-foreground text-sm">{selectedPage.category}</p>
-                )}
+        {selectedPage && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nastavení analýzy</CardTitle>
+              <CardDescription>Vyberte obor pro porovnání s oborovým benchmarkem</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-muted/30 flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
+                <div className="flex-1">
+                  <p className="font-medium">{selectedPage.name}</p>
+                  {selectedPage.category && (
+                    <p className="text-muted-foreground text-sm">{selectedPage.category}</p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <IndustrySelector
-              key={selectedPage?.id}
-              value={selectedIndustry}
-              onChange={setSelectedIndustry}
-              suggestedIndustry={suggestedIndustry}
-              fbCategory={selectedPage?.category}
-              disabled={isPending}
-            />
+              <IndustrySelector
+                key={selectedPage?.id}
+                value={selectedIndustry}
+                onChange={setSelectedIndustry}
+                suggestedIndustry={suggestedIndustry}
+                fbCategory={selectedPage?.category}
+                disabled={isPending}
+              />
 
-            {/* Button moved to sticky action bar */}
-          </CardContent>
-        </Card>
-      )}
+              {/* Button moved to sticky action bar */}
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Category Mapping Reference - Separate informational card */}
-      <CategoryMappingInfo />
+        {/* Category Mapping Reference - Separate informational card */}
+        <CategoryMappingInfo />
       </div>
 
       {/* Sticky action bar with Server Action */}

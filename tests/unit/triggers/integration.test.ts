@@ -214,7 +214,14 @@ describe('Trigger Engine Integration Tests', () => {
     })
 
     it('handles concurrent category evaluations', async () => {
-      const categories = ['BASIC', 'CONTENT', 'TECHNICAL', 'TIMING', 'SHARING', 'PAGE_SETTINGS'] as const
+      const categories = [
+        'BASIC',
+        'CONTENT',
+        'TECHNICAL',
+        'TIMING',
+        'SHARING',
+        'PAGE_SETTINGS',
+      ] as const
 
       const promises = categories.map((category) =>
         Promise.resolve(evaluateCategory(sampleTriggerInput, category))

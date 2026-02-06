@@ -48,14 +48,14 @@ export function ThresholdVisualizationCard({ position }: { position: ThresholdPo
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuetext={`${position.value} bodů`}
-            className="relative h-8 w-full min-w-[280px] rounded-lg overflow-hidden bg-muted"
+            className="bg-muted relative h-8 w-full min-w-[280px] overflow-hidden rounded-lg"
           >
             {position.ranges.map((range) => (
               <div
                 key={range.status}
                 aria-label={`${range.label}: ${range.min}-${range.max} bodů`}
                 className={cn(
-                  'absolute h-full flex items-center px-2',
+                  'absolute flex h-full items-center px-2',
                   range.status === 'CRITICAL' && 'bg-red-500/30 dark:bg-red-900/30',
                   range.status === 'NEEDS_IMPROVEMENT' && 'bg-amber-500/30 dark:bg-amber-900/30',
                   range.status === 'GOOD' && 'bg-blue-500/30 dark:bg-blue-900/30',
@@ -66,7 +66,7 @@ export function ThresholdVisualizationCard({ position }: { position: ThresholdPo
                   width: `${range.max - range.min}%`,
                 }}
               >
-                <span className="text-[10px] sm:text-xs font-medium text-foreground/70">
+                <span className="text-foreground/70 text-[10px] font-medium sm:text-xs">
                   {range.label}
                 </span>
               </div>
@@ -74,7 +74,7 @@ export function ThresholdVisualizationCard({ position }: { position: ThresholdPo
 
             {/* Current value marker */}
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-primary z-10"
+              className="bg-primary absolute top-0 bottom-0 z-10 w-0.5"
               style={{ left: `${clampedValue}%` }}
             >
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -84,12 +84,12 @@ export function ThresholdVisualizationCard({ position }: { position: ThresholdPo
           </div>
 
           {/* Legend */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
             {position.ranges.map((range) => (
               <div key={range.status} className="flex items-center gap-2">
                 <div
                   className={cn(
-                    'w-3 h-3 rounded flex-shrink-0',
+                    'h-3 w-3 flex-shrink-0 rounded',
                     range.status === 'CRITICAL' && 'bg-red-500/30',
                     range.status === 'NEEDS_IMPROVEMENT' && 'bg-amber-500/30',
                     range.status === 'GOOD' && 'bg-blue-500/30',

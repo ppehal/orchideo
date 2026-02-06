@@ -25,6 +25,7 @@ const log = createLogger('my-module-name')
 ```
 
 **Naming convention pro logger name:**
+
 - API routes: `'api-resource-name'` (např. `'api-analysis-create'`)
 - Services: `'service-name'` (např. `'analysis-runner'`)
 - Lib utilities: `'lib-name'` (např. `'email'`)
@@ -85,6 +86,7 @@ log.error({ error: String(error) }, 'Operation failed')
 ### Proč logError()?
 
 `logError()` správně serializuje Error objekty pro Pino logger:
+
 - **Plný stack trace** - pro debugging
 - **Error message** - lidsky čitelná zpráva
 - **Error name** - typ chyby (Error, TypeError, ValidationError, ...)
@@ -119,7 +121,6 @@ export async function POST(request: Request) {
     log.info('Processing request') // automaticky obsahuje request_id, ip_address, user_agent, path
 
     // ... business logic ...
-
   } catch (error) {
     logError(log, error, 'Request failed') // error log obsahuje request_id
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
@@ -128,6 +129,7 @@ export async function POST(request: Request) {
 ```
 
 **Request context obsahuje:**
+
 - `request_id` - unikátní ID požadavku
 - `user_agent` - browser/client info
 - `ip_address` - IP adresa klienta
@@ -178,9 +180,9 @@ logError(log, error, 'Failed to update user', {
 
 // ❌ ŠPATNĚ - nekonsistentní názvy
 logError(log, error, 'Failed to update user', {
-  user_id: userId,        // někde user_id
-  userId: userId,         // někde userId
-  id: userId,             // někde id
+  user_id: userId, // někde user_id
+  userId: userId, // někde userId
+  id: userId, // někde id
 })
 ```
 
@@ -188,30 +190,30 @@ logError(log, error, 'Failed to update user', {
 
 ```typescript
 // User context
-LogFields.userId       // 'user_id'
-LogFields.userEmail    // 'user_email'
-LogFields.userName     // 'user_name'
+LogFields.userId // 'user_id'
+LogFields.userEmail // 'user_email'
+LogFields.userName // 'user_name'
 
 // Analysis context
-LogFields.analysisId   // 'analysis_id'
+LogFields.analysisId // 'analysis_id'
 LogFields.analysisStatus // 'analysis_status'
 
 // Facebook context
-LogFields.fbPageId     // 'fb_page_id'
-LogFields.fbPageName   // 'fb_page_name'
+LogFields.fbPageId // 'fb_page_id'
+LogFields.fbPageName // 'fb_page_name'
 
 // Request context
-LogFields.requestId    // 'request_id'
-LogFields.ipAddress    // 'ip_address'
-LogFields.userAgent    // 'user_agent'
+LogFields.requestId // 'request_id'
+LogFields.ipAddress // 'ip_address'
+LogFields.userAgent // 'user_agent'
 
 // Performance
-LogFields.durationMs   // 'duration_ms'
+LogFields.durationMs // 'duration_ms'
 LogFields.responseSize // 'response_size'
 
 // Error context
-LogFields.errorCode    // 'error_code'
-LogFields.errorType    // 'error_type'
+LogFields.errorCode // 'error_code'
+LogFields.errorType // 'error_type'
 ```
 
 ### Vlastní pole (mimo LogFields)
@@ -220,9 +222,9 @@ Pro vlastní pole používej **snake_case**:
 
 ```typescript
 logError(log, error, 'Comparison failed', {
-  group_id: groupId,           // ✅ snake_case
-  primary_page_id: pageId,     // ✅ snake_case
-  competitor_count: count,     // ✅ snake_case
+  group_id: groupId, // ✅ snake_case
+  primary_page_id: pageId, // ✅ snake_case
+  competitor_count: count, // ✅ snake_case
 })
 ```
 
@@ -243,16 +245,15 @@ export async function POST(request: Request, { params }: Props) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    userId = session.user.id  // ✅ Zachyť pro error handling
+    userId = session.user.id // ✅ Zachyť pro error handling
     const { id } = await params
-    groupId = id               // ✅ Zachyť pro error handling
+    groupId = id // ✅ Zachyť pro error handling
 
     // ... business logic ...
-
   } catch (error) {
     logError(log, error, 'Failed to process request', {
-      [LogFields.userId]: userId,    // Dostupné v catch bloku
-      group_id: groupId,              // Dostupné v catch bloku
+      [LogFields.userId]: userId, // Dostupné v catch bloku
+      group_id: groupId, // Dostupné v catch bloku
     })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
@@ -295,11 +296,13 @@ try {
   const result = await slowOperation()
 
   const elapsedMs = Date.now() - startTime
-  log.info({
-    [LogFields.durationMs]: elapsedMs,
-    result_count: result.length,
-  }, 'Operation completed')
-
+  log.info(
+    {
+      [LogFields.durationMs]: elapsedMs,
+      result_count: result.length,
+    },
+    'Operation completed'
+  )
 } catch (error) {
   const elapsedMs = Date.now() - startTime
   logError(log, error, 'Operation failed', {
@@ -367,8 +370,8 @@ logError(log, error, 'Failed to process request')
 ```typescript
 // ❌ ŠPATNĚ - logování celých objektů
 logError(log, error, 'Failed to update', {
-  user: user,           // Celý user objekt (PII risk!)
-  request: request,     // Celý request (obrovské)
+  user: user, // Celý user objekt (PII risk!)
+  request: request, // Celý request (obrovské)
 })
 
 // ✅ SPRÁVNĚ - jen relevantní ID
@@ -396,11 +399,12 @@ logError(log, error, 'Operation failed')
 ### Prázdné error objekty v logách
 
 **Problém:**
+
 ```json
 {
   "level": "error",
   "msg": "Operation failed",
-  "error": {}  // ❌ Prázdný objekt
+  "error": {} // ❌ Prázdný objekt
 }
 ```
 
@@ -436,6 +440,7 @@ export async function POST(request: Request) {
 
 **Problém:**
 V různých částech kódu:
+
 - `user_id`, `userId`, `uid`, `id`
 
 **Řešení:**
@@ -445,7 +450,7 @@ Používej `LogFields` konstanty:
 import { LogFields } from '@/lib/logging'
 
 logError(log, error, 'Failed', {
-  [LogFields.userId]: userId,  // Vždy 'user_id'
+  [LogFields.userId]: userId, // Vždy 'user_id'
 })
 ```
 
@@ -478,22 +483,21 @@ export async function POST(request: Request) {
     const body = await request.json()
     const result = await createAnalysis(body.pageId)
 
-    log.info({
-      [LogFields.userId]: userId,
-      [LogFields.analysisId]: result.id,
-    }, 'Analysis created')
+    log.info(
+      {
+        [LogFields.userId]: userId,
+        [LogFields.analysisId]: result.id,
+      },
+      'Analysis created'
+    )
 
     return NextResponse.json(result)
-
   } catch (error) {
     logError(log, error, 'Failed to create analysis', {
       [LogFields.userId]: userId,
     })
 
-    return NextResponse.json(
-      { error: 'Internal error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
 ```
@@ -525,7 +529,6 @@ export async function runAnalysis(
     log.info({ [LogFields.durationMs]: elapsedMs }, 'Analysis completed')
 
     return { success: true, analysisId }
-
   } catch (error) {
     const elapsedMs = Date.now() - startTime
     logError(log, error, 'Analysis failed', {
@@ -585,6 +588,7 @@ LOG_LEVEL=info
 ```
 
 Podporované úrovně (od nejvíce verbose):
+
 - `trace` - velmi detailní debugging
 - `debug` - debugging informace
 - `info` - běžné provozní informace (výchozí)

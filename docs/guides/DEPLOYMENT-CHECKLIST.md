@@ -99,26 +99,31 @@
 ### Database Setup
 
 - [ ] Start PostgreSQL kontejneru:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml up -d postgres
   ```
 
 - [ ] Verify PostgreSQL je healthy:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml ps
   ```
 
 - [ ] Test database connection:
+
   ```bash
   docker exec orchideo-postgres-prod psql -U orchideo -d orchideo -c "SELECT 1;"
   ```
 
 - [ ] Deploy Prisma migrations:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npx prisma migrate deploy
   ```
 
 - [ ] Generate Prisma client:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run db:generate
   ```
@@ -131,17 +136,20 @@
 ### Application Deployment
 
 - [ ] Start application kontejneru:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml up -d app
   ```
 
 - [ ] Verify containers are running:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml ps
   # Expected: All "Up (healthy)"
   ```
 
 - [ ] Check application logs:
+
   ```bash
   docker compose --env-file .env.production -f docker-compose.prod.yml logs -f app
   # Expected: "✓ Ready in XXXXms"
@@ -166,12 +174,14 @@
 ### Health Checks
 
 - [ ] Health endpoint OK:
+
   ```bash
   curl https://app.orchideo.ppsys.eu/api/health
   # Expected: {"status":"healthy"}
   ```
 
 - [ ] Homepage loads:
+
   ```bash
   curl -I https://app.orchideo.ppsys.eu
   # Expected: HTTP/2 200
@@ -200,6 +210,7 @@
 - [ ] Page load time < 3s (initial load)
 - [ ] API response time < 500ms (health endpoint)
 - [ ] Memory usage reasonable:
+
   ```bash
   docker stats orchideo-app-prod --no-stream
   # Expected: < 1 GB
@@ -215,6 +226,7 @@
 
 - [ ] HTTPS enforced (HTTP redirects to HTTPS)
 - [ ] Security headers present:
+
   ```bash
   curl -I https://app.orchideo.ppsys.eu | grep -E "Strict-Transport-Security|X-Frame-Options|X-Content-Type-Options"
   ```
@@ -230,12 +242,13 @@
 
 - [ ] Log aggregation nakonfigurován (optional)
 - [ ] Log rotation nastaven:
+
   ```yaml
   logging:
     driver: json-file
     options:
-      max-size: "10m"
-      max-file: "3"
+      max-size: '10m'
+      max-file: '3'
   ```
 
 - [ ] Log level: `info` nebo `warn` pro production
@@ -245,6 +258,7 @@
 - [ ] Database backup script vytvořen: `/opt/orchideo/backup-db.sh`
 - [ ] Crontab nakonfigurován: `crontab -l`
 - [ ] Test backup:
+
   ```bash
   /opt/orchideo/backup-db.sh
   ls -lh /opt/orchideo/backups/

@@ -126,6 +126,7 @@ if (!insights28d) {
 ```
 
 **Available error messages:**
+
 - `PERMISSION_DENIED`: "Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook."
 - `NOT_SUPPORTED`: "Tato stránka nepodporuje insights (např. příliš málo sledujících)."
 - `RATE_LIMITED`: "Facebook API limit překročen. Zkuste to později."

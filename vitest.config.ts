@@ -14,12 +14,7 @@ export default defineConfig({
         'src/lib/integrations/facebook/**/*.ts',
         'src/lib/services/analysis/**/*.ts',
       ],
-      exclude: [
-        'src/lib/triggers/**/index.ts',
-        '**/*.d.ts',
-        '**/types.ts',
-        '**/index.ts',
-      ],
+      exclude: ['src/lib/triggers/**/index.ts', '**/*.d.ts', '**/types.ts', '**/index.ts'],
     },
   },
   resolve: {

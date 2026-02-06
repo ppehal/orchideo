@@ -29,12 +29,8 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
       <CardContent className="space-y-3">
         {/* Header: Type & Date */}
         <div className="flex items-center justify-between gap-2">
-          <Badge variant={getPostTypeBadgeVariant(post.type)}>
-            {formatPostType(post.type)}
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            {formatDate(post.created_time)}
-          </span>
+          <Badge variant={getPostTypeBadgeVariant(post.type)}>{formatPostType(post.type)}</Badge>
+          <span className="text-muted-foreground text-xs">{formatDate(post.created_time)}</span>
         </div>
 
         {/* Message (using line-clamp for truncation) */}
@@ -43,47 +39,38 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
             {post.message}
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground italic">Bez textu</div>
+          <div className="text-muted-foreground text-sm italic">Bez textu</div>
         )}
 
         {/* Engagement Metrics - Responsive Grid */}
         <div className="grid grid-cols-3 gap-3 border-t pt-3">
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
-              <span className="text-xs hidden sm:inline">Reakce</span>
+              <span className="hidden text-xs sm:inline">Reakce</span>
             </div>
-            <span className="text-base sm:text-lg font-semibold">{post.reactions_count}</span>
+            <span className="text-base font-semibold sm:text-lg">{post.reactions_count}</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5" />
-              <span className="text-xs hidden sm:inline">Komentáře</span>
+              <span className="hidden text-xs sm:inline">Komentáře</span>
             </div>
-            <span className="text-base sm:text-lg font-semibold">{post.comments_count}</span>
+            <span className="text-base font-semibold sm:text-lg">{post.comments_count}</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1">
               <Share2 className="h-3.5 w-3.5" />
-              <span className="text-xs hidden sm:inline">Sdílení</span>
+              <span className="hidden text-xs sm:inline">Sdílení</span>
             </div>
-            <span className="text-base sm:text-lg font-semibold">{post.shares_count}</span>
+            <span className="text-base font-semibold sm:text-lg">{post.shares_count}</span>
           </div>
         </div>
 
         {/* External Link */}
         {post.permalink_url && (
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            <a
-              href={post.permalink_url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <a href={post.permalink_url} target="_blank" rel="noopener noreferrer">
               Zobrazit na Facebooku
               <ExternalLink className="ml-2 h-3 w-3" />
             </a>

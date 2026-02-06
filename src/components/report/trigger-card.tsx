@@ -1,7 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { ScoreBadge, type TriggerStatus, getStatusFromScore } from './score-badge'
 import { cn } from '@/lib/utils'
 import { AlertCircle, CheckCircle2, AlertTriangle, XCircle, ChevronRight } from 'lucide-react'
@@ -61,7 +68,7 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
           'cursor-pointer',
           'transition-[box-shadow,border-color] duration-200',
           'hover:border-primary/50 hover:shadow-lg',
-          'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+          'focus-within:ring-primary focus-within:ring-2 focus-within:ring-offset-2',
         ],
         className
       )}
@@ -69,18 +76,14 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', STATUS_ICON_COLORS[status])} />
             <div className="min-w-0">
-              <CardTitle className="text-base font-medium line-clamp-2">
-                {trigger.name}
-              </CardTitle>
-              <CardDescription className="mt-1 line-clamp-2">
-                {trigger.description}
-              </CardDescription>
+              <CardTitle className="line-clamp-2 text-base font-medium">{trigger.name}</CardTitle>
+              <CardDescription className="mt-1 line-clamp-2">{trigger.description}</CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <ScoreBadge score={trigger.score} size="sm" showLabel={false} />
           </div>
         </div>
@@ -143,7 +146,7 @@ export function TriggerCard({ trigger, reportToken, className }: TriggerCardProp
     return (
       <Link
         href={`/report/${reportToken}/trigger/${trigger.id}`}
-        className="block group focus:outline-none rounded-xl"
+        className="group block rounded-xl focus:outline-none"
         aria-label={`Zobrazit detail: ${trigger.name}`}
       >
         {content}

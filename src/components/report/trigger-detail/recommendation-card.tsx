@@ -25,17 +25,17 @@ export function RecommendationCard({ text }: RecommendationCardProps) {
         {/* Left: Assessment */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <ThumbsUp className="h-4 w-4 text-primary" />
-            <h4 className="font-semibold text-sm">Vaše hodnocení</h4>
+            <ThumbsUp className="text-primary h-4 w-4" />
+            <h4 className="text-sm font-semibold">Vaše hodnocení</h4>
           </div>
-          <p className="text-base font-medium leading-relaxed">{assessment}</p>
+          <p className="text-base leading-relaxed font-medium">{assessment}</p>
         </div>
 
         {/* Right: Tips */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-primary" />
-            <h4 className="font-semibold text-sm">Doporučené kroky</h4>
+            <Lightbulb className="text-primary h-4 w-4" />
+            <h4 className="text-sm font-semibold">Doporučené kroky</h4>
           </div>
           <ul className="space-y-2">
             {tips.map((tip, idx) => (

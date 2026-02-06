@@ -22,8 +22,7 @@ export async function GET(request: Request) {
   const userIdToCheck = searchParams.get('userId')
 
   const isCheckingSelf = !userIdToCheck || userIdToCheck === session.user.id
-  const isAdmin =
-    session.user.email && ADMIN_EMAILS.includes(session.user.email)
+  const isAdmin = session.user.email && ADMIN_EMAILS.includes(session.user.email)
 
   if (!isCheckingSelf && !isAdmin) {
     return NextResponse.json(
@@ -68,31 +67,23 @@ export async function GET(request: Request) {
     try {
       grantedPermissions = await getGrantedPermissions(account.access_token)
     } catch (error) {
-      introspectionError =
-        error instanceof Error ? error.message : 'Unknown error'
+      introspectionError = error instanceof Error ? error.message : 'Unknown error'
     }
   }
 
   // Compare with required permissions
-  const requiredPermissions = FB_PERMISSIONS.filter((p) => p.required).map(
-    (p) => p.id
-  )
+  const requiredPermissions = FB_PERMISSIONS.filter((p) => p.required).map((p) => p.id)
   const grantedPermissionIds = grantedPermissions
     .filter((p) => p.status === 'granted')
     .map((p) => p.permission)
 
-  const missingPermissions = requiredPermissions.filter(
-    (id) => !grantedPermissionIds.includes(id)
-  )
+  const missingPermissions = requiredPermissions.filter((id) => !grantedPermissionIds.includes(id))
 
   const diagnosis = {
     hasValidToken: account.access_token !== null,
-    hasAllRequiredPermissions:
-      introspectionError === null && missingPermissions.length === 0,
+    hasAllRequiredPermissions: introspectionError === null && missingPermissions.length === 0,
     missingPermissions,
-    tokenExpired: account.expires_at
-      ? account.expires_at * 1000 < Date.now()
-      : false,
+    tokenExpired: account.expires_at ? account.expires_at * 1000 < Date.now() : false,
     introspectionFailed: introspectionError !== null,
     recommendations: [] as string[],
   }
@@ -117,9 +108,7 @@ export async function GET(request: Request) {
     facebookAccount: {
       providerAccountId: account.providerAccountId,
       scopeStored: account.scope,
-      expiresAt: account.expires_at
-        ? new Date(account.expires_at * 1000).toISOString()
-        : null,
+      expiresAt: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : null,
       createdAt: account.created_at,
       updatedAt: account.updated_at,
     },

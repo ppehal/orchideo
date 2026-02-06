@@ -67,7 +67,7 @@ interface CollectedData {
     oldestPostDate: Date | null
     newestPostDate: Date | null
     insightsAvailable: boolean
-    insightsError?: string | null        // Error code (PERMISSION_DENIED, NOT_SUPPORTED, etc.)
+    insightsError?: string | null // Error code (PERMISSION_DENIED, NOT_SUPPORTED, etc.)
     insightsErrorMessage?: string | null // User-friendly Czech error message
     daysOfData: number
   }
@@ -82,6 +82,7 @@ interface CollectedData {
 4. **Page insights** - 28 days of page-level metrics (optional)
 
 **Flow:**
+
 ```
 fetchPageFeed() ──▶ enrichPostsWithInsights() ──▶ convertToRawPost() ──▶ normalizePost()
       ║                    ║ (parallel)
@@ -99,11 +100,13 @@ Feed and page insights are fetched in parallel. Post enrichment happens sequenti
 Enriches each post with detailed metrics via parallel API calls:
 
 **Collected metrics:**
+
 - Reaction breakdowns: like, love, wow, haha, sad, angry
 - Impressions: total, organic, paid, unique (reach)
 - Engagement: clicks, engaged users
 
 **Implementation:**
+
 - Controlled parallelism (max 5 concurrent requests via Semaphore)
 - Rate limiting (100 requests/min)
 - Timeout protection (120s with fallback to basic data)
@@ -111,13 +114,15 @@ Enriches each post with detailed metrics via parallel API calls:
 - Progress logging every 10 posts
 
 **Performance:**
+
 - Typical overhead: 30-90s for 50-200 posts
 - Acceptable for background job pattern
 
 **Can be disabled:**
+
 ```typescript
 await collectAnalysisData(pageId, token, {
-  fetchPostInsights: false  // Skip enrichment
+  fetchPostInsights: false, // Skip enrichment
 })
 ```
 
@@ -310,7 +315,7 @@ interface AnalysisRawData {
     oldestPostDate: string | null
     newestPostDate: string | null
     insightsAvailable: boolean
-    insightsError?: string | null        // Error code if insights failed (added 2026-02-04)
+    insightsError?: string | null // Error code if insights failed (added 2026-02-04)
     insightsErrorMessage?: string | null // User-friendly error message (added 2026-02-04)
     daysOfData: number
   }
@@ -321,15 +326,15 @@ Stored as JSON in `Analysis.rawData` field.
 
 **Database Fields:**
 
-| Field              | Type     | Description                                              |
-| ------------------ | -------- | -------------------------------------------------------- |
-| `page_name`        | String?  | Snapshot of page name at analysis time                   |
-| `page_picture`     | String?  | Snapshot of page picture URL                             |
-| `page_fan_count`   | Int?     | Snapshot of fan count                                    |
-| `fb_page_category` | String?  | Original Facebook category (e.g., "Restaurant")          |
-| `industry_code`    | String   | Mapped industry for benchmarking (default: "DEFAULT")    |
-| `overall_score`    | Int?     | 0-100 overall score                                      |
-| `rawData`          | Json?    | Full normalized data (posts, insights, metadata)         |
+| Field              | Type    | Description                                           |
+| ------------------ | ------- | ----------------------------------------------------- |
+| `page_name`        | String? | Snapshot of page name at analysis time                |
+| `page_picture`     | String? | Snapshot of page picture URL                          |
+| `page_fan_count`   | Int?    | Snapshot of fan count                                 |
+| `fb_page_category` | String? | Original Facebook category (e.g., "Restaurant")       |
+| `industry_code`    | String  | Mapped industry for benchmarking (default: "DEFAULT") |
+| `overall_score`    | Int?    | 0-100 overall score                                   |
+| `rawData`          | Json?   | Full normalized data (posts, insights, metadata)      |
 
 **Note:** `fb_page_category` added in v1.4.0 for category mapping visualization. Nullable for backward compatibility with analyses created before this feature.
 

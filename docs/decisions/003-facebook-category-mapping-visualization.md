@@ -15,6 +15,7 @@ tags: [adr, ui, type-safety, validation]
 Uživatelé nerozuměli, jak se jejich Facebook stránka kategorizuje do oborových benchmarků. Facebook poskytuje vlastní kategorie (např. "Restaurant", "Beauty Salon"), které my mapujeme na 9 interních IndustryCode kategorií (např. FOOD_RESTAURANT, BEAUTY_FITNESS).
 
 **Problémy:**
+
 1. Uživatel nevidí, jak jeho FB kategorie mapuje na benchmark
 2. Není jasné, proč byl navržen konkrétní obor
 3. Chybí reference, které FB kategorie se mapují na jaký obor
@@ -25,12 +26,14 @@ Uživatelé nerozuměli, jak se jejich Facebook stránka kategorizuje do oborov�
 ### 1. Vizualizace Mappingu
 
 Přidat vizuální zobrazení "Facebook Category → Industry" na **4 místech**:
+
 - **PageSelector cards**: Uživatel vidí mapping už při výběru stránky
 - **IndustrySelector**: Jasně vidí, jaký obor byl detekován z FB kategorie
 - **Report header**: Kontext v reportu, která FB kategorie byla použita
 - **CategoryMappingInfo**: Expandable reference všech 220+ mappingů
 
 **Implementace:**
+
 - `CategoryMappingBadge` component s Unicode arrow (→) pro jednoduchost
 - Responsive design s truncation pro dlouhé názvy
 - Pre-computed `GROUPED_MAPPINGS` pro O(1) lookup performance
@@ -39,6 +42,7 @@ Přidat vizuální zobrazení "Facebook Category → Industry" na **4 místech**
 ### 2. Database Schema
 
 Přidat `fb_page_category: String?` do Analysis model:
+
 - **Nullable** pro backward compatibility (staré analýzy nemají kategorii)
 - Ukládá originální FB kategorii pro historické záznamy
 - Umožňuje debugging a analýzu accuracy mappingu
@@ -55,11 +59,13 @@ getIndustryNameSafe(code: string | null | undefined): string
 ```
 
 **Důvod:**
+
 - TypeScript type assertions `(x as IndustryCode)` jsou unsafe pro DB data
 - Database má `String` bez constraints → možnost nevalidních hodnot
 - Komponenty mohou dostat invalid industry code → `INDUSTRIES[invalid]` = undefined → crash
 
 **Použití:**
+
 ```typescript
 // ❌ BEFORE - Unsafe
 industryCode={(industry as IndustryCode) || 'DEFAULT'}
@@ -105,6 +111,7 @@ industryCode={sanitizeIndustryCode(industry)}
 ## Alternativy
 
 ### Alternative 1: Prisma Enum pro IndustryCode
+
 ```prisma
 enum IndustryCode {
   FOOD_RESTAURANT
@@ -112,16 +119,19 @@ enum IndustryCode {
   // ...
 }
 ```
+
 **Výhody**: DB level validation, type-safe
 **Nevýhody**: Breaking change, migrace existujících dat, složitější deployment
 **Rozhodnutí**: ZAMÍTNUTO - příliš invazivní pro current stage, runtime validace dostačující
 
 ### Alternative 2: Žádná vizualizace, jen tooltip
+
 **Výhody**: Jednodušší implementace
 **Nevýhody**: Skrytá informace, horší UX
 **Rozhodnutí**: ZAMÍTNUTO - vizualizace je core value add
 
 ### Alternative 3: API pro category lookup místo static mapy
+
 **Výhody**: Dynamic, no code updates
 **Nevýhody**: External dependency, latency, cost
 **Rozhodnutí**: ZAMÍTNUTO - overkill pro 220 kategorií, static map je dostatečně performantní

@@ -19,8 +19,7 @@ export function parseRecommendation(text: string): ParsedRecommendation {
     // Single sentence - check if it ends with punctuation
     const cleaned = sentences[0]!
     return {
-      assessment:
-        cleaned.endsWith('.') || cleaned.endsWith('!') ? cleaned : cleaned + '.',
+      assessment: cleaned.endsWith('.') || cleaned.endsWith('!') ? cleaned : cleaned + '.',
       tips: [],
       originalText: text,
     }
@@ -44,10 +43,7 @@ export function parseRecommendation(text: string): ParsedRecommendation {
 
     // Find original punctuation in source text
     const tipStartInOriginal = text.indexOf(tip)
-    if (
-      tipStartInOriginal !== -1 &&
-      tipStartInOriginal + tip.length < text.length
-    ) {
+    if (tipStartInOriginal !== -1 && tipStartInOriginal + tip.length < text.length) {
       const nextChar = text[tipStartInOriginal + tip.length]
       if (nextChar === '!' || nextChar === '.') {
         return tip + nextChar

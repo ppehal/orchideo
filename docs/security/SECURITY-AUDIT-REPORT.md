@@ -17,6 +17,7 @@ Provedli jsme detailní bezpečnostní audit aplikace Orchideo. Aplikace má **d
 4. **Chybějící input sanitization** v některých API endpointech
 
 **Severity Breakdown:**
+
 - 🔴 **Kritické:** 3 problémy
 - 🟠 **Vysoké:** 5 problémů
 - 🟡 **Střední:** 6 problémů
@@ -43,16 +44,18 @@ Provedli jsme detailní bezpečnostní audit aplikace Orchideo. Aplikace má **d
 **Soubor:** `src/lib/auth.ts:31`
 
 **Problém:**
+
 ```typescript
 Facebook({
   // ...
-  allowDangerousEmailAccountLinking: true,  // ❌ CRITICAL VULNERABILITY
+  allowDangerousEmailAccountLinking: true, // ❌ CRITICAL VULNERABILITY
 })
 ```
 
 **Riziko:** **Account Takeover Attack**
 
 Útočník může:
+
 1. Získat přístup k email účtu oběti (phishing, data leak, etc.)
 2. Vytvořit nový Facebook účet se STEJNÝM emailem
 3. Přihlásit se do Orchideo přes Facebook OAuth
@@ -60,6 +63,7 @@ Facebook({
 5. **Útočník získá plný přístup k účtu oběti včetně všech dat**
 
 **Dopad:**
+
 - Přístup k všem Facebook stránkám oběti
 - Přístup ke všem analýzám, reportům
 - Možnost smazat data oběti
@@ -123,12 +127,14 @@ callbacks: {
 **Problém:** Aplikace nemá middleware pro security headers.
 
 **Riziko:**
+
 - XSS útoky
 - Clickjacking
 - MIME sniffing útoky
 - Protocol downgrade attacks
 
 **Chybějící headers:**
+
 - `Content-Security-Policy`
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
@@ -149,12 +155,14 @@ callbacks: {
 **Problém:** Pouze PDF endpoint má rate limiting (in-memory). Ostatní API endpoints nemají žádnou ochranu.
 
 **Zranitelné endpoints:**
+
 - `/api/analysis/create` - může vyčerpat Facebook API limity
 - `/api/facebook/pages` - Facebook API calls bez limitu
 - `/api/email/send-report` - email spam možnost
 - `/api/user/alerts` - database query flooding
 
 **Riziko:**
+
 - DoS útoky
 - Facebook API rate limit exhaustion
 - Email spam
@@ -175,11 +183,13 @@ callbacks: {
 **Soubor:** `prisma/schema.prisma:109`
 
 **Problém:**
+
 ```prisma
 public_token String @unique @default(cuid())
 ```
 
 `cuid()` generuje ID založené na:
+
 - Timestamp (predictable)
 - Counter (predictable)
 - Hostname/Process ID (částečně predictable)
@@ -214,12 +224,13 @@ public_token: generateSecureToken(32), // 256 bits entropy
 
 ```typescript
 const requestSchema = z.object({
-  pageId: z.string().min(1, 'ID stránky je povinné'),  // ❌ No sanitization
+  pageId: z.string().min(1, 'ID stránky je povinné'), // ❌ No sanitization
   industryCode: z.string().optional().default('DEFAULT'),
 })
 ```
 
 **Riziko:**
+
 - XSS přes stored data (pokud se zobrazuje bez escapování)
 - SQL injection (méně pravděpodobné s Prisma, ale možné)
 - Log injection
@@ -237,6 +248,7 @@ const requestSchema = z.object({
 **Soubor:** `src/lib/auth.ts:36`
 
 **Problém:**
+
 ```typescript
 session: {
   strategy: 'database',
@@ -247,6 +259,7 @@ session: {
 **Riziko:** Stolen session token má 30-day validity window.
 
 **Doporučení:**
+
 - Production: **7 dní**
 - Development: 30 dní OK
 
@@ -272,11 +285,13 @@ session: {
 **Problém:** PDF generation používá Puppeteer/Chromium, což je resource-intensive.
 
 **Riziko:**
+
 - DoS útoky přes PDF generování
 - Memory exhaustion
 - CPU exhaustion
 
 **Řešení:**
+
 - ✅ Už má in-memory rate limiting (PDF_RATE_LIMIT)
 - ❌ Chybí request queue/semaphore
 - ❌ Chybí timeout na Puppeteer
@@ -326,6 +341,7 @@ events: {
 **Pozitivní:** Session token je redacted.
 
 **Riziko:** Jiné části aplikace mohou logovat:
+
 - Email adresy
 - Facebook access tokens (pokud error handling)
 - User IPs
@@ -361,13 +377,11 @@ const prismaClientSingleton = () => {
     },
     // Connection pool limits
     connection: {
-      max: 10,  // Max connections
-      idleTimeoutMillis: 30000,  // 30s idle timeout
-      connectionTimeoutMillis: 5000,  // 5s connect timeout
+      max: 10, // Max connections
+      idleTimeoutMillis: 30000, // 30s idle timeout
+      connectionTimeoutMillis: 5000, // 5s connect timeout
     },
-    log: process.env.NODE_ENV === 'development'
-      ? ['query', 'error', 'warn']
-      : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 }
 ```
@@ -383,6 +397,7 @@ const prismaClientSingleton = () => {
 **Problém:** Access tokens jsou uložené v databázi, ale není jasné, jestli se rotují.
 
 **Facebook tokens:**
+
 - User tokens: 60-day expiry
 - Page tokens: No expiry (long-lived)
 
@@ -573,6 +588,7 @@ Canonical: https://orchideo.ppsys.eu/.well-known/security.txt
 **Soubor:** `src/lib/utils/encryption.ts`
 
 **Pozitivní:**
+
 - ✅ AES-256-GCM (authenticated encryption)
 - ✅ Random IV per encryption
 - ✅ Auth tag verification
@@ -586,11 +602,13 @@ Canonical: https://orchideo.ppsys.eu/.well-known/security.txt
 ### 2. Input Validation s Zod ✅
 
 **Pozitivní:**
+
 - ✅ Všechny API endpoints používají Zod validation
 - ✅ Type-safe schemas
 - ✅ Clear error messages
 
 **Příklad:**
+
 ```typescript
 const requestSchema = z.object({
   pageId: z.string().min(1, 'ID stránky je povinné'),
@@ -603,6 +621,7 @@ const requestSchema = z.object({
 ### 3. Database Sessions ✅
 
 **Pozitivní:**
+
 - ✅ Database-backed sessions (ne JWT)
 - ✅ Easy revocation
 - ✅ Prisma adapter (secure)
@@ -612,6 +631,7 @@ const requestSchema = z.object({
 ### 4. Error Handling ✅
 
 **Pozitivní:**
+
 - ✅ Structured error responses
 - ✅ Error codes (TOKEN_EXPIRED, PERMISSION_DENIED, etc.)
 - ✅ Proper HTTP status codes
@@ -623,6 +643,7 @@ const requestSchema = z.object({
 **Soubor:** `src/app/api/report/[token]/pdf/route.ts:9-70`
 
 **Pozitivní:**
+
 - ✅ In-memory rate limiter implementován
 - ✅ Per-token limiting
 - ✅ Automatic cleanup (prevence memory leak)

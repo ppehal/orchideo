@@ -174,9 +174,7 @@ describe('deleteCompetitorGroupAction', () => {
     it('returns INTERNAL_ERROR on unexpected errors', async () => {
       const session = mockSession(TEST_USER_ID)
       mockAuth.mockResolvedValue(session)
-      mockCompetitorGroupFindUnique.mockRejectedValue(
-        new Error('Database connection failed')
-      )
+      mockCompetitorGroupFindUnique.mockRejectedValue(new Error('Database connection failed'))
 
       const result = await deleteCompetitorGroupAction(TEST_GROUP_ID)
 
@@ -604,9 +602,7 @@ describe('createCompetitorGroupAction', () => {
         [`competitor_${TEST_COMPETITOR_1_ID}`]: true,
       })
 
-      mockFacebookPageFindMany.mockRejectedValue(
-        new Error('Database connection failed')
-      )
+      mockFacebookPageFindMany.mockRejectedValue(new Error('Database connection failed'))
 
       const result = await createCompetitorGroupAction(null, formData)
 

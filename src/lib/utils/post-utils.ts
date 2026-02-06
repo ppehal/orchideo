@@ -22,10 +22,7 @@ export function getPostIdsFromMetrics(
  * Najít posty podle IDs v posts90d array
  * Používá Set pro O(n) lookup místo O(n²)
  */
-export function getPostsByIds(
-  posts90d: NormalizedPost[],
-  postIds: string[]
-): NormalizedPost[] {
+export function getPostsByIds(posts90d: NormalizedPost[], postIds: string[]): NormalizedPost[] {
   if (postIds.length === 0) return []
   const idSet = new Set(postIds)
   return posts90d.filter((p) => idSet.has(p.id))

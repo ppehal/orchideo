@@ -70,17 +70,14 @@ const envSchema = z.object({
   ENCRYPTION_KEY: z
     .string()
     .min(32, 'ENCRYPTION_KEY must be at least 32 characters')
-    .refine(
-      (val) => {
-        try {
-          const buf = Buffer.from(val, 'base64')
-          return buf.length === 32
-        } catch {
-          return false
-        }
-      },
-      'ENCRYPTION_KEY must be a base64-encoded 32-byte key (use: openssl rand -base64 32)'
-    ),
+    .refine((val) => {
+      try {
+        const buf = Buffer.from(val, 'base64')
+        return buf.length === 32
+      } catch {
+        return false
+      }
+    }, 'ENCRYPTION_KEY must be a base64-encoded 32-byte key (use: openssl rand -base64 32)'),
 
   // ────────────────────────────────────────────────────────────────────────────
   // Analysis Configuration

@@ -72,7 +72,12 @@ export function AlertsDropdown() {
         ) : recentAlerts.length === 0 ? (
           <div className="text-muted-foreground p-4 text-center text-sm">Žádná nová upozornění</div>
         ) : (
-          <div className="max-h-80 overflow-y-auto" role="region" aria-live="polite" aria-atomic="false">
+          <div
+            className="max-h-80 overflow-y-auto"
+            role="region"
+            aria-live="polite"
+            aria-atomic="false"
+          >
             {recentAlerts.map((alert) => (
               <AlertItem key={alert.id} alert={alert} onMarkRead={() => markAsRead(alert.id)} />
             ))}

@@ -6,7 +6,10 @@
 
 import { PrismaClient } from '../src/generated/prisma/client.js'
 import { createLogger } from '../src/lib/logging/index.js'
-import { getPageMetadata, getManagedPagesWithTokens } from '../src/lib/integrations/facebook/index.js'
+import {
+  getPageMetadata,
+  getManagedPagesWithTokens,
+} from '../src/lib/integrations/facebook/index.js'
 import { encrypt } from '../src/lib/utils/encryption.js'
 import { generateSecureToken } from '../src/lib/utils/tokens.js'
 import { startAnalysisInBackground } from '../src/lib/services/analysis/runner.js'
@@ -18,7 +21,11 @@ const log = createLogger('restart-analysis-script')
 
 const REPORT_EXPIRATION_DAYS = parseInt(process.env.REPORT_EXPIRATION_DAYS || '30', 10)
 
-async function restartAnalysis(userEmail: string, fbPageId: string, industryCode: string = 'DEFAULT') {
+async function restartAnalysis(
+  userEmail: string,
+  fbPageId: string,
+  industryCode: string = 'DEFAULT'
+) {
   try {
     console.log(`\n🔍 Hledám uživatele: ${userEmail}`)
 
@@ -27,9 +34,9 @@ async function restartAnalysis(userEmail: string, fbPageId: string, industryCode
       where: { email: userEmail },
       include: {
         accounts: {
-          where: { provider: 'facebook' }
-        }
-      }
+          where: { provider: 'facebook' },
+        },
+      },
     })
 
     if (!user) {
@@ -54,7 +61,7 @@ async function restartAnalysis(userEmail: string, fbPageId: string, industryCode
     if (!page) {
       console.error(`❌ Stránka s ID ${fbPageId} nebyla nalezena nebo uživatel k ní nemá přístup`)
       console.log('\nDostupné stránky:')
-      pages.forEach(p => console.log(`  - ${p.name} (ID: ${p.id})`))
+      pages.forEach((p) => console.log(`  - ${p.name} (ID: ${p.id})`))
       process.exit(1)
     }
 
@@ -130,7 +137,7 @@ async function restartAnalysis(userEmail: string, fbPageId: string, industryCode
           page_name: pageMetadata.name,
           fan_count: pageMetadata.fan_count,
           industry_code: industryCode,
-          source: 'restart-script'
+          source: 'restart-script',
         },
       },
     })
@@ -141,10 +148,11 @@ async function restartAnalysis(userEmail: string, fbPageId: string, industryCode
     startAnalysisInBackground(analysis.id)
 
     console.log('\n✅ Hotovo!')
-    console.log(`\n📊 Report bude dostupný na: https://orchideo.ppsys.eu/report/${analysis.public_token}`)
+    console.log(
+      `\n📊 Report bude dostupný na: https://orchideo.ppsys.eu/report/${analysis.public_token}`
+    )
     console.log(`📅 Report vyprší: ${expiresAt.toLocaleDateString('cs-CZ')}`)
     console.log(`\n💡 Průběh analýzy můžete sledovat na: https://orchideo.ppsys.eu/analyze/history`)
-
   } catch (error) {
     console.error('\n❌ Chyba při vytváření analýzy:', error)
     log.error({ error }, 'Failed to restart analysis')
@@ -158,16 +166,17 @@ async function restartAnalysis(userEmail: string, fbPageId: string, industryCode
 const args = process.argv.slice(2)
 if (args.length < 2) {
   console.error('Usage: npx tsx tmp/restart-analysis.ts <user-email> <fb-page-id> [industry-code]')
-  console.error('\nExample: npx tsx tmp/restart-analysis.ts ondrej.macku@gmail.com 609340509095436 DEFAULT')
+  console.error(
+    '\nExample: npx tsx tmp/restart-analysis.ts ondrej.macku@gmail.com 609340509095436 DEFAULT'
+  )
   process.exit(1)
 }
 
 const [userEmail, fbPageId, rawIndustryCode] = args
 
 // Validate industry code
-const industryCode: IndustryCode = rawIndustryCode && (rawIndustryCode in INDUSTRIES)
-  ? (rawIndustryCode as IndustryCode)
-  : 'DEFAULT'
+const industryCode: IndustryCode =
+  rawIndustryCode && rawIndustryCode in INDUSTRIES ? (rawIndustryCode as IndustryCode) : 'DEFAULT'
 
 if (rawIndustryCode && rawIndustryCode !== industryCode) {
   console.warn(`⚠️  Invalid industry code "${rawIndustryCode}", using DEFAULT`)

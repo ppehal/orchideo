@@ -24,6 +24,7 @@ BASIC_003 trigger (Reaction Structure Analysis) vždy vracel `INSUFFICIENT_DATA`
 ### Možnosti
 
 #### Opce A: Inline Fetch During Feed Collection
+
 ```typescript
 // V fetchPageFeed() pro každý post:
 for (const post of response.data) {
@@ -33,32 +34,38 @@ for (const post of response.data) {
 ```
 
 **Pros:**
+
 - Jednoduchá implementace
 - Žádná nová abstrakce
 
 **Cons:**
+
 - Sequential (slow) - žádná paralelizace
 - Smíchává concerns (feed fetch + enrichment)
 - Nelze vypnout bez měnění fetchPageFeed
 - Obtížné testování/debugging
 
 #### Opce B: Batch API Approach
+
 ```typescript
 // Fetch všech insights v jednom batch requestu
 const batchResults = await fetchBatchPostInsights(postIds, token)
 ```
 
 **Pros:**
+
 - Velmi rychlé (1 request místo N)
 - Minimální API quota usage
 
 **Cons:**
+
 - Facebook Batch API má limity (50 requests/batch)
 - Složitější error handling (all-or-nothing)
 - Nutnost implementovat batch API wrapper
 - Edge cases s velkými datasety (200+ postů = 4+ batches)
 
 #### Opce C: Separate Enrichment Phase (CHOSEN)
+
 ```typescript
 // Data flow:
 fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normalizePost()
@@ -67,6 +74,7 @@ fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normali
 ```
 
 **Pros:**
+
 - Separation of concerns (feed vs enrichment)
 - Paralelní fetch s concurrency control
 - Graceful degradation (enrichment selhání neblokuje analýzu)
@@ -75,6 +83,7 @@ fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normali
 - Rate limiting built-in
 
 **Cons:**
+
 - Přidává komplexitu (nová funkce + integrace)
 - Performance overhead (30-90s pro typickou analýzu)
 - Memory: mutuje original posts array
@@ -110,11 +119,13 @@ fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normali
 ### Architektura Důvody
 
 **Proč ne inline (Opce A)?**
-- Sequential fetch by byl příliš pomalý (N * latency)
+
+- Sequential fetch by byl příliš pomalý (N \* latency)
 - Smíchává concerns, obtížné testování
 - Nelze vypnout bez měnění core feed logic
 
 **Proč ne batch API (Opce B)?**
+
 - Vyžaduje implementaci batch wrapper (komplexita)
 - Facebook batch limity (50/request)
 - All-or-nothing error handling problematické
@@ -122,6 +133,7 @@ fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normali
 - Lze přidat později jako optimization
 
 **Proč separate phase?**
+
 - Clean separation: feed fetch = get structure, enrichment = add details
 - Paralelizace s kontrolou (Semaphore + rate limit)
 - Graceful degradation: enrichment může selhat, analýza pokračuje
@@ -158,19 +170,20 @@ fetchPageFeed() → enrichPostsWithInsights() → convertToRawPost() → normali
 
 ### Trade-offs
 
-| Aspect | Trade-off | Decision |
-|--------|-----------|----------|
-| **Speed** | Slower analysis (30-90s overhead) | Acceptable - background job, data completeness důležitější |
-| **Complexity** | More code, more moving parts | Acceptable - well-structured, testable, maintainable |
-| **Reliability** | Extra API calls = more failure points | Mitigated - graceful degradation, analysis continues on failure |
-| **Resources** | More API quota usage | Acceptable - conservative rate limiting (100/min) |
-| **Maintainability** | Separate phase = extra integration point | Better - clean separation, easier to test/modify |
+| Aspect              | Trade-off                                | Decision                                                        |
+| ------------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| **Speed**           | Slower analysis (30-90s overhead)        | Acceptable - background job, data completeness důležitější      |
+| **Complexity**      | More code, more moving parts             | Acceptable - well-structured, testable, maintainable            |
+| **Reliability**     | Extra API calls = more failure points    | Mitigated - graceful degradation, analysis continues on failure |
+| **Resources**       | More API quota usage                     | Acceptable - conservative rate limiting (100/min)               |
+| **Maintainability** | Separate phase = extra integration point | Better - clean separation, easier to test/modify                |
 
 ## Alternativy Zvažované
 
 ### Batch API (Future Optimization)
 
 Můžeme přidat batch API jako optimalizaci v budoucnu:
+
 ```typescript
 if (posts.length > 50 && options.useBatchApi) {
   enrichResult = await enrichPostsWithBatchApi(posts, token)
@@ -180,6 +193,7 @@ if (posts.length > 50 && options.useBatchApi) {
 ```
 
 **Kdy implementovat:**
+
 - Pokud performance overhead je příliš vysoký (>2 min typicky)
 - Pokud API quota se stává problémem
 - Pokud máme mnoho high-frequency analyses
@@ -187,6 +201,7 @@ if (posts.length > 50 && options.useBatchApi) {
 ### Partial Enrichment (Future Optimization)
 
 Enrichit pouze posty použité triggery:
+
 ```typescript
 // Pouze top N postů podle engagementu
 const topPosts = posts.sort(...).slice(0, 30)
@@ -194,6 +209,7 @@ await enrichPostsWithInsights(topPosts, token, pageId)
 ```
 
 **Kdy implementovat:**
+
 - Pokud většina postů není used by triggers
 - Pokud performance je kritická
 - Analytics na data usage ukáže sparse využití
@@ -209,12 +225,14 @@ await enrichPostsWithInsights(topPosts, token, pageId)
 ## Monitoring & Success Metrics
 
 **Metrics to Track:**
+
 - Enrichment success rate (enriched / total)
 - Average enrichment duration
 - Failed vs no_insights ratio
 - BASIC_003 trigger INSUFFICIENT_DATA rate (should be ~0%)
 
 **Success Criteria:**
+
 - ✅ BASIC_003 trigger works (no INSUFFICIENT_DATA)
 - ✅ 80%+ posts enriched successfully
 - ✅ Analysis duration < 2 minutes (typical)

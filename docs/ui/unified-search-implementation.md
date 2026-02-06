@@ -77,13 +77,8 @@ if (/^\d+$/.test(searchQuery)) {
 const normalizedQuery = normalizeForSearch(searchQuery)
 return pages.filter((page) => {
   const normalizedName = normalizeForSearch(page.name)
-  const normalizedUsername = page.username
-    ? normalizeForSearch(page.username)
-    : ''
-  return (
-    normalizedName.includes(normalizedQuery) ||
-    normalizedUsername.includes(normalizedQuery)
-  )
+  const normalizedUsername = page.username ? normalizeForSearch(page.username) : ''
+  return normalizedName.includes(normalizedQuery) || normalizedUsername.includes(normalizedQuery)
 })
 ```
 
@@ -96,6 +91,7 @@ return pages.filter((page) => {
 **File**: `src/components/analysis/page-selector.tsx`
 
 **Changes**:
+
 - Added imports: `parseFacebookUrl`, `matchPageByIdentifier`
 - Enhanced `filteredPages` useMemo with 3-step detection logic
 - Updated placeholder: `"Vyhledat podle názvu, URL (facebook.com/stranka) nebo ID"`
@@ -103,6 +99,7 @@ return pages.filter((page) => {
 - Removed `isHighlighted` from PageCard
 
 **Supported Input Formats**:
+
 ```
 ✓ Facebook URLs:
   - https://facebook.com/pagename
@@ -123,6 +120,7 @@ return pages.filter((page) => {
 **File**: `src/components/analysis/analyze-form.tsx`
 
 **Changes**:
+
 - Removed `UrlInputForm` import
 - Removed `highlightedPageId` state
 - Removed `handleUrlParsed` callback
@@ -134,10 +132,12 @@ return pages.filter((page) => {
 ### Phase 3: Cleanup
 
 **Files**:
+
 - `src/components/analysis/url-input-form.tsx` → **DELETED**
 - `src/components/analysis/index.ts` → Removed UrlInputForm export
 
 **Utilities Kept**:
+
 - `src/lib/utils/url-parser.ts` → Still used by PageSelector
 
 ---
@@ -166,6 +166,7 @@ return pages.filter((page) => {
 ### Test Cases
 
 1. **URL Input**:
+
    ```
    Input: https://facebook.com/mypage
    Expected: Show only matched page (if exists)
@@ -175,12 +176,14 @@ return pages.filter((page) => {
    ```
 
 2. **Numeric ID**:
+
    ```
    Input: 123456789
    Expected: Show page with that ID (if exists)
    ```
 
 3. **Name Search**:
+
    ```
    Input: "restaurace"
    Expected: Show all pages containing "restaurace"
@@ -190,6 +193,7 @@ return pages.filter((page) => {
    ```
 
 4. **Edge Cases**:
+
    ```
    Input: "" (empty)
    Expected: Show all pages
@@ -201,6 +205,7 @@ return pages.filter((page) => {
 ### Manual Testing
 
 To test manually:
+
 1. Navigate to `/analyze` page
 2. Try pasting a Facebook URL → should filter to matched page
 3. Try typing a numeric ID → should filter to matched page
@@ -211,13 +216,13 @@ To test manually:
 
 ## Files Changed
 
-| File | Action | Lines Changed |
-|------|--------|---------------|
-| `src/components/analysis/page-selector.tsx` | Modified | +28, -13 |
-| `src/components/analysis/analyze-form.tsx` | Modified | +13, -40 |
-| `src/components/analysis/index.ts` | Modified | -1 |
-| `src/components/analysis/url-input-form.tsx` | **Deleted** | -111 |
-| **Total** | | **+41, -165 (-124 net)** |
+| File                                         | Action      | Lines Changed            |
+| -------------------------------------------- | ----------- | ------------------------ |
+| `src/components/analysis/page-selector.tsx`  | Modified    | +28, -13                 |
+| `src/components/analysis/analyze-form.tsx`   | Modified    | +13, -40                 |
+| `src/components/analysis/index.ts`           | Modified    | -1                       |
+| `src/components/analysis/url-input-form.tsx` | **Deleted** | -111                     |
+| **Total**                                    |             | **+41, -165 (-124 net)** |
 
 ---
 
@@ -230,6 +235,7 @@ None - this is a pure UI improvement with no API changes.
 ### Rollback Plan
 
 If needed, rollback is simple:
+
 ```bash
 git revert 17efc23
 ```
@@ -265,6 +271,7 @@ Potential enhancements (not urgent):
 
 ```markdown
 ### Changed
+
 - **UX Improvement**: Consolidated dual search boxes on /analyze page into single
   unified smart search that auto-detects Facebook URLs, numeric IDs, and page names
 - Removed redundant UrlInputForm component

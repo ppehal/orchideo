@@ -142,12 +142,14 @@ Displays detailed trigger recommendations on trigger detail pages with improved 
 ```
 
 **Visual Structure:**
+
 - **Desktop (≥768px):** Two-column layout
   - Left (300px): Assessment with ThumbsUp icon ("Vaše hodnocení")
   - Right (flex): Actionable tips as bullet list with Lightbulb icon ("Doporučené kroky")
 - **Mobile (<768px):** Stacked layout (assessment above, tips below)
 
 **Automatic Parsing:**
+
 - Uses `parseRecommendation()` utility to split recommendation text
 - First sentence → **Assessment** (e.g., "Jste výborní!")
 - Remaining sentences → **Tips** bullet list (e.g., "Zkuste více příspěvků.")
@@ -155,6 +157,7 @@ Displays detailed trigger recommendations on trigger detail pages with improved 
 - Regex: `/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/` (splits only before uppercase Czech letter)
 
 **Example Parsing:**
+
 ```typescript
 Input: "Výborně! Pokračujte tímto směrem. Zkuste více příspěvků."
 
@@ -167,16 +170,19 @@ Output:
 ```
 
 **Fallback Behavior:**
+
 - Single-sentence recommendations display in simple single-column layout
 - Empty text handled gracefully (returns empty assessment + tips)
 
 **Implementation:**
+
 - Parser: `src/lib/utils/recommendation-parser.ts`
 - Component: `src/components/report/trigger-detail/recommendation-card.tsx`
 - Used in: `CategoryDisplay` component (4 locations)
 - Performance: O(n) parsing, <1ms per recommendation
 
 **Design Rationale:**
+
 - Based on tester feedback requesting more scannable, actionable layout
 - Separates assessment ("what you're doing") from tips ("what to do next")
 - Maintains hravý projev ("Jste obsahový bůh") in prominent position

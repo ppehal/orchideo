@@ -11,6 +11,7 @@
 Tento plán obsahuje **konkrétní kódové změny** pro opravu bezpečnostních problémů identifikovaných v Security Audit Report.
 
 **Klíčové principy:**
+
 - ✅ Žádné breaking changes
 - ✅ Development workflow zůstává stejný
 - ✅ Hot reload stále funguje
@@ -46,6 +47,7 @@ Tento plán obsahuje **konkrétní kódové změny** pro opravu bezpečnostních
 ```
 
 **Testing:**
+
 ```bash
 # Restart dev server
 npm run dev
@@ -84,20 +86,14 @@ export function middleware(request: NextRequest) {
 
   // Force HTTPS
   if (process.env.NODE_ENV === 'production') {
-    headers.set(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains; preload'
-    )
+    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   }
 
   // Referrer policy
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
   // Permissions policy (disable unnecessary features)
-  headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), payment=()'
-  )
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
 
   // XSS Protection (legacy browsers)
   headers.set('X-XSS-Protection', '1; mode=block')
@@ -110,11 +106,11 @@ export function middleware(request: NextRequest) {
     "img-src 'self' data: https://platform-lookaside.fbsbx.com https://*.fbcdn.net", // Facebook images
     "font-src 'self' data:",
     "connect-src 'self' https://graph.facebook.com https://www.facebook.com",
-    "frame-src https://www.facebook.com", // Facebook OAuth popup
+    'frame-src https://www.facebook.com', // Facebook OAuth popup
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "upgrade-insecure-requests",
+    'upgrade-insecure-requests',
   ].join('; ')
 
   headers.set('Content-Security-Policy', csp)
@@ -137,6 +133,7 @@ export const config = {
 ```
 
 **Testing:**
+
 ```bash
 npm run dev
 
@@ -278,6 +275,7 @@ export async function POST(request: Request) {
 ```
 
 **Testing:**
+
 ```bash
 # Spustit dev server
 npm run dev
@@ -354,6 +352,7 @@ const analysis = await prisma.analysis.create({
 ```
 
 **Testing:**
+
 ```bash
 # Development - session expirace 30 dní (bez změny)
 NODE_ENV=development npm run dev
@@ -381,13 +380,15 @@ export function sanitizeString(input: string, maxLength: number = 1000): string 
     return ''
   }
 
-  return input
-    .trim()
-    .slice(0, maxLength)
-    // Remove null bytes
-    .replace(/\0/g, '')
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
+  return (
+    input
+      .trim()
+      .slice(0, maxLength)
+      // Remove null bytes
+      .replace(/\0/g, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+  )
 }
 
 /**
@@ -509,10 +510,7 @@ export async function GET(request: Request, { params }: Props) {
 
     // 3. ✅ CRITICAL: Authorization check
     if (group.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Nemáte oprávnění k této skupině' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Nemáte oprávnění k této skupině' }, { status: 403 })
     }
 
     // 4. Return data
@@ -527,6 +525,7 @@ export async function GET(request: Request, { params }: Props) {
 ```
 
 **Testing:**
+
 ```bash
 # Create 2 users, create groups for each
 # Try to access User A's group with User B's session
@@ -553,10 +552,7 @@ export function middleware(request: NextRequest) {
   // ... existing security headers
 
   // CORS Headers (pouze pokud je potřeba)
-  const allowedOrigins = [
-    'https://orchideo.ppsys.eu',
-    'https://app.orchideo.ppsys.eu',
-  ]
+  const allowedOrigins = ['https://orchideo.ppsys.eu', 'https://app.orchideo.ppsys.eu']
 
   if (process.env.NODE_ENV === 'development') {
     allowedOrigins.push('http://localhost:3001')
@@ -818,10 +814,7 @@ export async function middleware(request: NextRequest) {
       const origin = request.headers.get('origin')
       const referer = request.headers.get('referer')
 
-      const allowedOrigins = [
-        process.env.NEXT_PUBLIC_APP_URL || '',
-        'https://orchideo.ppsys.eu',
-      ]
+      const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL || '', 'https://orchideo.ppsys.eu']
 
       if (process.env.NODE_ENV === 'development') {
         allowedOrigins.push('http://localhost:3001')
@@ -832,10 +825,7 @@ export async function middleware(request: NextRequest) {
         referer && allowedOrigins.some((allowed) => referer.startsWith(allowed))
 
       if (!isValidOrigin && !isValidReferer) {
-        return NextResponse.json(
-          { error: 'Invalid origin', code: 'CSRF_ERROR' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'Invalid origin', code: 'CSRF_ERROR' }, { status: 403 })
       }
     }
   }

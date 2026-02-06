@@ -1,10 +1,7 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScoreBadge, type TriggerStatus } from '../score-badge'
 import { cn } from '@/lib/utils'
-import {
-  TRIGGER_STATUS_ICONS,
-  TRIGGER_STATUS_ICON_COLORS,
-} from '@/lib/constants/trigger-status'
+import { TRIGGER_STATUS_ICONS, TRIGGER_STATUS_ICON_COLORS } from '@/lib/constants/trigger-status'
 
 interface TriggerDetailHeaderProps {
   name: string

@@ -24,13 +24,10 @@ export async function GET(request: Request, { params }: Props) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return new Response(
-        JSON.stringify({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      return new Response(JSON.stringify({ error: 'Nepřihlášen', code: 'UNAUTHORIZED' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     // Verify ownership
@@ -46,13 +43,10 @@ export async function GET(request: Request, { params }: Props) {
     })
 
     if (!analysis) {
-      return new Response(
-        JSON.stringify({ error: 'Analýza nenalezena', code: 'NOT_FOUND' }),
-        {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      return new Response(JSON.stringify({ error: 'Analýza nenalezena', code: 'NOT_FOUND' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     // If analysis already completed/failed, return immediately
@@ -81,16 +75,13 @@ export async function GET(request: Request, { params }: Props) {
           publicToken: currentData.public_token,
         }
 
-        return new Response(
-          `data: ${JSON.stringify(event)}\n\n`,
-          {
-            headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache',
-              'Connection': 'keep-alive',
-            },
-          }
-        )
+        return new Response(`data: ${JSON.stringify(event)}\n\n`, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        })
       }
     }
 
@@ -193,18 +184,15 @@ export async function GET(request: Request, { params }: Props) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'X-Accel-Buffering': 'no', // Disable nginx buffering
       },
     })
   } catch (error) {
     logError(log, error, 'Failed to create SSE stream', { analysis_id: id })
-    return new Response(
-      JSON.stringify({ error: 'Chyba při streamování stavu analýzy' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
+    return new Response(JSON.stringify({ error: 'Chyba při streamování stavu analýzy' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 }

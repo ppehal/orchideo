@@ -65,7 +65,6 @@ export async function POST(request: Request, { params }: Props) {
     resourceId = id
 
     // ... business logic ...
-
   } catch (error) {
     logError(log, error, 'Request failed', {
       [LogFields.userId]: userId,

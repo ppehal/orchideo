@@ -75,27 +75,77 @@ describe('fetchPageInsights', () => {
       // Daily metrics response
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_impressions', period: 'day', values: [{ value: 100, end_time: '2025-01-15T00:00:00+0000' }, { value: 200, end_time: '2025-01-16T00:00:00+0000' }] },
-          { name: 'page_impressions_unique', period: 'day', values: [{ value: 80, end_time: '2025-01-15T00:00:00+0000' }, { value: 160, end_time: '2025-01-16T00:00:00+0000' }] },
-          { name: 'page_impressions_organic', period: 'day', values: [{ value: 70, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_impressions_paid', period: 'day', values: [{ value: 30, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_engaged_users', period: 'day', values: [{ value: 25, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_post_engagements', period: 'day', values: [{ value: 50, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_fan_adds', period: 'day', values: [{ value: 5, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_fan_removes', period: 'day', values: [{ value: 2, end_time: '2025-01-15T00:00:00+0000' }] },
-          { name: 'page_views_total', period: 'day', values: [{ value: 300, end_time: '2025-01-15T00:00:00+0000' }] },
+          {
+            name: 'page_impressions',
+            period: 'day',
+            values: [
+              { value: 100, end_time: '2025-01-15T00:00:00+0000' },
+              { value: 200, end_time: '2025-01-16T00:00:00+0000' },
+            ],
+          },
+          {
+            name: 'page_impressions_unique',
+            period: 'day',
+            values: [
+              { value: 80, end_time: '2025-01-15T00:00:00+0000' },
+              { value: 160, end_time: '2025-01-16T00:00:00+0000' },
+            ],
+          },
+          {
+            name: 'page_impressions_organic',
+            period: 'day',
+            values: [{ value: 70, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_impressions_paid',
+            period: 'day',
+            values: [{ value: 30, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_engaged_users',
+            period: 'day',
+            values: [{ value: 25, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_post_engagements',
+            period: 'day',
+            values: [{ value: 50, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_fan_adds',
+            period: 'day',
+            values: [{ value: 5, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_fan_removes',
+            period: 'day',
+            values: [{ value: 2, end_time: '2025-01-15T00:00:00+0000' }],
+          },
+          {
+            name: 'page_views_total',
+            period: 'day',
+            values: [{ value: 300, end_time: '2025-01-15T00:00:00+0000' }],
+          },
         ])
       )
       // Lifetime metrics response
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_fans', period: 'day', values: [{ value: 1500, end_time: '2025-01-16T00:00:00+0000' }] },
+          {
+            name: 'page_fans',
+            period: 'day',
+            values: [{ value: 1500, end_time: '2025-01-16T00:00:00+0000' }],
+          },
         ])
       )
       // 28-day metrics response
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_actions_post_reactions_total', period: 'days_28', values: [{ value: { like: 200, love: 50, wow: 10 } }] },
+          {
+            name: 'page_actions_post_reactions_total',
+            period: 'days_28',
+            values: [{ value: { like: 200, love: 50, wow: 10 } }],
+          },
         ])
       )
 
@@ -116,7 +166,11 @@ describe('fetchPageInsights', () => {
       // Lifetime
       expect(result.data!.page_fans).toBe(1500)
       // 28-day reaction breakdown
-      expect(result.data!.page_actions_post_reactions_total).toEqual({ like: 200, love: 50, wow: 10 })
+      expect(result.data!.page_actions_post_reactions_total).toEqual({
+        like: 200,
+        love: 50,
+        wow: 10,
+      })
       // Daily arrays
       expect(result.data!.daily_impressions).toHaveLength(2)
       expect(result.data!.daily_engaged_users).toHaveLength(1)
@@ -132,10 +186,14 @@ describe('fetchPageInsights', () => {
       // Lifetime metrics - page_fans with multiple values (should take last)
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_fans', period: 'day', values: [
-            { value: 1400, end_time: '2025-01-15T00:00:00+0000' },
-            { value: 1500, end_time: '2025-01-16T00:00:00+0000' },
-          ] },
+          {
+            name: 'page_fans',
+            period: 'day',
+            values: [
+              { value: 1400, end_time: '2025-01-15T00:00:00+0000' },
+              { value: 1500, end_time: '2025-01-16T00:00:00+0000' },
+            ],
+          },
         ])
       )
       // 28-day metrics
@@ -155,9 +213,11 @@ describe('fetchPageInsights', () => {
       // 28-day metrics with reaction breakdown
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_actions_post_reactions_total', period: 'days_28', values: [
-            { value: { like: 500, love: 120, wow: 30, haha: 25, sad: 5, angry: 2 } },
-          ] },
+          {
+            name: 'page_actions_post_reactions_total',
+            period: 'days_28',
+            values: [{ value: { like: 500, love: 120, wow: 30, haha: 25, sad: 5, angry: 2 } }],
+          },
         ])
       )
 
@@ -165,7 +225,12 @@ describe('fetchPageInsights', () => {
 
       expect(result.error).toBeNull()
       expect(result.data!.page_actions_post_reactions_total).toEqual({
-        like: 500, love: 120, wow: 30, haha: 25, sad: 5, angry: 2,
+        like: 500,
+        love: 120,
+        wow: 30,
+        haha: 25,
+        sad: 5,
+        angry: 2,
       })
     })
   })
@@ -234,7 +299,11 @@ describe('fetchPageInsights', () => {
       // Daily metrics - success
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_impressions', period: 'day', values: [{ value: 100, end_time: '2025-01-15T00:00:00+0000' }] },
+          {
+            name: 'page_impressions',
+            period: 'day',
+            values: [{ value: 100, end_time: '2025-01-15T00:00:00+0000' }],
+          },
         ])
       )
       // Lifetime metrics - failure (caught internally)
@@ -254,13 +323,21 @@ describe('fetchPageInsights', () => {
       // Daily metrics - success
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_engaged_users', period: 'day', values: [{ value: 50, end_time: '2025-01-15T00:00:00+0000' }] },
+          {
+            name: 'page_engaged_users',
+            period: 'day',
+            values: [{ value: 50, end_time: '2025-01-15T00:00:00+0000' }],
+          },
         ])
       )
       // Lifetime metrics - success
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_fans', period: 'day', values: [{ value: 1000, end_time: '2025-01-16T00:00:00+0000' }] },
+          {
+            name: 'page_fans',
+            period: 'day',
+            values: [{ value: 1000, end_time: '2025-01-16T00:00:00+0000' }],
+          },
         ])
       )
       // 28-day metrics - failure (caught internally)
@@ -280,11 +357,15 @@ describe('fetchPageInsights', () => {
     it('sums daily values correctly', async () => {
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_impressions', period: 'day', values: [
-            { value: 100, end_time: '2025-01-13T00:00:00+0000' },
-            { value: 200, end_time: '2025-01-14T00:00:00+0000' },
-            { value: 300, end_time: '2025-01-15T00:00:00+0000' },
-          ] },
+          {
+            name: 'page_impressions',
+            period: 'day',
+            values: [
+              { value: 100, end_time: '2025-01-13T00:00:00+0000' },
+              { value: 200, end_time: '2025-01-14T00:00:00+0000' },
+              { value: 300, end_time: '2025-01-15T00:00:00+0000' },
+            ],
+          },
         ])
       )
       mockMakeRequest.mockResolvedValueOnce(createMockInsightsResponse([]))
@@ -298,11 +379,15 @@ describe('fetchPageInsights', () => {
     it('extracts daily values array correctly', async () => {
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_fan_adds', period: 'day', values: [
-            { value: 5, end_time: '2025-01-13T00:00:00+0000' },
-            { value: 8, end_time: '2025-01-14T00:00:00+0000' },
-            { value: 3, end_time: '2025-01-15T00:00:00+0000' },
-          ] },
+          {
+            name: 'page_fan_adds',
+            period: 'day',
+            values: [
+              { value: 5, end_time: '2025-01-13T00:00:00+0000' },
+              { value: 8, end_time: '2025-01-14T00:00:00+0000' },
+              { value: 3, end_time: '2025-01-15T00:00:00+0000' },
+            ],
+          },
         ])
       )
       mockMakeRequest.mockResolvedValueOnce(createMockInsightsResponse([]))
@@ -311,8 +396,14 @@ describe('fetchPageInsights', () => {
       const result = await fetchPageInsights('123456789', 'test-token')
 
       expect(result.data!.daily_fan_adds).toHaveLength(3)
-      expect(result.data!.daily_fan_adds![0]).toEqual({ date: '2025-01-13T00:00:00+0000', value: 5 })
-      expect(result.data!.daily_fan_adds![2]).toEqual({ date: '2025-01-15T00:00:00+0000', value: 3 })
+      expect(result.data!.daily_fan_adds![0]).toEqual({
+        date: '2025-01-13T00:00:00+0000',
+        value: 5,
+      })
+      expect(result.data!.daily_fan_adds![2]).toEqual({
+        date: '2025-01-15T00:00:00+0000',
+        value: 3,
+      })
     })
 
     it('validates reaction breakdown structure', async () => {
@@ -321,9 +412,11 @@ describe('fetchPageInsights', () => {
       // Valid reaction breakdown
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_actions_post_reactions_total', period: 'days_28', values: [
-            { value: { like: 100, love: 50 } },
-          ] },
+          {
+            name: 'page_actions_post_reactions_total',
+            period: 'days_28',
+            values: [{ value: { like: 100, love: 50 } }],
+          },
         ])
       )
 
@@ -338,9 +431,7 @@ describe('fetchPageInsights', () => {
       // Invalid: value is a number, not an object
       mockMakeRequest.mockResolvedValueOnce(
         createMockInsightsResponse([
-          { name: 'page_actions_post_reactions_total', period: 'days_28', values: [
-            { value: 42 },
-          ] },
+          { name: 'page_actions_post_reactions_total', period: 'days_28', values: [{ value: 42 }] },
         ])
       )
 

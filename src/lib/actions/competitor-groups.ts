@@ -144,10 +144,7 @@ export async function createCompetitorGroupAction(
     })
 
     if (pages.length !== allPageIds.length) {
-      return failure(
-        'Některé stránky nebyly nalezeny nebo k nim nemáte přístup',
-        'INVALID_PAGES'
-      )
+      return failure('Některé stránky nebyly nalezeny nebo k nim nemáte přístup', 'INVALID_PAGES')
     }
 
     // Check for duplicate page in competitors

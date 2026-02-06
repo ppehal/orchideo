@@ -207,7 +207,8 @@ export function GroupFormSheet({ open, onOpenChange, pages, onSuccess }: GroupFo
                         handleCompetitorToggle(page.id, checked === true)
                       }
                       disabled={
-                        isPending || (!competitorIds.includes(page.id) && competitorIds.length >= 10)
+                        isPending ||
+                        (!competitorIds.includes(page.id) && competitorIds.length >= 10)
                       }
                     />
                     <label

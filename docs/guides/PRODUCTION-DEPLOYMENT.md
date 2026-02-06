@@ -77,11 +77,13 @@ orchideo-postgres-prod (PostgreSQL 16)
 ### Server Requirements
 
 **Minimální:**
+
 - 2 vCPU
 - 4 GB RAM
 - 20 GB SSD
 
 **Doporučené:**
+
 - 4 vCPU
 - 8 GB RAM
 - 50 GB SSD
@@ -149,11 +151,13 @@ done
 ### Option A: Docker PostgreSQL (Doporučeno pro začátek)
 
 **Výhody:**
+
 - Jednoduchý setup
 - Zahrnutý v docker-compose.prod.yml
 - Automatické backupy pomocí volumes
 
 **Nevýhody:**
+
 - Nutné spravovat backupy ručně
 - Single point of failure
 
@@ -173,11 +177,13 @@ docker exec orchideo-postgres-prod psql -U orchideo -d orchideo -c "SELECT versi
 ### Option B: Managed PostgreSQL (Doporučeno pro production)
 
 **Výhody:**
+
 - Automatické backupy
 - High availability
 - Managed updates & scaling
 
 **Providers:**
+
 - AWS RDS
 - DigitalOcean Managed Databases
 - Azure Database for PostgreSQL
@@ -336,7 +342,7 @@ app:
 
   networks:
     - orchideo_internal
-    - srv_default  # Traefik network
+    - srv_default # Traefik network
 ```
 
 ### Option B: Production na Samostatném Serveru
@@ -399,6 +405,7 @@ server {
 **Products → Facebook Login → Settings:**
 
 - **Valid OAuth Redirect URIs:**
+
   ```
   https://app.orchideo.ppsys.eu/api/auth/callback/facebook
   https://orchideo.ppsys.eu/api/auth/callback/facebook
@@ -412,12 +419,12 @@ server {
 
 Pro production je nutné projít **App Review** pro tyto permissions:
 
-| Permission | Důvod | Status |
-|------------|-------|--------|
-| `pages_show_list` | Seznam stránek uživatele | ⚠️ Vyžaduje review |
-| `pages_read_engagement` | Metriky zapojení (likes, shares) | ⚠️ Vyžaduje review |
-| `pages_read_user_content` | Obsah postů | ⚠️ Vyžaduje review |
-| `read_insights` | Insights & analytics | ⚠️ Vyžaduje review |
+| Permission                | Důvod                            | Status             |
+| ------------------------- | -------------------------------- | ------------------ |
+| `pages_show_list`         | Seznam stránek uživatele         | ⚠️ Vyžaduje review |
+| `pages_read_engagement`   | Metriky zapojení (likes, shares) | ⚠️ Vyžaduje review |
+| `pages_read_user_content` | Obsah postů                      | ⚠️ Vyžaduje review |
+| `read_insights`           | Insights & analytics             | ⚠️ Vyžaduje review |
 
 ### 5. App Review Proces
 
@@ -447,11 +454,13 @@ Pro production je nutné projít **App Review** pro tyto permissions:
 ### 6. Development Mode vs Live Mode
 
 **Development Mode:**
+
 - ✅ Funguje pro admins, developers, testers
 - ❌ Nedostupné pro veřejnost
 - Max 100 test users
 
 **Live Mode:**
+
 - ✅ Veřejně dostupné
 - ✅ Neomezený počet uživatelů
 - ⚠️ Vyžaduje App Review
@@ -481,6 +490,7 @@ Dashboard → Settings → Basic → **App Mode** → Switch to Live
 - **Bucket:** `orchideo-pdfs-prod`
 
 **Save credentials:**
+
 ```
 Account ID: <ACCOUNT_ID>
 Access Key ID: <ACCESS_KEY_ID>
@@ -657,11 +667,11 @@ SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
 
 ```typescript
 // next.config.js
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require('@sentry/nextjs')
 
 module.exports = withSentryConfig({
   // existing config
-});
+})
 ```
 
 ---
@@ -671,11 +681,13 @@ module.exports = withSentryConfig({
 ### Problem: Container Won't Start
 
 **Symptom:**
+
 ```
 orchideo-app-prod exited with code 1
 ```
 
 **Diagnosis:**
+
 ```bash
 docker compose --env-file .env.production -f docker-compose.prod.yml logs app
 ```
@@ -683,15 +695,19 @@ docker compose --env-file .env.production -f docker-compose.prod.yml logs app
 **Common Causes:**
 
 1. **Missing environment variable:**
+
    ```
    Error: NEXTAUTH_SECRET is not set
    ```
+
    **Fix:** Add to `.env.production`
 
 2. **Database connection failed:**
+
    ```
    Error: P1001: Can't reach database server
    ```
+
    **Fix:**
    - Check `DATABASE_URL` is correct
    - Verify postgres container is healthy
@@ -710,12 +726,14 @@ docker compose --env-file .env.production -f docker-compose.prod.yml logs app
 ### Problem: HTTPS Returns 502 Bad Gateway
 
 **Symptom:**
+
 ```bash
 curl -I https://app.orchideo.ppsys.eu
 # HTTP/2 502
 ```
 
 **Diagnosis:**
+
 ```bash
 # Check Traefik logs
 docker logs traefik --tail 50
@@ -725,6 +743,7 @@ docker exec orchideo-app-prod netstat -tlnp | grep 3000
 ```
 
 **Fix:**
+
 - Verify app container is healthy
 - Check Traefik labels in docker-compose.prod.yml
 - Verify network `srv_default` exists
@@ -732,11 +751,13 @@ docker exec orchideo-app-prod netstat -tlnp | grep 3000
 ### Problem: Facebook OAuth Fails
 
 **Symptom:**
+
 ```
 Error: redirect_uri_mismatch
 ```
 
 **Fix:**
+
 1. Facebook Developer Console → App → Facebook Login → Settings
 2. Verify **Valid OAuth Redirect URIs** contains:
    ```
@@ -747,11 +768,13 @@ Error: redirect_uri_mismatch
 ### Problem: Database Migration Fails
 
 **Symptom:**
+
 ```
 Error: P3009: migrate.lock is locked
 ```
 
 **Fix:**
+
 ```bash
 # Unlock migrations
 docker exec orchideo-postgres-prod psql -U orchideo -d orchideo -c "DELETE FROM _prisma_migrations WHERE migration_name = 'migration-lock';"
@@ -763,18 +786,21 @@ docker compose --env-file .env.production -f docker-compose.prod.yml run --rm ap
 ### Problem: High Memory Usage
 
 **Symptom:**
+
 ```bash
 docker stats orchideo-app-prod
 # MEM USAGE: 1.5 GiB / 2 GiB (75%)
 ```
 
 **Diagnosis:**
+
 ```bash
 # Check for memory leaks
 docker exec orchideo-app-prod node --expose-gc -e "console.log(process.memoryUsage())"
 ```
 
 **Fix:**
+
 - Increase container memory limit in docker-compose.prod.yml:
   ```yaml
   app:
@@ -890,6 +916,7 @@ docker ps | grep orchideo
 **Documentation:** `/opt/orchideo/docs/`
 
 **Emergency Contacts:**
+
 - DevOps: TBD
 - Database Admin: TBD
 - Facebook App Admin: TBD

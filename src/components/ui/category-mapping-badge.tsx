@@ -43,31 +43,19 @@ export function CategoryMappingBadge({
   const sanitizedCategory = sanitizeForDisplay(fbCategory.trim())
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 flex-wrap',
-        className
-      )}
-    >
-      {variant === 'full' && (
-        <span className="text-muted-foreground text-xs">FB kategorie:</span>
-      )}
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {variant === 'full' && <span className="text-muted-foreground text-xs">FB kategorie:</span>}
       <Badge
         variant="secondary"
-        className="text-xs max-w-[120px] sm:max-w-[180px]"
+        className="max-w-[120px] text-xs sm:max-w-[180px]"
         title={sanitizedCategory}
       >
         <span className="truncate">{sanitizedCategory}</span>
       </Badge>
-      <span
-        className="text-muted-foreground text-xs sm:text-sm"
-        aria-label="mapuje se na"
-      >
+      <span className="text-muted-foreground text-xs sm:text-sm" aria-label="mapuje se na">
         →
       </span>
-      {variant === 'full' && (
-        <span className="text-muted-foreground text-xs">Obor:</span>
-      )}
+      {variant === 'full' && <span className="text-muted-foreground text-xs">Obor:</span>}
       <Badge variant="secondary" className="text-xs">
         {industryName}
       </Badge>

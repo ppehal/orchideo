@@ -11,12 +11,12 @@
 
 Deployment dokumentace je rozdělena do několika souborů podle účelu:
 
-| Dokument | Účel | Kdy použít |
-|----------|------|-----------|
-| **[PRODUCTION-DEPLOYMENT.md](./guides/PRODUCTION-DEPLOYMENT.md)** | Kompletní průvodce pro production nasazení | Při prvním deploymenty nebo major změnách |
-| **[DEPLOYMENT-CHECKLIST.md](./guides/DEPLOYMENT-CHECKLIST.md)** | Checklist pro každý deployment | Před KAŽDÝM production deploymentem |
-| **[VPS-vs-PRODUCTION.md](./guides/VPS-vs-PRODUCTION.md)** | Srovnání development a production prostředí | Pro pochopení rozdílů mezi prostředími |
-| **[ENV-UPDATE-SUMMARY.md](../tmp/ENV-UPDATE-SUMMARY.md)** | Historie změn VPS environment | Reference pro VPS dev setup |
+| Dokument                                                          | Účel                                        | Kdy použít                                |
+| ----------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| **[PRODUCTION-DEPLOYMENT.md](./guides/PRODUCTION-DEPLOYMENT.md)** | Kompletní průvodce pro production nasazení  | Při prvním deploymenty nebo major změnách |
+| **[DEPLOYMENT-CHECKLIST.md](./guides/DEPLOYMENT-CHECKLIST.md)**   | Checklist pro každý deployment              | Před KAŽDÝM production deploymentem       |
+| **[VPS-vs-PRODUCTION.md](./guides/VPS-vs-PRODUCTION.md)**         | Srovnání development a production prostředí | Pro pochopení rozdílů mezi prostředími    |
+| **[ENV-UPDATE-SUMMARY.md](../tmp/ENV-UPDATE-SUMMARY.md)**         | Historie změn VPS environment               | Reference pro VPS dev setup               |
 
 ---
 
@@ -70,35 +70,35 @@ curl -I https://app.orchideo.ppsys.eu
 
 ### Environment Files
 
-| Soubor | Prostředí | Status | Commited? |
-|--------|-----------|--------|-----------|
-| `.env.example` | Template | ✅ Kompletní | ✅ Yes |
-| `.env.production.template` | Production template | ✅ Kompletní | ✅ Yes |
-| `.env.vps` | VPS Development | ✅ Aktivní | ❌ No (gitignored) |
-| `.env.production` | Production | ⚠️ Vytvořit | ❌ No (gitignored) |
+| Soubor                     | Prostředí           | Status       | Commited?          |
+| -------------------------- | ------------------- | ------------ | ------------------ |
+| `.env.example`             | Template            | ✅ Kompletní | ✅ Yes             |
+| `.env.production.template` | Production template | ✅ Kompletní | ✅ Yes             |
+| `.env.vps`                 | VPS Development     | ✅ Aktivní   | ❌ No (gitignored) |
+| `.env.production`          | Production          | ⚠️ Vytvořit  | ❌ No (gitignored) |
 
 ### Docker Compose Files
 
-| Soubor | Prostředí | Účel |
-|--------|-----------|------|
-| `docker-compose.yml` | Base | Základní konfigurace (ne pro použití) |
-| `docker-compose.vps.yml` | VPS Dev | Development s hot reload |
-| `docker-compose.prod.yml` | Production | Production build s optimalizacemi |
+| Soubor                    | Prostředí  | Účel                                  |
+| ------------------------- | ---------- | ------------------------------------- |
+| `docker-compose.yml`      | Base       | Základní konfigurace (ne pro použití) |
+| `docker-compose.vps.yml`  | VPS Dev    | Development s hot reload              |
+| `docker-compose.prod.yml` | Production | Production build s optimalizacemi     |
 
 ### Dockerfiles
 
-| Soubor | Účel |
-|--------|------|
-| `Dockerfile` | Production multi-stage build |
-| `Dockerfile.dev` | Development s hot reload |
+| Soubor           | Účel                         |
+| ---------------- | ---------------------------- |
+| `Dockerfile`     | Production multi-stage build |
+| `Dockerfile.dev` | Development s hot reload     |
 
 ### Scripts
 
-| Script | Účel | Kdy použít |
-|--------|------|-----------|
-| `scripts/deploy-production.sh` | Automatizovaný production deployment | Production deployment |
-| `scripts/backup-database.sh` | Database backup | Manuálně nebo přes crontab |
-| `tmp/verify-env.sh` | Environment validace | Po změnách .env |
+| Script                         | Účel                                 | Kdy použít                 |
+| ------------------------------ | ------------------------------------ | -------------------------- |
+| `scripts/deploy-production.sh` | Automatizovaný production deployment | Production deployment      |
+| `scripts/backup-database.sh`   | Database backup                      | Manuálně nebo přes crontab |
+| `tmp/verify-env.sh`            | Environment validace                 | Po změnách .env            |
 
 ---
 
@@ -159,6 +159,7 @@ REPORT_EXPIRATION_DAYS=30
 **Status:** ✅ Running
 
 **Charakteristiky:**
+
 - Hot reload enabled
 - Debug logging
 - Local storage
@@ -166,6 +167,7 @@ REPORT_EXPIRATION_DAYS=30
 - X-Robots-Tag: noindex
 
 **Management:**
+
 ```bash
 cd /home/app/projects/orchideo
 
@@ -189,6 +191,7 @@ docker exec orchideo-postgres psql -U orchideo -d orchideo
 **Status:** ⚠️ Připravit
 
 **Charakteristiky:**
+
 - Production build
 - Info/warn logging
 - Cloudflare R2 storage
@@ -196,6 +199,7 @@ docker exec orchideo-postgres psql -U orchideo -d orchideo
 - Health checks enabled
 
 **Management:**
+
 ```bash
 cd /opt/orchideo
 
@@ -223,6 +227,7 @@ graph LR
 ```
 
 **Příkazy:**
+
 ```bash
 # Local
 git checkout stage
@@ -252,6 +257,7 @@ graph TD
 ```
 
 **Příkazy:**
+
 ```bash
 # 1. Prepare release
 git checkout main
@@ -280,6 +286,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml logs -f app
 ### Změna Environment Variable
 
 **VPS Dev:**
+
 ```bash
 cd /home/app/projects/orchideo
 nano .env.vps
@@ -288,6 +295,7 @@ docker compose --env-file .env.vps -f docker-compose.vps.yml restart app
 ```
 
 **Production:**
+
 ```bash
 cd /opt/orchideo
 nano .env.production
@@ -301,6 +309,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ### Database Migration
 
 **VPS Dev:**
+
 ```bash
 cd /home/app/projects/orchideo
 
@@ -312,6 +321,7 @@ docker exec orchideo-app npm run db:push
 ```
 
 **Production:**
+
 ```bash
 cd /opt/orchideo
 
@@ -327,6 +337,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml run --rm ap
 ### Database Backup & Restore
 
 **Backup:**
+
 ```bash
 ./scripts/backup-database.sh
 
@@ -338,6 +349,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml run --rm ap
 ```
 
 **Restore:**
+
 ```bash
 # List backups
 ls -lht /opt/orchideo/backups/
@@ -352,6 +364,7 @@ gunzip -c /opt/orchideo/backups/orchideo_20260131_020000.sql.gz | \
 ### View Logs
 
 **Real-time:**
+
 ```bash
 # VPS Dev
 docker compose --env-file .env.vps -f docker-compose.vps.yml logs -f app
@@ -361,6 +374,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml logs -f app
 ```
 
 **Last N lines:**
+
 ```bash
 # Last 100 lines
 docker compose --env-file .env.vps -f docker-compose.vps.yml logs app --tail 100
@@ -391,11 +405,13 @@ docker stats orchideo-app-prod orchideo-postgres-prod
 ### Problem: Environment Variable Not Set
 
 **Symptom:**
+
 ```
 Error: FACEBOOK_APP_SECRET is not set
 ```
 
 **Diagnosis:**
+
 ```bash
 # Check in container
 docker exec orchideo-app-prod env | grep FACEBOOK
@@ -405,6 +421,7 @@ grep FACEBOOK .env.production
 ```
 
 **Fix:**
+
 ```bash
 # Add to .env.production
 echo 'FACEBOOK_APP_SECRET="your_secret_here"' >> .env.production
@@ -418,11 +435,13 @@ docker compose --env-file .env.production -f docker-compose.prod.yml restart app
 ### Problem: Database Connection Failed
 
 **Symptom:**
+
 ```
 Error: P1001: Can't reach database server
 ```
 
 **Diagnosis:**
+
 ```bash
 # Check PostgreSQL container
 docker compose --env-file .env.production -f docker-compose.prod.yml ps postgres
@@ -432,6 +451,7 @@ grep DATABASE_URL .env.production
 ```
 
 **Fix:**
+
 ```bash
 # Verify PostgreSQL is running
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d postgres
@@ -445,11 +465,13 @@ docker exec orchideo-postgres-prod psql -U orchideo -d orchideo -c "SELECT 1;"
 ### Problem: Prisma Client Missing
 
 **Symptom:**
+
 ```
 Error: Cannot find module '@prisma/client'
 ```
 
 **Fix:**
+
 ```bash
 # Generate Prisma client
 docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run db:generate
@@ -463,15 +485,18 @@ docker compose --env-file .env.production -f docker-compose.prod.yml restart app
 ## 📞 Support & Contacts
 
 **Documentation:**
+
 - Main docs: `/docs/`
 - Deployment: `/docs/guides/PRODUCTION-DEPLOYMENT.md`
 - Checklist: `/docs/guides/DEPLOYMENT-CHECKLIST.md`
 
 **Scripts:**
+
 - Deploy: `./scripts/deploy-production.sh --help`
 - Backup: `./scripts/backup-database.sh --help`
 
 **Emergency Rollback:**
+
 ```bash
 # Stop current version
 docker compose --env-file .env.production -f docker-compose.prod.yml down

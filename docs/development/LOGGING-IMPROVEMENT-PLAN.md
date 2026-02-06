@@ -10,6 +10,7 @@
 ## Kontext
 
 **Současný stav:**
+
 - ✅ Pino v10.3.0 správně nakonfigurován
 - ✅ 68 logger instances napříč aplikací
 - ✅ Redaction tokenů funguje
@@ -19,6 +20,7 @@
 - ❌ Žádné helper funkce pro standardní operace
 
 **Problémy k řešení:**
+
 1. Error objects nejsou správně serializované (Pino vyžaduje klíč `err`)
 2. Duplikace error logging kódu
 3. Nekonzistentní naming convention pro context
@@ -50,12 +52,15 @@ export function serializeError(error: unknown): Record<string, unknown> {
       stack: error.stack,
       cause: error.cause ? serializeError(error.cause) : undefined,
       // Preserve any additional enumerable properties
-      ...Object.getOwnPropertyNames(error).reduce((acc, key) => {
-        if (!['name', 'message', 'stack', 'cause'].includes(key)) {
-          acc[key] = (error as any)[key]
-        }
-        return acc
-      }, {} as Record<string, unknown>),
+      ...Object.getOwnPropertyNames(error).reduce(
+        (acc, key) => {
+          if (!['name', 'message', 'stack', 'cause'].includes(key)) {
+            acc[key] = (error as any)[key]
+          }
+          return acc
+        },
+        {} as Record<string, unknown>
+      ),
     }
   }
 
@@ -237,11 +242,7 @@ export function logExternalApi(
 /**
  * Log business event (analysis started, PDF generated, etc.).
  */
-export function logBusinessEvent(
-  logger: Logger,
-  event: string,
-  context: LogContext
-): void {
+export function logBusinessEvent(logger: Logger, event: string, context: LogContext): void {
   logger.info(
     {
       ...context,
@@ -283,24 +284,20 @@ grep -r "catch.*{" src --include="*.ts" -A5 | grep "log\."
 #### 2.2 Migrace podle priority
 
 **High Priority (kritické API routes):**
+
 1. `src/app/api/report/[token]/pdf/route.ts`
 2. `src/app/api/analysis/create/route.ts`
 3. `src/app/api/email/send-report/route.ts`
 4. `src/lib/services/pdf/pdf-service.ts`
 
-**Medium Priority (business logic):**
-5. `src/lib/actions/analysis.ts`
-6. `src/lib/integrations/facebook/client.ts`
-7. `src/lib/integrations/facebook/insights.ts`
+**Medium Priority (business logic):** 5. `src/lib/actions/analysis.ts` 6. `src/lib/integrations/facebook/client.ts` 7. `src/lib/integrations/facebook/insights.ts`
 
-**Low Priority (ostatní):**
-8. Všechny ostatní API routes
-9. Server actions
-10. Utility functions
+**Low Priority (ostatní):** 8. Všechny ostatní API routes 9. Server actions 10. Utility functions
 
 #### 2.3 Migrační pattern
 
 **Před:**
+
 ```typescript
 import { createLogger } from '@/lib/logging'
 
@@ -309,12 +306,13 @@ const log = createLogger('pdf-service')
 try {
   // ...
 } catch (error) {
-  log.error({ error }, 'PDF generation failed')  // ❌
+  log.error({ error }, 'PDF generation failed') // ❌
   throw error
 }
 ```
 
 **Po:**
+
 ```typescript
 import { createLogger, logError } from '@/lib/logging'
 
@@ -323,7 +321,7 @@ const log = createLogger('pdf-service')
 try {
   // ...
 } catch (error) {
-  logError(log, error, 'PDF generation failed', { analysisId })  // ✅
+  logError(log, error, 'PDF generation failed', { analysisId }) // ✅
   throw error
 }
 ```
@@ -441,7 +439,7 @@ import { withRequestContext } from '@/lib/logging'
 export async function POST(request: Request) {
   const log = withRequestContext(createLogger('api-analysis'), request)
 
-  log.info('Creating analysis')  // automaticky includes request_id
+  log.info('Creating analysis') // automaticky includes request_id
 
   try {
     // ...
@@ -461,7 +459,7 @@ export async function POST(request: Request) {
 
 **Obsah:**
 
-```markdown
+````markdown
 # Logging Guide - Orchideo
 
 ## Quick Start
@@ -490,6 +488,7 @@ log.warn({ count: 5 }, 'Retry limit approaching')
 // ✅ Debug (only in LOG_LEVEL=debug)
 log.debug({ query: 'SELECT *' }, 'Database query')
 ```
+````
 
 ## Field Naming Conventions
 
@@ -499,15 +498,16 @@ Use constants from `LogFields`:
 import { LogFields } from '@/lib/logging'
 
 log.info({
-  [LogFields.userId]: user.id,        // ✅ user_id
+  [LogFields.userId]: user.id, // ✅ user_id
   [LogFields.analysisId]: analysis.id, // ✅ analysis_id
-  [LogFields.durationMs]: elapsed,     // ✅ duration_ms
+  [LogFields.durationMs]: elapsed, // ✅ duration_ms
 })
 ```
 
 ## DO NOT Log Sensitive Data
 
 ❌ Never log:
+
 - Passwords
 - Access tokens (auto-redacted but still avoid)
 - Credit card numbers
@@ -515,6 +515,7 @@ log.info({
 - Full IP addresses in production
 
 ✅ Always use:
+
 - User IDs instead of emails
 - Redacted tokens (first 8 chars)
 - Error messages without stack traces in production
@@ -535,11 +536,14 @@ logError(log, error, 'Failed', { userId })
 
 ```typescript
 // ✅ GOOD - searchable, structured
-log.info({
-  action: 'user_login',
-  user_id: '123',
-  ip_address: '1.2.3.4',
-}, 'User logged in')
+log.info(
+  {
+    action: 'user_login',
+    user_id: '123',
+    ip_address: '1.2.3.4',
+  },
+  'User logged in'
+)
 
 // ❌ BAD - hard to search, not structured
 log.info(`User 123 logged in from 1.2.3.4`)
@@ -550,22 +554,25 @@ log.info(`User 123 logged in from 1.2.3.4`)
 ```typescript
 const start = Date.now()
 const result = await expensiveOperation()
-log.info({
-  duration_ms: Date.now() - start,
-  result_count: result.length,
-}, 'Operation completed')
+log.info(
+  {
+    duration_ms: Date.now() - start,
+    result_count: result.length,
+  },
+  'Operation completed'
+)
 ```
 
 ## Log Levels
 
-| Level | When to use |
-|-------|-------------|
-| `fatal` | Application crash, cannot recover |
-| `error` | Operation failed, needs attention |
-| `warn` | Unexpected but handled (retry, fallback) |
-| `info` | Important business events (default) |
-| `debug` | Detailed debugging (development only) |
-| `trace` | Very verbose (rarely used) |
+| Level   | When to use                              |
+| ------- | ---------------------------------------- |
+| `fatal` | Application crash, cannot recover        |
+| `error` | Operation failed, needs attention        |
+| `warn`  | Unexpected but handled (retry, fallback) |
+| `info`  | Important business events (default)      |
+| `debug` | Detailed debugging (development only)    |
+| `trace` | Very verbose (rarely used)               |
 
 ## Environment Variables
 
@@ -579,7 +586,8 @@ LOG_LEVEL=info
 # Staging
 LOG_LEVEL=debug
 ```
-```
+
+````
 
 #### 4.2 Aktualizovat `README.md`
 
@@ -602,8 +610,9 @@ try {
 } catch (error) {
   logError(log, error, 'Operation failed', { userId })
 }
-```
-```
+````
+
+````
 
 #### 4.3 Aktualizovat `.env.example`
 
@@ -612,7 +621,7 @@ try {
 # Levels: fatal, error, warn, info, debug, trace
 # Development: debug | Production: info
 LOG_LEVEL=debug
-```
+````
 
 ---
 
@@ -697,7 +706,7 @@ describe('Logging integration', () => {
       err: {
         name: 'Error',
         message: 'Test error',
-      }
+      },
     })
   })
 })
@@ -734,6 +743,7 @@ docker logs orchideo-app | grep "test123"
 ## Implementační checklist
 
 ### Fáze 1: Logging utility ✅
+
 - [ ] Rozšířit `src/lib/logging/index.ts`
   - [ ] `serializeError()` function
   - [ ] `logError()` helper
@@ -747,6 +757,7 @@ docker logs orchideo-app | grep "test123"
 - [ ] Export all helpers
 
 ### Fáze 2: Migrace kódu ✅
+
 - [ ] Najít všechny `log.error({ error` patterny
 - [ ] Migrovat API routes (high priority)
   - [ ] `src/app/api/report/[token]/pdf/route.ts`
@@ -760,18 +771,21 @@ docker logs orchideo-app | grep "test123"
 - [ ] Migrovat ostatní soubory (68 total)
 
 ### Fáze 3: Request tracing ✅
+
 - [ ] Vytvořit `src/middleware/request-logger.ts`
 - [ ] Integrovat do main `middleware.ts`
 - [ ] Aktualizovat API routes použít `withRequestContext()`
 - [ ] Test request ID propagation
 
 ### Fáze 4: Dokumentace ✅
+
 - [ ] Vytvořit `docs/development/LOGGING-GUIDE.md`
 - [ ] Aktualizovat `README.md`
 - [ ] Aktualizovat `.env.example`
 - [ ] Code review checklist
 
 ### Fáze 5: Testing ✅
+
 - [ ] Unit tests pro helpers
 - [ ] Integration tests
 - [ ] Manual testing
@@ -782,45 +796,55 @@ docker logs orchideo-app | grep "test123"
 ## Migrace strategie
 
 ### Option 1: Big Bang (doporučeno pro malé projekty)
+
 Migrace všech souborů najednou v jednom PR.
 
 **Výhody:**
+
 - Konzistence okamžitě
 - Jeden PR k review
 
 **Nevýhody:**
+
 - Velký changeset
 - Riziko konfliktů
 
 ### Option 2: Incremental (doporučeno pro Orchideo)
+
 Migrace po vrstvách v několika PRech.
 
 **PR 1:** Logging helpers + dokumentace
+
 - Přidat všechny helper funkce
 - Přidat testy
 - Aktualizovat dokumentaci
 - **0 změn v existujícím kódu**
 
 **PR 2:** Migrace kritických routes
+
 - API routes (`/api/report`, `/api/analysis`, `/api/email`)
 - PDF service
 - **Validace na production**
 
 **PR 3:** Migrace business logic
+
 - Actions
 - Facebook integrace
 - **Validace na production**
 
 **PR 4:** Request tracing
+
 - Middleware
 - API route updates
 - **Validace na production**
 
 **PR 5:** Cleanup
+
 - Zbylé soubory
 - Deprecated patterns removal
 
 ### Option 3: Hybrid (recommended)
+
 **PR 1:** Infrastructure (helpers + docs) - merge ihned
 **PR 2:** Critical paths - merge po review
 **PR 3+:** Ostatní migrace - průběžně
@@ -832,6 +856,7 @@ Migrace po vrstvách v několika PRech.
 Pokud migrace způsobí problémy:
 
 ### Immediate rollback
+
 ```bash
 git revert <commit-hash>
 git push origin stage --force-with-lease
@@ -839,6 +864,7 @@ docker restart orchideo-app
 ```
 
 ### Partial rollback
+
 Pokud pouze část migrace je problematická:
 
 ```bash
@@ -849,6 +875,7 @@ git push
 ```
 
 ### Feature flag approach (optional)
+
 ```typescript
 // Add feature flag
 const USE_NEW_LOGGING = process.env.FEATURE_NEW_LOGGING === '1'
@@ -856,7 +883,7 @@ const USE_NEW_LOGGING = process.env.FEATURE_NEW_LOGGING === '1'
 if (USE_NEW_LOGGING) {
   logError(log, error, 'Message')
 } else {
-  log.error({ error }, 'Message')  // old way
+  log.error({ error }, 'Message') // old way
 }
 ```
 
@@ -882,6 +909,7 @@ Po dokončení migrace měřit:
    - Target: < 1ms per log call (Pino je už rychlé)
 
 **Monitoring:**
+
 ```bash
 # Count empty error objects in logs (production)
 docker logs orchideo-app | grep '"err":{}' | wc -l
@@ -896,16 +924,17 @@ docker logs orchideo-app | grep '"request_id"' | wc -l
 
 ## Timeline
 
-| Fáze | Čas | Popis |
-|------|-----|-------|
-| 1 | 1h | Logging helpers implementation |
-| 2 | 1.5h | Code migration (68 files) |
-| 3 | 45min | Request tracing middleware |
-| 4 | 30min | Documentation |
-| 5 | 30min | Testing & validation |
-| **Total** | **4h 15min** | End-to-end implementation |
+| Fáze      | Čas          | Popis                          |
+| --------- | ------------ | ------------------------------ |
+| 1         | 1h           | Logging helpers implementation |
+| 2         | 1.5h         | Code migration (68 files)      |
+| 3         | 45min        | Request tracing middleware     |
+| 4         | 30min        | Documentation                  |
+| 5         | 30min        | Testing & validation           |
+| **Total** | **4h 15min** | End-to-end implementation      |
 
 **Recommended schedule:**
+
 - **Den 1 (2h):** Fáze 1 + část Fáze 2 (critical routes)
 - **Den 2 (2h):** Dokončit Fáze 2 + Fáze 3
 - **Den 3 (30min):** Fáze 4 + Fáze 5

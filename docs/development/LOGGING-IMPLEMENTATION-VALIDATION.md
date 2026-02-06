@@ -12,15 +12,18 @@
 **Celkem:** 24 souborů upraveno + 3 dokumenty vytvořeny
 
 #### Nové soubory (3)
+
 1. `docs/development/LOGGING-GUIDE.md` - Kompletní průvodce
 2. `docs/development/LOGGING-QUICK-REFERENCE.md` - Rychlá reference
 3. `src/lib/logging/__tests__/logging.test.ts` - Unit testy
 
 #### Core logging (2)
+
 1. `src/lib/logging/index.ts` - Přidány helper funkce
 2. `middleware.ts` - Request ID tracing
 
 #### API Routes (12)
+
 1. `src/app/api/analysis/create/route.ts`
 2. `src/app/api/analysis/[id]/status/route.ts` ⭐ NEW
 3. `src/app/api/competitor-groups/route.ts`
@@ -35,6 +38,7 @@
 12. `src/app/api/user/alerts/[id]/route.ts`
 
 #### Services (6)
+
 1. `src/lib/services/analysis/runner.ts`
 2. `src/lib/services/analysis/status-manager.ts` ⭐ NEW
 3. `src/lib/services/snapshots/snapshot-service.ts` ⭐ NEW
@@ -43,6 +47,7 @@
 6. `src/lib/services/trends/trend-service.ts` ⭐ NEW
 
 #### Libraries (2)
+
 1. `src/lib/email/postmark.ts`
 2. `src/lib/actions/action-wrapper.ts` ⭐ NEW
 
@@ -62,17 +67,18 @@
 
 ### Rozdělení podle priority
 
-| Priorita | Soubory | Instance | Status |
-|----------|---------|----------|--------|
-| Critical | 5 | 5 | ✅ Hotovo |
-| Medium | 7 | 12 | ✅ Hotovo |
-| Low | 1 | 1 | ✅ Hotovo |
-| **Extra (validace)** | 8 | 8+ | ✅ Hotovo |
-| **CELKEM** | **21** | **26+** | ✅ |
+| Priorita             | Soubory | Instance | Status    |
+| -------------------- | ------- | -------- | --------- |
+| Critical             | 5       | 5        | ✅ Hotovo |
+| Medium               | 7       | 12       | ✅ Hotovo |
+| Low                  | 1       | 1        | ✅ Hotovo |
+| **Extra (validace)** | 8       | 8+       | ✅ Hotovo |
+| **CELKEM**           | **21**  | **26+**  | ✅        |
 
 ### Pattern migrace
 
 #### Před (❌)
+
 ```typescript
 catch (error) {
   log.error({ error }, 'Operation failed')
@@ -81,6 +87,7 @@ catch (error) {
 ```
 
 #### Po (✅)
+
 ```typescript
 import { logError, LogFields } from '@/lib/logging'
 
@@ -105,6 +112,7 @@ export function serializeError(error: unknown): Record<string, unknown>
 ```
 
 **Podporuje:**
+
 - ✅ Error instances (name, message, stack)
 - ✅ Nested causes (rekurzivní serializace)
 - ✅ Custom properties na Error objektech
@@ -124,6 +132,7 @@ export function logError(
 ```
 
 **Výhody:**
+
 - ✅ Automatická serializace erroru
 - ✅ Konzistentní struktura (`err` field pro Pino)
 - ✅ Snadné přidání kontextu
@@ -141,6 +150,7 @@ export function withRequestContext(
 ```
 
 **Automaticky přidává:**
+
 - `request_id` - unikátní ID požadavku
 - `user_agent` - browser info
 - `ip_address` - IP klienta
@@ -162,6 +172,7 @@ export const LogFields = {
 ```
 
 **Výhody:**
+
 - ✅ Konzistence napříč kódem
 - ✅ Type-safe (TypeScript autocomplete)
 - ✅ Snadný refactoring
@@ -202,17 +213,20 @@ export function middleware(request: NextRequest) {
 ### Kontroly provedené
 
 #### 1. Pattern search ✅
+
 ```bash
 # Hledání zbývajících starých patternů
 grep -r "log\.error({ error" src --include="*.ts"
 ```
 
 **Výsledek:** 3 zbývající instance jsou validní:
+
 - `FacebookApiError` - strukturovaný objekt (ne Error)
 - `Postmark API error` - API response (ne Error)
 - `Collection errors` - array strukturovaných objektů (ne Error)
 
 #### 2. Import konzistence ✅
+
 ```bash
 # Ověření importů
 find src -name "*.ts" -exec grep -l "logError" {} \;
@@ -223,6 +237,7 @@ find src -name "*.ts" -exec grep -l "logError" {} \;
 #### 3. LogFields usage ✅
 
 Příklady správného použití:
+
 ```typescript
 // ✅ V API routes
 logError(log, error, 'Failed', {
@@ -239,9 +254,10 @@ logError(log, error, 'Failed', {
 #### 4. Context capturing ✅
 
 Pattern implementován správně:
+
 ```typescript
 export async function POST(request: Request, { params }: Props) {
-  let userId: string | undefined    // ✅ Scope accessible in catch
+  let userId: string | undefined // ✅ Scope accessible in catch
   let resourceId: string | undefined
 
   try {
@@ -252,11 +268,10 @@ export async function POST(request: Request, { params }: Props) {
     resourceId = id
 
     // ... business logic ...
-
   } catch (error) {
     logError(log, error, 'Failed', {
-      [LogFields.userId]: userId,      // ✅ Dostupné
-      resource_id: resourceId,          // ✅ Dostupné
+      [LogFields.userId]: userId, // ✅ Dostupné
+      resource_id: resourceId, // ✅ Dostupné
     })
   }
 }
@@ -314,13 +329,15 @@ export async function POST(request: Request, { params }: Props) {
 ### Migrace je opt-in
 
 Starý kód:
+
 ```typescript
-log.error({ error }, 'Failed')  // Funguje, ale produkuje prázdné {}
+log.error({ error }, 'Failed') // Funguje, ale produkuje prázdné {}
 ```
 
 Nový kód:
+
 ```typescript
-logError(log, error, 'Failed')  // Lepší, ale není povinné
+logError(log, error, 'Failed') // Lepší, ale není povinné
 ```
 
 ---
@@ -334,6 +351,7 @@ logError(log, error, 'Failed')  // Lepší, ale není povinné
 **Impact:** Low (testy jsou napsány správně, jen nelze spustit)
 
 **Solution:**
+
 ```bash
 cd /home/app/projects/orchideo
 npm install
@@ -347,6 +365,7 @@ npm test src/lib/logging/__tests__/logging.test.ts
 **Impact:** Low (kód je type-safe podle struktury)
 
 **Solution:**
+
 ```bash
 npm install
 npm run type-check
@@ -359,6 +378,7 @@ npm run type-check
 **Impact:** None (jsou validní - nelogují Error objekty)
 
 **Locations:**
+
 - `facebook/pages/route.ts:71` - FacebookApiError properties
 - `email/postmark.ts:67` - Postmark API response
 - `analysis/runner.ts:165` - Array of error objects
@@ -370,11 +390,13 @@ npm run type-check
 Po instalaci dependencies:
 
 ### Unit testy
+
 ```bash
 npm test src/lib/logging/__tests__/logging.test.ts
 ```
 
 **Očekávaný výsledek:**
+
 - [x] `serializeError` - Error instances ✅
 - [x] `serializeError` - Nested causes ✅
 - [x] `serializeError` - Unknown types ✅
@@ -382,25 +404,30 @@ npm test src/lib/logging/__tests__/logging.test.ts
 - [x] `LogFields` - Constant values ✅
 
 ### Type check
+
 ```bash
 npm run type-check
 ```
 
 **Očekávaný výsledek:**
+
 - [x] No TypeScript errors ✅
 
 ### Build
+
 ```bash
 npm run build
 ```
 
 **Očekávaný výsledek:**
+
 - [x] Successful build ✅
 - [x] No runtime errors ✅
 
 ### Manual testing
 
 1. **Error serialization**
+
    ```bash
    # Trigger error endpoint
    curl -X POST http://localhost:3001/api/test-error
@@ -412,6 +439,7 @@ npm run build
    **Očekáváno:** Plný error objekt s message, stack, name
 
 2. **Request tracing**
+
    ```bash
    # Send request with custom ID
    curl -H "x-request-id: test-123" http://localhost:3001/api/health
@@ -423,6 +451,7 @@ npm run build
    **Očekáváno:** Request ID v logách
 
 3. **Log quality**
+
    ```bash
    # Count empty error objects (should be 0)
    docker logs orchideo-app | grep '"err":{}' | wc -l

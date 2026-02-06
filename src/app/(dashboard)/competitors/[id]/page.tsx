@@ -47,10 +47,7 @@ export default async function CompetitorDetailPage({ params }: Props) {
     <div className="container py-12">
       <div className="mx-auto max-w-6xl">
         <Breadcrumbs
-          items={[
-            { label: 'Porovnání', href: '/competitors' },
-            { label: group.name },
-          ]}
+          items={[{ label: 'Porovnání', href: '/competitors' }, { label: group.name }]}
         />
         <ComparisonView groupId={id} />
       </div>

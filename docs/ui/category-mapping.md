@@ -18,6 +18,7 @@ tags: [ui, components, mapping, badges]
 Facebook poskytuje vlastní kategorie stránek (např. "Restaurant", "Beauty Salon"), které Orchideo mapuje na 9 interních Industry kódů pro oborové benchmarky.
 
 **Účel komponent:**
+
 - Transparentní zobrazení, jak FB kategorie mapuje na benchmark
 - Reference všech 220+ mapování pro uživatele
 - Konzistentní vizualizace napříč aplikací
@@ -41,32 +42,26 @@ interface CategoryMappingBadgeProps {
 }
 ```
 
-| Prop           | Type          | Default     | Description                                      |
-| -------------- | ------------- | ----------- | ------------------------------------------------ |
-| `fbCategory`   | string ∣ null | -           | Facebook kategorie (např. "Restaurant")          |
-| `industryCode` | IndustryCode  | -           | Mapped industry kód                              |
-| `variant`      | string        | 'compact'   | 'compact' nebo 'full' (s labely)                 |
-| `className`    | string?       | undefined   | Additional CSS classes                           |
+| Prop           | Type          | Default   | Description                             |
+| -------------- | ------------- | --------- | --------------------------------------- |
+| `fbCategory`   | string ∣ null | -         | Facebook kategorie (např. "Restaurant") |
+| `industryCode` | IndustryCode  | -         | Mapped industry kód                     |
+| `variant`      | string        | 'compact' | 'compact' nebo 'full' (s labely)        |
+| `className`    | string?       | undefined | Additional CSS classes                  |
 
 ### Variants
 
 **Compact** (default):
+
 ```tsx
-<CategoryMappingBadge
-  fbCategory="Restaurant"
-  industryCode="FOOD_RESTAURANT"
-  variant="compact"
-/>
+<CategoryMappingBadge fbCategory="Restaurant" industryCode="FOOD_RESTAURANT" variant="compact" />
 // Zobrazí: [Restaurant] → [Restaurace a jídlo]
 ```
 
 **Full** (with labels):
+
 ```tsx
-<CategoryMappingBadge
-  fbCategory="Restaurant"
-  industryCode="FOOD_RESTAURANT"
-  variant="full"
-/>
+<CategoryMappingBadge fbCategory="Restaurant" industryCode="FOOD_RESTAURANT" variant="full" />
 // Zobrazí: FB kategorie: [Restaurant] → Obor: [Restaurace a jídlo]
 ```
 
@@ -189,6 +184,7 @@ formatCategoryMapping(fbCategory: string | null): {
 #### GROUPED_MAPPINGS
 
 Pre-computed při module load:
+
 ```typescript
 const GROUPED_MAPPINGS = (() => {
   const grouped: Record<IndustryCode, string[]> = { ... }
@@ -234,11 +230,13 @@ getIndustryNameSafe(code: string | null | undefined): string
 #### When to Use
 
 ✅ **USE sanitizeIndustryCode() když:**
+
 - Čteš `industry_code` z databáze
 - Přijímáš industry code z API/form input
 - Passing code do komponenty očekávající IndustryCode
 
 ❌ **DON'T USE unsafe type assertion:**
+
 ```typescript
 // ❌ WRONG
 const code = dbValue as IndustryCode
@@ -297,13 +295,13 @@ title={sanitizedCategory}
 
 ## Performance
 
-| Operation                  | Complexity | Notes                                    |
-| -------------------------- | ---------- | ---------------------------------------- |
-| `getGroupedMappings()`     | O(1)       | Pre-computed at module load              |
-| `getIndustryFromFbCategory` direct match | O(1)       | Hashmap lookup                           |
-| `getIndustryFromFbCategory` case-insensitive | O(n)       | Iterates FB_CATEGORY_MAP (220 entries)   |
-| `getIndustryFromFbCategory` partial match | O(n²)      | Worst case, rare                         |
-| `sanitizeIndustryCode()`   | O(1)       | `code in INDUSTRIES` check               |
+| Operation                                    | Complexity | Notes                                  |
+| -------------------------------------------- | ---------- | -------------------------------------- |
+| `getGroupedMappings()`                       | O(1)       | Pre-computed at module load            |
+| `getIndustryFromFbCategory` direct match     | O(1)       | Hashmap lookup                         |
+| `getIndustryFromFbCategory` case-insensitive | O(n)       | Iterates FB_CATEGORY_MAP (220 entries) |
+| `getIndustryFromFbCategory` partial match    | O(n²)      | Worst case, rare                       |
+| `sanitizeIndustryCode()`                     | O(1)       | `code in INDUSTRIES` check             |
 
 **Future optimization**: Lowercase cache pro case-insensitive lookup.
 

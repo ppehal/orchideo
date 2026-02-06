@@ -73,7 +73,9 @@ export default async function CompetitorsPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Porovnání konkurentů</h1>
-            <p className="text-muted-foreground mt-2">Porovnejte výkon vaší stránky s konkurencí.</p>
+            <p className="text-muted-foreground mt-2">
+              Porovnejte výkon vaší stránky s konkurencí.
+            </p>
           </div>
           <CreateGroupButton pages={pages} />
         </div>

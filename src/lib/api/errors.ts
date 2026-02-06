@@ -59,11 +59,7 @@ export const ApiErrors = {
    * 404 Not Found - Resource doesn't exist
    */
   NOT_FOUND: (resource?: string) =>
-    new ApiError(
-      404,
-      'NOT_FOUND',
-      resource ? `${resource} nenalezen` : 'Nenalezeno'
-    ),
+    new ApiError(404, 'NOT_FOUND', resource ? `${resource} nenalezen` : 'Nenalezeno'),
 
   /**
    * 400 Bad Request - Invalid input data
@@ -92,21 +88,13 @@ export const ApiErrors = {
    * 410 Gone - Resource expired or permanently deleted
    */
   GONE: (resource?: string) =>
-    new ApiError(
-      410,
-      'GONE',
-      resource ? `${resource} vypršel` : 'Zdroj vypršel'
-    ),
+    new ApiError(410, 'GONE', resource ? `${resource} vypršel` : 'Zdroj vypršel'),
 
   /**
    * 500 Internal Server Error - Generic server error
    */
   INTERNAL_ERROR: (details?: string) =>
-    new ApiError(
-      500,
-      'INTERNAL_ERROR',
-      details || 'Interní chyba serveru'
-    ),
+    new ApiError(500, 'INTERNAL_ERROR', details || 'Interní chyba serveru'),
 
   /**
    * 503 Service Unavailable - External service unavailable

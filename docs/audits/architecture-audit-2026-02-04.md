@@ -18,6 +18,7 @@ Projekt **Orchideo FB Triggers** má **architekturu vysoké kvality** s jasně d
 - ✅ **Dokumentace** - ADRs, LEARNINGS, Diataxis framework
 
 **Hlavní oblasti pro zlepšení:**
+
 - ⚠️ Test coverage (pouze 18 test files, chybí Trigger Engine tests)
 - ⚠️ Monitoring & observability (chybí request tracing, metriky)
 - ⚠️ Performance optimizations (polling → SSE, N+1 queries)
@@ -84,6 +85,7 @@ Projekt **Orchideo FB Triggers** má **architekturu vysoké kvality** s jasně d
 ```
 
 **Metriky:**
+
 - TypeScript/TSX files: **306** (validováno)
 - Total components: **79** (validováno)
 - Prisma models: **15** (validováno)
@@ -93,6 +95,7 @@ Projekt **Orchideo FB Triggers** má **architekturu vysoké kvality** s jasně d
 - Test files: **18** (validováno)
 
 **Hodnocení struktury:** 9/10
+
 - ✅ Clear separation of concerns
 - ✅ Feature-based component organization
 - ✅ Centralized business logic in `lib/services/`
@@ -149,6 +152,7 @@ interface ActionResult<T = unknown> {
 ```
 
 **10 Server Actions:**
+
 1. `createAnalysis()` - Analysis workflow
 2. `updateAlert()` - Alert management
 3. `createCompetitorGroup()` - Competitor CRUD
@@ -156,6 +160,7 @@ interface ActionResult<T = unknown> {
 5. ... (další v `src/lib/actions/`)
 
 **Error Handling Pattern:**
+
 ```typescript
 // ✅ Mutation - MUSÍ vracet ActionResult
 export async function createAnalysis(...): Promise<ActionResult> {
@@ -193,26 +198,27 @@ export function getAllTriggers(): TriggerRule[] {
 
 // TriggerRule Interface
 interface TriggerRule {
-  id: string                    // "BASIC_001", "TECH_003"
-  name: string                  // Display name
-  description: string           // What it measures
-  category: TriggerCategory     // BASIC, CONTENT, TECHNICAL, ...
-  evaluate: (input: TriggerInput) => TriggerEvaluation  // Pure function
+  id: string // "BASIC_001", "TECH_003"
+  name: string // Display name
+  description: string // What it measures
+  category: TriggerCategory // BASIC, CONTENT, TECHNICAL, ...
+  evaluate: (input: TriggerInput) => TriggerEvaluation // Pure function
 }
 ```
 
 **30+ Trigger Rules organizovány do kategorií:**
 
-| Kategorie | Váha | Příklady |
-|-----------|------|----------|
-| BASIC | 35% | Engagement rate, reaction structure, comments |
-| CONTENT | 30% | Top posts, weak posts, post formats |
-| TECHNICAL | 20% | Visual sizes, inline links, emoji usage |
-| TIMING | 5% | Best hours, posting frequency, best days |
-| SHARING | 5% | Shared posts analysis |
-| PAGE_SETTINGS | 5% | Profile photo, cover photo |
+| Kategorie     | Váha | Příklady                                      |
+| ------------- | ---- | --------------------------------------------- |
+| BASIC         | 35%  | Engagement rate, reaction structure, comments |
+| CONTENT       | 30%  | Top posts, weak posts, post formats           |
+| TECHNICAL     | 20%  | Visual sizes, inline links, emoji usage       |
+| TIMING        | 5%   | Best hours, posting frequency, best days      |
+| SHARING       | 5%   | Shared posts analysis                         |
+| PAGE_SETTINGS | 5%   | Profile photo, cover photo                    |
 
 **Struktura pravidel:**
+
 ```
 src/lib/triggers/rules/
 ├── basic/
@@ -232,6 +238,7 @@ src/lib/triggers/rules/
 ```
 
 **Design Principles:**
+
 1. ✅ **Pure Functions** - žádné side effects v evaluate()
 2. ✅ **No Throwing** - fallback evaluations místo výjimek
 3. ✅ **Self-Documenting** - každé pravidlo má name, description
@@ -269,6 +276,7 @@ src/lib/triggers/rules/
 ```
 
 **Hodnocení:** 8/10
+
 - ✅ Clear pipeline stages
 - ✅ Separation of concerns
 - ⚠️ Chybějící retry logic pro API failures
@@ -277,6 +285,7 @@ src/lib/triggers/rules/
 ### 2.5 Data Fetching Strategie
 
 **Server Components (Synchronní):**
+
 ```typescript
 // ✅ Preferred approach
 const session = await auth()
@@ -285,6 +294,7 @@ const analysis = await prisma.analysis.findUnique({ where: { id } })
 ```
 
 **API Routes (Asynchronní):**
+
 ```typescript
 // Pro long-running operations
 POST /api/analysis/create  → { id: "..." }
@@ -292,6 +302,7 @@ GET  /api/analysis/[id]/status → { status: "ANALYZING", progress: 60 }
 ```
 
 **Polling Pattern:**
+
 ```typescript
 // ⚠️ Client polls for analysis status
 useEffect(() => {
@@ -304,6 +315,7 @@ useEffect(() => {
 ```
 
 **Hodnocení:** 7/10
+
 - ✅ Good use of Server Components
 - ⚠️ Polling creates DB pressure → consider SSE/WebSocket
 
@@ -314,6 +326,7 @@ useEffect(() => {
 ### 3.1 TypeScript Configuration
 
 **tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -328,6 +341,7 @@ useEffect(() => {
 ```
 
 **Observace:**
+
 - ✅ Všech 306 TS + TSX souborů kompiluje bez `any`
 - ✅ Používá `unknown` type + type guards
 - ✅ Strict null checks → nullable pole jsou `Date | null` (ne `Date?`)
@@ -337,6 +351,7 @@ useEffect(() => {
 ### 3.2 Zod Runtime Validation
 
 **API Boundaries:**
+
 ```typescript
 // src/lib/validators/
 const requestSchema = z.object({
@@ -355,6 +370,7 @@ if (!parsed.success) {
 ### 3.3 Prisma Generated Types
 
 **Schema.prisma → Generated Types:**
+
 ```typescript
 import type { Analysis, TriggerResult, Prisma } from '@/generated/prisma'
 
@@ -368,6 +384,7 @@ const results: TriggerResult[] = await prisma.triggerResult.findMany(...)
 ### 3.4 Constants - Single Source of Truth
 
 **Pattern:**
+
 ```typescript
 // src/lib/constants/trigger-categories/basic-001.ts
 export const BASIC_001_LABELS = {
@@ -392,12 +409,14 @@ import { BASIC_001_LABELS } from '@/lib/constants/...'
 ### 4.1 Authentication & Authorization
 
 **NextAuth.js v5:**
+
 - ✅ Facebook OAuth (config_id for Login for Business)
 - ✅ Google OAuth
 - ✅ Prisma adapter for session storage
 - ⚠️ **Middleware.ts neexistuje** - auth protection v Server Components
 
 **Token Management:**
+
 ```typescript
 // src/lib/utils/encryption.ts
 - AES-256-GCM encryption
@@ -406,17 +425,19 @@ import { BASIC_001_LABELS } from '@/lib/constants/...'
 ```
 
 **Scopes:**
+
 ```typescript
 facebook: {
   authorization: {
     params: {
-      scope: "email,pages_show_list,pages_read_engagement,pages_read_user_content,read_insights"
+      scope: 'email,pages_show_list,pages_read_engagement,pages_read_user_content,read_insights'
     }
   }
 }
 ```
 
 **Hodnocení:** 8/10
+
 - ✅ Encrypted tokens
 - ✅ Minimal PII storage
 - ✅ Proper scopes
@@ -425,6 +446,7 @@ facebook: {
 ### 4.2 Rate Limiting
 
 **Implementation:**
+
 ```typescript
 // src/lib/utils/rate-limiter.ts
 - In-memory rate limiter per user
@@ -433,6 +455,7 @@ facebook: {
 ```
 
 **Hodnocení:** 8/10
+
 - ✅ Basic rate limiting implemented
 - ⚠️ In-memory → loses state on restart
 - ⚠️ Consider Redis for distributed rate limiting
@@ -440,6 +463,7 @@ facebook: {
 ### 4.3 Logging & Redaction
 
 **Pino Configuration:**
+
 ```typescript
 // src/lib/logging/index.ts
 redact: {
@@ -460,6 +484,7 @@ redact: {
 ### 4.4 API Security
 
 **External API Calls:**
+
 ```typescript
 // ✅ GOOD: Timeout protection
 const response = await fetch(url, {
@@ -467,10 +492,11 @@ const response = await fetch(url, {
 })
 
 // ❌ BAD: Žádný timeout
-const response = await fetch(url)  // Může viset donekonečna
+const response = await fetch(url) // Může viset donekonečna
 ```
 
 **Hodnocení:** 8/10
+
 - ✅ Timeouts na Facebook API calls
 - ⚠️ Zkontrolovat všechny fetch calls (některé mohou chybět timeout)
 
@@ -496,6 +522,7 @@ const response = await fetch(url)  // Může viset donekonečna
 **✅ Silné stránky:**
 
 1. **Proper nullable dates:**
+
 ```prisma
 model Analysis {
   started_at    DateTime?  // ✅ Correct
@@ -505,6 +532,7 @@ model Analysis {
 ```
 
 2. **Unique constraints:**
+
 ```prisma
 model TriggerResult {
   @@unique([analysisId, trigger_code])  // ✅ Prevents duplicates
@@ -516,6 +544,7 @@ model CompetitorPage {
 ```
 
 3. **Proper indexing:**
+
 ```prisma
 model Analysis {
   @@index([userId])
@@ -526,6 +555,7 @@ model Analysis {
 ```
 
 4. **Cascade deletions:**
+
 ```prisma
 facebookPage FacebookPage? @relation(..., onDelete: SetNull)
 user User @relation(..., onDelete: Cascade)
@@ -534,6 +564,7 @@ user User @relation(..., onDelete: Cascade)
 **⚠️ Oblasti ke zvážení:**
 
 1. **Denormalizace v AnalysisSnapshot:**
+
 ```prisma
 model AnalysisSnapshot {
   overall_score   Int      // ← Duplicate of Analysis.overall_score
@@ -541,9 +572,11 @@ model AnalysisSnapshot {
   avg_reactions   Float?   // ← Computed metric
 }
 ```
+
 **Důvod:** OK pro historical trends, ale maintain consistency checks
 
 2. **Chybějící constraints:**
+
 ```prisma
 model TrendAlert {
   // ⚠️ Žádná rate limit constraint v DB
@@ -553,6 +586,7 @@ model TrendAlert {
 ```
 
 **Hodnocení:** 9/10
+
 - ✅ Well-designed schema
 - ✅ Proper constraints
 - ✅ Good indexing strategy
@@ -565,6 +599,7 @@ model TrendAlert {
 ### 6.1 Diataxis Framework Implementation
 
 **Struktura:**
+
 ```
 docs/
 ├── README.md                   # Index + quick links
@@ -608,6 +643,7 @@ docs/
 ```
 
 **Hodnocení:** 9/10
+
 - ✅ Excellent organization (Diataxis)
 - ✅ ADRs for key decisions
 - ✅ LEARNINGS for gotchas
@@ -617,6 +653,7 @@ docs/
 ### 6.2 CLAUDE.md Quality
 
 **Obsah:**
+
 - ✅ Quick reference (~6 KB)
 - ✅ Technology stack table
 - ✅ Allowed commands (git, npm, docker)
@@ -658,17 +695,19 @@ docs/
 ### 7.1 Identified Issues
 
 **1. N+1 Query Risk:**
+
 ```typescript
 // ⚠️ Loop fetches insights per post
 for (const post of posts) {
-  const insights = await fetchPostInsights(post.id)  // N API calls
+  const insights = await fetchPostInsights(post.id) // N API calls
 }
 
 // ✅ Better: Batch fetch
-const insights = await fetchPostInsightsBatch(posts.map(p => p.id))
+const insights = await fetchPostInsightsBatch(posts.map((p) => p.id))
 ```
 
 **2. Polling for Analysis Status:**
+
 ```typescript
 // ⚠️ Client polls every 2 seconds
 setInterval(() => fetch(`/api/analysis/${id}/status`), 2000)
@@ -679,10 +718,12 @@ eventSource.onmessage = (e) => updateStatus(JSON.parse(e.data))
 ```
 
 **Impact:**
+
 - Polling: 30 requests/minute per client → DB pressure
 - N+1: Slower analysis, more API calls to Facebook
 
 **3. Puppeteer Heavyweight:**
+
 ```typescript
 // ⚠️ @sparticuz/chromium + puppeteer ~700MB
 import puppeteer from 'puppeteer'
@@ -692,6 +733,7 @@ import chromium from '@sparticuz/chromium'
 ```
 
 **Hodnocení:** 7/10
+
 - ✅ Generally performant
 - ⚠️ Polling should be replaced
 - ⚠️ Batch optimizations needed
@@ -699,10 +741,12 @@ import chromium from '@sparticuz/chromium'
 ### 7.2 Database Performance
 
 **Indexing:**
+
 - ✅ Key fields indexed (userId, status, public_token)
 - ✅ Composite indexes for common queries
 
 **Queries:**
+
 - ✅ Prisma generates efficient SQL
 - ⚠️ Monitor for slow queries in production
 
@@ -715,6 +759,7 @@ import chromium from '@sparticuz/chromium'
 ### 8.1 Current State
 
 **Logging:**
+
 - ✅ Pino structured logging
 - ✅ ISO timestamps
 - ✅ Secret redaction
@@ -723,6 +768,7 @@ import chromium from '@sparticuz/chromium'
 **What's Missing:**
 
 1. **Request Tracing:**
+
 ```typescript
 // ❌ No request_id propagation
 // ✅ Should add:
@@ -732,6 +778,7 @@ log.info({ request_id: requestId }, 'Request started')
 ```
 
 2. **Performance Metrics:**
+
 ```typescript
 // ❌ No metrics for:
 - Analysis completion time
@@ -741,15 +788,18 @@ log.info({ request_id: requestId }, 'Request started')
 ```
 
 3. **APM Integration:**
+
 - ❌ No Datadog, NewRelic, or Sentry integration
 - ❌ No distributed tracing
 
 4. **Health Checks:**
+
 - ❌ No `/health` endpoint
 - ❌ No database connection check
 - ❌ No external API connectivity check
 
 **Hodnocení:** 5/10
+
 - ✅ Good logging foundation
 - ❌ Missing observability tools
 - ❌ No performance monitoring
@@ -761,10 +811,12 @@ log.info({ request_id: requestId }, 'Request started')
 ### 9.1 Current State
 
 **Test Files:** **18** (validováno)
+
 - 18 test souborů existuje
 - Zahrnuje: logging tests, utility tests, validator tests
 
 **Přesto chybí klíčové testy:**
+
 1. ❌ Trigger Engine unit tests (žádné testy pro 30+ rules)
 2. ❌ Analysis pipeline integration tests
 3. ❌ Server Actions tests
@@ -773,15 +825,18 @@ log.info({ request_id: requestId }, 'Request started')
 6. ❌ E2E tests (Playwright/Cypress)
 
 **Test Infrastructure:**
+
 - ✅ Vitest configured
 - ✅ MSW for API mocking (installed but not used)
 - ✅ 18 test files exist
 
 **Hodnocení:** 5/10 ⚠️
+
 - ⚠️ Test files exist, ale chybí coverage pro kritické oblasti (Trigger Engine!)
 - ✅ Good foundation (Vitest, MSW available)
 
 **Doporučení:**
+
 ```bash
 # Target coverage:
 - Unit tests: 60%+ (triggers, utils, validators)
@@ -796,12 +851,14 @@ log.info({ request_id: requestId }, 'Request started')
 ### 10.1 VPS Setup
 
 **Environment:**
+
 - Docker Compose (`docker-compose.vps.yml`)
 - PostgreSQL 16
 - App container s hot reload
 - Nginx reverse proxy
 
 **Quick Commands:**
+
 ```bash
 ./QUICK-START.sh status    # Container status
 ./QUICK-START.sh logs      # Application logs
@@ -810,6 +867,7 @@ log.info({ request_id: requestId }, 'Request started')
 ```
 
 **Hodnocení:** 9/10
+
 - ✅ Well-documented VPS setup
 - ✅ Quick commands script
 - ✅ Database backup automation
@@ -817,12 +875,14 @@ log.info({ request_id: requestId }, 'Request started')
 ### 10.2 CI/CD
 
 **GitHub Actions:**
+
 - ✅ Lint + type-check
 - ✅ Prettier
 - ✅ npm audit
 - ⚠️ **No tests** (testy nejsou součástí CI)
 
 **Hodnocení:** 7/10
+
 - ✅ Basic CI checks
 - ❌ Missing test runs (protože chybí klíčové testy)
 
@@ -833,25 +893,30 @@ log.info({ request_id: requestId }, 'Request started')
 ### 11.1 Key Dependencies
 
 **Frontend:**
+
 - next: 16.1.6 ✅ (latest stable)
 - react: 19.2.3 ✅ (latest)
 - typescript: 5.x ✅
 
 **Backend:**
+
 - @auth/prisma-adapter: latest ✅
 - prisma: 6.19.2 ✅
 - pino: latest ✅
 
 **UI:**
-- @radix-ui/*: latest ✅ (shadcn/ui base)
+
+- @radix-ui/\*: latest ✅ (shadcn/ui base)
 - tailwindcss: 4.x ✅
 - lucide-react: latest ✅
 
 **Heavy:**
+
 - puppeteer: ~700MB ⚠️
 - @sparticuz/chromium: ~700MB ⚠️
 
 **Hodnocení:** 8/10
+
 - ✅ Up-to-date dependencies
 - ⚠️ Puppeteer heavyweight (consider external service)
 
@@ -1007,6 +1072,7 @@ npm audit
 **Cíl:** 60%+ code coverage
 
 **Akce:**
+
 ```bash
 # Phase 1: Trigger Engine Unit Tests
 src/lib/triggers/__tests__/
@@ -1028,6 +1094,7 @@ src/app/api/__tests__/
 ```
 
 **Tools:**
+
 - Vitest (already configured)
 - MSW for API mocking
 - @testing-library/react for components
@@ -1039,6 +1106,7 @@ src/app/api/__tests__/
 **Cíl:** Correlation ID propagation skrz všechny layers
 
 **Akce:**
+
 ```typescript
 // 1. Middleware generates request_id
 // src/middleware.ts
@@ -1063,17 +1131,20 @@ log.info('Processing request')
 **Cíl:** Centrální auth protection
 
 **Akce:**
+
 ```typescript
 // src/middleware.ts
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // Public paths
-  if (path.startsWith('/api/auth') ||
-      path.startsWith('/_next') ||
-      path === '/' ||
-      path === '/privacy' ||
-      path === '/terms') {
+  if (
+    path.startsWith('/api/auth') ||
+    path.startsWith('/_next') ||
+    path === '/' ||
+    path === '/privacy' ||
+    path === '/terms'
+  ) {
     return NextResponse.next()
   }
 
@@ -1082,7 +1153,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
 ```
 
@@ -1093,6 +1164,7 @@ export const config = {
 **Cíl:** Prevent spam abuse
 
 **Akce:**
+
 ```typescript
 // src/lib/email/rate-limiter.ts
 const EMAIL_RATE_LIMIT = 10 // per hour
@@ -1114,6 +1186,7 @@ export async function checkEmailRateLimit(userId: string): Promise<boolean> {
 **Cíl:** Real-time status updates bez DB pressure
 
 **Akce:**
+
 ```typescript
 // API Route: /api/analysis/[id]/stream
 export async function GET(request: Request) {
@@ -1122,10 +1195,10 @@ export async function GET(request: Request) {
     async start(controller) {
       // Subscribe to analysis updates
       // Send SSE events: data: {"status":"ANALYZING","progress":60}\n\n
-    }
+    },
   })
   return new Response(stream, {
-    headers: { 'Content-Type': 'text/event-stream' }
+    headers: { 'Content-Type': 'text/event-stream' },
   })
 }
 
@@ -1141,6 +1214,7 @@ eventSource.onmessage = (e) => setStatus(JSON.parse(e.data))
 **Cíl:** Snížit počet API calls k Facebooku
 
 **Akce:**
+
 ```typescript
 // Before:
 for (const post of posts) {
@@ -1148,7 +1222,7 @@ for (const post of posts) {
 }
 
 // After:
-const insights = await fetchPostInsightsBatch(posts.map(p => p.id))
+const insights = await fetchPostInsightsBatch(posts.map((p) => p.id))
 ```
 
 **Estimated effort:** 1-2 days
@@ -1158,6 +1232,7 @@ const insights = await fetchPostInsightsBatch(posts.map(p => p.id))
 **Cíl:** Konzistentní error handling
 
 **Akce:**
+
 ```typescript
 // src/lib/api/errors.ts
 class ApiError extends Error {
@@ -1165,17 +1240,16 @@ class ApiError extends Error {
     public statusCode: number,
     public code: string,
     message: string
-  ) { super(message) }
+  ) {
+    super(message)
+  }
 }
 
 // Usage:
 throw new ApiError(401, 'UNAUTHORIZED', 'Nepřihlášen')
 
 // Middleware catches and formats:
-return NextResponse.json(
-  { error: err.message, code: err.code },
-  { status: err.statusCode }
-)
+return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
 ```
 
 **Estimated effort:** 1 day
@@ -1189,6 +1263,7 @@ return NextResponse.json(
 **Cíl:** Unified utils structure
 
 **Akce:**
+
 ```bash
 # Move everything to lib/utils/
 src/lib/utils/
@@ -1208,6 +1283,7 @@ src/lib/utils/
 **Cíl:** Capture edge cases a debugging knowledge
 
 **Akce:**
+
 - Document gotchas as they're discovered
 - Target: 10+ entries v LEARNINGS.md
 
@@ -1218,6 +1294,7 @@ src/lib/utils/
 **Cíl:** Persistent rate limits
 
 **Akce:**
+
 ```typescript
 // Install: npm install ioredis
 import Redis from 'ioredis'
@@ -1242,6 +1319,7 @@ export async function checkRateLimit(userId: string) {
 **Cíl:** Reduce Docker image size
 
 **Alternativy:**
+
 - wkhtmltopdf
 - Gotenberg (Docker-based PDF service)
 - PDFtk
@@ -1253,6 +1331,7 @@ export async function checkRateLimit(userId: string) {
 **Cíl:** Production monitoring
 
 **Tools:**
+
 - Datadog
 - New Relic
 - Sentry
@@ -1265,43 +1344,44 @@ export async function checkRateLimit(userId: string) {
 
 ### 15.1 Souhrnné Hodnocení
 
-| Oblast | Skóre | Stav |
-|--------|-------|------|
-| **Architektura** | 9/10 | ✅ Excellent |
-| **Type Safety** | 10/10 | ✅ Excellent |
-| **Code Organization** | 9/10 | ✅ Excellent |
-| **Error Handling** | 9/10 | ✅ Excellent |
-| **Security** | 8/10 | ✅ Good |
-| **Database Schema** | 9/10 | ✅ Excellent |
-| **Documentation** | 9/10 | ✅ Excellent |
-| **Performance** | 7/10 | 🟡 Good |
-| **Monitoring** | 5/10 | ⚠️ Needs Improvement |
-| **Test Coverage** | 5/10 | ⚠️ Needs Improvement |
-| **Deployment** | 9/10 | ✅ Excellent |
+| Oblast                | Skóre | Stav                 |
+| --------------------- | ----- | -------------------- |
+| **Architektura**      | 9/10  | ✅ Excellent         |
+| **Type Safety**       | 10/10 | ✅ Excellent         |
+| **Code Organization** | 9/10  | ✅ Excellent         |
+| **Error Handling**    | 9/10  | ✅ Excellent         |
+| **Security**          | 8/10  | ✅ Good              |
+| **Database Schema**   | 9/10  | ✅ Excellent         |
+| **Documentation**     | 9/10  | ✅ Excellent         |
+| **Performance**       | 7/10  | 🟡 Good              |
+| **Monitoring**        | 5/10  | ⚠️ Needs Improvement |
+| **Test Coverage**     | 5/10  | ⚠️ Needs Improvement |
+| **Deployment**        | 9/10  | ✅ Excellent         |
 
 **Celkové hodnocení:** **8.3/10** (Very Good)
 
 ### 15.2 Code Metrics (Validováno)
 
-| Metrika | Hodnota |
-|---------|---------|
-| TypeScript/TSX files | **306** (validováno) |
-| Total components | **79** (validováno) |
-| Prisma models | **15** (validováno) |
-| Server Actions | 10 |
-| API Routes | **14** (validováno) |
-| Trigger rules | 30+ |
-| Test files | **18** (validováno) |
-| ADRs | 4 |
-| LEARNINGS entries | 2 |
-| Documentation pages | 20+ |
-| Environment variables | **23** (validováno) |
+| Metrika               | Hodnota              |
+| --------------------- | -------------------- |
+| TypeScript/TSX files  | **306** (validováno) |
+| Total components      | **79** (validováno)  |
+| Prisma models         | **15** (validováno)  |
+| Server Actions        | 10                   |
+| API Routes            | **14** (validováno)  |
+| Trigger rules         | 30+                  |
+| Test files            | **18** (validováno)  |
+| ADRs                  | 4                    |
+| LEARNINGS entries     | 2                    |
+| Documentation pages   | 20+                  |
+| Environment variables | **23** (validováno)  |
 
 ### 15.3 Technical Debt Score
 
 **Formula:** `(Critical Issues × 5) + (High Issues × 3) + (Medium Issues × 1)`
 
 **Calculation:**
+
 - Critical (P0): 4 issues × 5 = **20 points**
 - High (P1): 3 issues × 3 = **9 points**
 - Medium (P2): 4 issues × 1 = **4 points**
@@ -1309,6 +1389,7 @@ export async function checkRateLimit(userId: string) {
 **Total Technical Debt:** **33 points**
 
 **Interpretace:**
+
 - 0-10: Low debt ✅
 - 11-30: Moderate debt 🟡
 - 31-50: High debt ⚠️ ← **Current**
@@ -1338,20 +1419,15 @@ Projekt **Orchideo FB Triggers** má **vysoce kvalitní architekturu** s:
 ### 16.3 Recommended Actions
 
 **Immediate (P0):**
+
 1. Přidat unit tests pro Trigger Engine
 2. Implementovat request tracing
 3. Vytvořit middleware.ts pro centrální auth
 4. Implementovat email rate limiting
 
-**Soon (P1):**
-5. Replace polling with SSE
-6. Optimize N+1 queries
-7. Standardizovat API errors
+**Soon (P1):** 5. Replace polling with SSE 6. Optimize N+1 queries 7. Standardizovat API errors
 
-**Later (P2):**
-8. Consolidate utils
-9. Expand LEARNINGS
-10. Redis rate limiting
+**Later (P2):** 8. Consolidate utils 9. Expand LEARNINGS 10. Redis rate limiting
 
 ### 16.4 Scalability Assessment
 
@@ -1371,6 +1447,7 @@ Architektura je **připravena pro škálování**:
 **Overall Architecture Quality:** **8.3/10** (Very Good)
 
 **Breakdown:**
+
 - Design Patterns: 9/10
 - Code Quality: 9/10
 - Security: 8/10
@@ -1476,11 +1553,13 @@ Configuration:
 ### 17.3 Resources
 
 **Dokumentace:**
+
 - docs/ARCHITECTURE.md - High-level overview
 - docs/systems/trigger-engine.md - Trigger engine details
 - docs/decisions/ - Architectural decisions (ADRs)
 
 **Code References:**
+
 - src/lib/triggers/registry.ts:29 - `getAllTriggers()`
 - src/lib/services/analysis/runner.ts - Analysis pipeline
 - prisma/schema.prisma:163 - TriggerResult model

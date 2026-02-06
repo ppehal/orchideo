@@ -94,16 +94,18 @@ For displaying assessment + actionable tips in trigger recommendations.
 import { RecommendationCard } from '@/components/report/trigger-detail'
 
 // Automatic parsing: first sentence → assessment, rest → tips
-<RecommendationCard text="Jste výborní! Pokračujte tímto směrem. Zkuste více příspěvků." />
+;<RecommendationCard text="Jste výborní! Pokračujte tímto směrem. Zkuste více příspěvků." />
 ```
 
 **Visual Structure:**
+
 - **Desktop (≥768px):** Two columns
   - Left (300px fixed): Assessment with ThumbsUp icon
   - Right (flex): Bullet list of tips with Lightbulb icon
 - **Mobile (<768px):** Stacked layout (assessment above, tips below)
 
 **Features:**
+
 - Automatic parsing via `parseRecommendation()` utility
 - Handles Czech punctuation (both `.` and `!` as sentence delimiters)
 - Fallback to single-column for single-sentence recommendations
@@ -111,6 +113,7 @@ import { RecommendationCard } from '@/components/report/trigger-detail'
 - Responsive design with mobile-first approach
 
 **Parser behavior:**
+
 ```typescript
 // Multi-sentence: splits into assessment + tips
 "Výborně! Pokračujte tímto směrem. Zkuste více příspěvků."
@@ -129,6 +132,7 @@ import { RecommendationCard } from '@/components/report/trigger-detail'
 ```
 
 **Implementation:**
+
 - Parser: `src/lib/utils/recommendation-parser.ts`
 - Component: `src/components/report/trigger-detail/recommendation-card.tsx`
 - Used in: `CategoryDisplay` component (4 locations)

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { evaluateAll, evaluateCategory, calculateOverallScore, getStatus } from '@/lib/triggers/engine'
+import {
+  evaluateAll,
+  evaluateCategory,
+  calculateOverallScore,
+  getStatus,
+} from '@/lib/triggers/engine'
 import {
   sampleTriggerInput,
   minimalTriggerInput,

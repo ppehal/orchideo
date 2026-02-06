@@ -107,12 +107,7 @@ export async function POST(request: NextRequest) {
           },
         })
       } catch (dbError) {
-        logError(
-          log,
-          dbError,
-          'Failed to log email error analytics',
-          { analysis_id: analysis.id }
-        )
+        logError(log, dbError, 'Failed to log email error analytics', { analysis_id: analysis.id })
       }
 
       return NextResponse.json(
@@ -150,12 +145,7 @@ export async function POST(request: NextRequest) {
         ],
       })
     } catch (dbError) {
-      logError(
-        log,
-        dbError,
-        'Failed to log email success analytics',
-        { analysis_id: analysis.id }
-      )
+      logError(log, dbError, 'Failed to log email success analytics', { analysis_id: analysis.id })
     }
 
     const maskedEmail = email.replace(/(.{2}).*@/, '$1***@')

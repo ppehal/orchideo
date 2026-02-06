@@ -99,8 +99,8 @@ Architecture Decision Records (ADRs).
 
 ## Audits
 
-| Audit                                                    | Date       | Status |
-| -------------------------------------------------------- | ---------- | ------ |
+| Audit                                                           | Date       | Status      |
+| --------------------------------------------------------------- | ---------- | ----------- |
 | [Architecture Audit](./audits/architecture-audit-2026-02-04.md) | 2026-02-04 | ✅ Complete |
 
 ---

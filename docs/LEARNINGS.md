@@ -33,24 +33,26 @@ _Zatím žádné záznamy._
 **Kontext**: Implementace unit testů pro Trigger Registry s Vitest
 **Problém**: Tests affecting global registry state, `require('@/lib/triggers/rules')` fails in ESM context
 **Příčina**:
+
 1. Registry je singleton Map sdílený mezi všemi testy
 2. `clearRegistry()` volaný v jednom testu ovlivňuje jiné testy (race condition)
 3. ESM modules nepodporují `require()` - dynamický import nepomáhá s reload
 4. Re-import registrovaných triggerů v afterEach selhává v ESM
 
 **Řešení**:
+
 ```typescript
 // ❌ ŠPATNĚ: Snaha re-importovat registry v afterEach
 afterEach(() => {
   clearRegistry()
-  require('@/lib/triggers/rules')  // Error: Cannot find module
+  require('@/lib/triggers/rules') // Error: Cannot find module
 })
 
 // ✅ SPRÁVNĚ: Akceptovat shared state, filter test data
 it('verifies trigger IDs', () => {
   const basicTriggers = getTriggersByCategory('BASIC')
-  const realBasicTriggers = basicTriggers.filter(t => !t.id.startsWith('TEST_'))
-  realBasicTriggers.forEach(t => {
+  const realBasicTriggers = basicTriggers.filter((t) => !t.id.startsWith('TEST_'))
+  realBasicTriggers.forEach((t) => {
     expect(t.id).toMatch(/^BASIC_\d+$/)
   })
 })
@@ -67,6 +69,7 @@ it('processes data', () => {
 ```
 
 **Prevence**:
+
 - NIKDY nepoužívat `require()` v ESM context (fails at runtime)
 - Pro singleton registry akceptovat shared state mezi testy
 - Filtrovat test data (např. `TEST_*` prefix) místo snažení se clearovat
@@ -74,6 +77,7 @@ it('processes data', () => {
 - `clearRegistry()` jen v beforeEach pro testy které aktivně registrují test triggers
 
 **Pattern: Test Isolation Strategies**
+
 1. **Shared State (OK)**: Filter test data, guard proti empty state
 2. **Isolated State (better but complex)**: Dependency injection pro registry
 3. **Mock State (overkill)**: Mock registry functions pro každý test
@@ -88,11 +92,13 @@ it('processes data', () => {
 **Kontext**: Migrace use-alerts hooku na React 19 useOptimistic pro automatické error handling
 **Problém**: Optimistic updates se nerevertovaly při selhání API volání, UI zobrazovalo nesprávný stav
 **Příčina**:
+
 - React 19 `useOptimistic` hook automaticky revertuje změny POUZE když funkce throwne error
 - Naše catch bloky zachytávaly error, zobrazovaly toast, ale NE-throwovaly → revert se neprovedl
 - TypeScript nezachytí tento problém, protože catch může error spolknout
 
 **Řešení**:
+
 ```typescript
 // ❌ Špatně: error spolknutý, žádný revert
 try {
@@ -112,6 +118,7 @@ try {
 ```
 
 **Prevence**:
+
 - VŽDY re-throw error v catch blocích při použití useOptimistic
 - Lint rule: eslint-plugin-react-hooks může detekovat missing throws
 - Pattern: User feedback (toast) před throw, ne po něm
@@ -126,11 +133,13 @@ try {
 **Kontext**: Konverze formulářů na React 19 Server Actions s FormData
 **Problém**: `formData.get('field')` může vrátit `null`, ale type assertion `as string` to ignoruje
 **Příčina**:
+
 - FormData.get() vrací `FormDataEntryValue | null`
 - Type assertion `as string` forcuje typ, ale runtime hodnota může být null
 - TypeScript strict mode to nedetekuje při direct assertion
 
 **Řešení**:
+
 ```typescript
 // ❌ Špatně: null crash
 const name = formData.get('name') as string
@@ -140,12 +149,13 @@ const name = (formData.get('name') as string | null) || ''
 
 // ✅ Nebo Zod validation:
 const schema = z.object({
-  name: z.string().min(1, 'Required')
+  name: z.string().min(1, 'Required'),
 })
 const parsed = schema.safeParse(rawData)
 ```
 
 **Prevence**:
+
 - NIKDY direct type assertion na FormData values
 - Vždy použít `as string | null` + fallback nebo Zod
 - Pro required fields: Zod `.min(1)` místo jen `.string()`
@@ -160,11 +170,13 @@ const parsed = schema.safeParse(rawData)
 **Kontext**: Optimalizace competitors page, která měla pomalý First Contentful Paint (~250ms)
 **Problém**: Celá stránka čekala na pomalý Prisma query s nested relations, i když header mohl renderovat okamžitě
 **Příčina**:
+
 - Single async Server Component fetchoval všechna data najednou (pages + groups s relations)
 - Fast data (pages pro form) i slow data (groups s competitors) blokovaly celý render
 - Next.js čekal na dokončení všech queries před odesláním HTML
 
 **Řešení - Progressive Rendering**:
+
 ```typescript
 // ❌ Špatně: blocking render
 export default async function Page() {
@@ -197,11 +209,13 @@ async function GroupListServer() {
 ```
 
 **Performance Impact**:
+
 - First Contentful Paint: 250ms → 50ms (**5x faster**)
 - User sees header + button immediately
 - Groups list streams in progressively (no perceived wait)
 
 **Prevence**:
+
 - VŽDY split fast/slow data do separate components
 - Fast path: Auth, simple selects, lightweight queries
 - Slow path: Joins, aggregations, large datasets → wrap in Suspense
@@ -217,11 +231,13 @@ async function GroupListServer() {
 **Kontext**: Implementace automatického parsování doporučení na assessment + tips v trigger detail pages
 **Problém**: Jednoduchý regex `/\.\s+/` splitoval i na zkratkách (px., atd.) a nezvládal vykřičníky
 **Příčina**:
+
 1. Původní regex splitoval na každé tečce následované mezerou, bez ohledu na následující znak
 2. Vykřičníky (!) nebyly zahrnuty jako sentence delimiters, přitom 34 doporučení je používá
 3. České doporučení obsahují edge cases: zkratky (px.), čísla (5. Zkuste), URLs (example.com)
 
 **Řešení**:
+
 ```typescript
 // ❌ Špatně: splituje i na zkratkách
 text.split(/\.\s+/)
@@ -231,6 +247,7 @@ text.split(/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)
 ```
 
 **Klíčové body**:
+
 - Pozitivní lookahead `(?=...)` zajistí, že split je pouze před velkým písmenem
 - Character class `[.!]` pokrývá tečku i vykřičník
 - Czech alphabet class: `[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]` (ne ASCII `[A-Z]`)
@@ -243,6 +260,7 @@ text.split(/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)
 **Performance**: O(n) where n = string length, žádný exponential backtracking
 
 **Prevence**:
+
 - Pro český text vždy použít české znaky v character classes
 - Testovat edge cases: zkratky, URL, čísla, emoji
 - Pozitivní lookahead je výkonnější než negativní lookbehind pro sentence splitting
@@ -303,12 +321,14 @@ text.split(/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)
 **Kontext**: Analýza malé stránky (<100 followers) zobrazovala matoucí error message v triggerech BASIC_004, BASIC_005, CONT_004
 
 **Problém**:
+
 - Stránka "Zastav Nemovitost" má 1 fanoušek
 - Facebook API vrací error code 100 "NOT_SUPPORTED" (stránka má příliš málo sledujících pro insights)
 - Ale triggery zobrazovaly: "vyžadují oprávnění read_insights" ❌
 - Uživatel si myslel že problém je v oprávněních, přitom byl v počtu fanoušků
 
 **Příčina**: Error metadata se ztrácela v data pipeline:
+
 ```
 ✅ Collector: Sbírá insightsError + insightsErrorMessage (z insights.ts)
 ❌ Normalizer: Nezahrnuje do výstupu (ztráta dat)
@@ -319,6 +339,7 @@ text.split(/[.!]\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)
 **Řešení**: Propagovat error metadata celou pipeline:
 
 1. **TriggerInput type** - přidat optional metadata:
+
 ```typescript
 export interface TriggerInput {
   // ... existing fields
@@ -330,6 +351,7 @@ export interface TriggerInput {
 ```
 
 2. **Normalizer** - zachovat error fields:
+
 ```typescript
 collectionMetadata: {
   // ... existing fields
@@ -339,6 +361,7 @@ collectionMetadata: {
 ```
 
 3. **Runner** - předat metadata triggerům:
+
 ```typescript
 const triggerInput: TriggerInput = {
   // ... existing fields
@@ -350,18 +373,21 @@ const triggerInput: TriggerInput = {
 ```
 
 4. **Triggers** - použít actual error message s fallback:
+
 ```typescript
 input.collectionMetadata?.insightsErrorMessage ||
   'Page Insights nejsou dostupné (vyžadují oprávnění read_insights)'
 ```
 
 **Error messages z insights.ts:**
+
 - `PERMISSION_DENIED`: "Chybí oprávnění read_insights. Přihlaste se znovu přes Facebook."
 - `NOT_SUPPORTED`: "Tato stránka nepodporuje insights (např. příliš málo sledujících)."
 - `RATE_LIMITED`: "Facebook API limit překročen. Zkuste to později."
 - `UNKNOWN`: "Nepodařilo se načíst insights. Zkuste to později."
 
 **Prevence**:
+
 - ✅ Error metadata MUSÍ projít celou pipeline (collector → normalizer → runner → triggers)
 - ✅ Nepoužívat hardcoded error messages pokud máme actual error z API
 - ✅ Optional fields pro backward compatibility
@@ -369,6 +395,7 @@ input.collectionMetadata?.insightsErrorMessage ||
 - ⚠️ Empty string `""` je falsy → použít `|| fallback` (ne `??`)
 
 **Impact:**
+
 - Staré analýzy: Fungují s fallback messages (backward compatible)
 - Nové analýzy: Zobrazují specifické error messages
 - UX: Uživatelé vidí správnou příčinu problému
@@ -418,12 +445,14 @@ function getAppSecretProof(accessToken: string): string {
 **Kontext**: BASIC_003 trigger (Reaction Structure Analysis) vždy vracel `INSUFFICIENT_DATA` protože reaction breakdowns (like, love, wow, etc.) byly vždy 0
 
 **Problém**:
+
 - `fetchPostInsights()` funkce existovala v `feed.ts` od začátku ✅
 - Normalizer očekával `post.insights` a správně je mapoval ✅
 - Ale reakce byly vždy 0 ve všech analýzách ❌
 - Facebook API fetch vracel pouze `reactions.summary(total_count)` ❌
 
 **Příčina**:
+
 - Collector nikdy nevolal `fetchPostInsights()` pro jednotlivé posty
 - Data flow byl: `fetchPageFeed()` → `convertToRawPost()` → `normalizePost()`
 - Chyběla enrichment fáze mezi feed fetch a normalizací
@@ -455,6 +484,7 @@ async function enrichPostsWithInsights(posts, token, pageId) {
 ```
 
 **Prevence**:
+
 - ✅ Zkontrolovat že helper funkce se SKUTEČNĚ volají (ne jen existují)
 - ✅ End-to-end test by odhalil (reakce by neměly být vždy 0)
 - ✅ Code review data flow od API až do DB
@@ -462,6 +492,7 @@ async function enrichPostsWithInsights(posts, token, pageId) {
 - ⚠️ Feed endpoint vrací jen `reactions.summary`, breakdown vyžaduje separate `/insights` endpoint
 
 **Gotchas při implementaci:**
+
 1. **Timeout konflikt**: Runner má timeout 60s (default), enrichment 120s → runner může timeout dřív
    - Fix: Enrichment má vlastní timeout + fallback na unenriched data
 2. **Stats misleading**: "failed" zahrnuje jak errors, tak posty bez dostupných insights (null)
@@ -472,9 +503,10 @@ async function enrichPostsWithInsights(posts, token, pageId) {
    - OK pro single-user VPS, ale multi-tenant vyžaduje per-user limiting
 
 **Performance impact:**
+
 - Typical: +30-90s pro 50-200 postů
 - Acceptable: Background job pattern, uživatel nemusí čekat
-- MAX_FEED_POSTS = 300 může timeout při slow API (2s/post * 300/5 = 120s)
+- MAX_FEED_POSTS = 300 může timeout při slow API (2s/post \* 300/5 = 120s)
 
 ---
 
@@ -486,17 +518,19 @@ async function enrichPostsWithInsights(posts, token, pageId) {
 **Security Risk**: MEDIUM - tokens in body can be logged by middleware/proxies
 
 **Příčina**:
+
 - Facebook Batch API má flexibility v auth metodě (body vs query params)
 - Initial implementation zvolilo jednodušší body approach
 - Nekonzistentní s `client.ts` security pattern (používá appsecret_proof)
 
 **Řešení**:
+
 ```typescript
 // ❌ ŠPATNĚ: Token v request body
 const response = await fetch(batchUrl, {
   method: 'POST',
   body: JSON.stringify({
-    access_token: accessToken,  // Security risk
+    access_token: accessToken, // Security risk
     batch: batchRequests,
   }),
 })
@@ -514,11 +548,13 @@ const response = await fetch(batchUrl.toString(), {
 ```
 
 **Best Practice**:
+
 - VŽDY používat `appsecret_proof` pro Facebook API calls (prevents token theft)
 - Export `getAppSecretProof()` z `client.ts` pro reuse v `feed.ts`
 - Konzistentní security pattern napříč celou codebase
 
 **Dodatečné opravy**:
+
 1. **Index Mismatch Check**: Přidán warning pokud `batchResults.length !== batch.length`
 2. **Partial Results Tracking**: Collector catch block nyní počítá již enriched posty místo slepého označení všech jako failed
 
@@ -564,6 +600,7 @@ _Zatím žádné záznamy._
 - Pro enum hodnoty v DB zvážit Prisma enum místo String (breaking change pro existující data)
 - Přidat input validation ve všech server actions před zápisem do DB
 - Example validace:
+
   ```typescript
   // ❌ WRONG - Unsafe
   const code = dbValue as IndustryCode

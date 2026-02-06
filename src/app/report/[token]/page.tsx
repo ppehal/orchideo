@@ -146,80 +146,77 @@ export default async function ReportPage({ params, searchParams }: Props) {
         className={`bg-muted/30 min-h-screen ${isPrintMode ? 'print-mode' : ''}`}
         data-pdf-ready="true"
       >
-        <div
-          className="container mx-auto max-w-5xl space-y-6 px-4 py-8"
-          data-report-content
-        >
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <ReportHeader
-            pageName={companyName || analysis.page_name || 'Facebook stránka'}
-            pagePicture={analysis.page_picture}
-            fanCount={analysis.page_fan_count}
-            createdAt={analysis.created_at}
-            industry={analysis.industry_code !== 'DEFAULT' ? analysis.industry_code : undefined}
-            fbCategory={analysis.fb_page_category}
-          />
-        </div>
-
-        {/* Actions - hidden in print mode */}
-        {!isPrintMode && (
-          <div className="no-print flex justify-end gap-2">
-            <PdfExportButton token={token} />
-            <CopyLinkButton />
+        <div className="container mx-auto max-w-5xl space-y-6 px-4 py-8" data-report-content>
+          {/* Header */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <ReportHeader
+              pageName={companyName || analysis.page_name || 'Facebook stránka'}
+              pagePicture={analysis.page_picture}
+              fanCount={analysis.page_fan_count}
+              createdAt={analysis.created_at}
+              industry={analysis.industry_code !== 'DEFAULT' ? analysis.industry_code : undefined}
+              fbCategory={analysis.fb_page_category}
+            />
           </div>
-        )}
 
-        {/* Overall Score */}
-        <OverallScore score={overallScore} />
+          {/* Actions - hidden in print mode */}
+          {!isPrintMode && (
+            <div className="no-print flex justify-end gap-2">
+              <PdfExportButton token={token} />
+              <CopyLinkButton />
+            </div>
+          )}
 
-        {/* Trigger Sections */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Detailní analýza</h2>
+          {/* Overall Score */}
+          <OverallScore score={overallScore} />
 
-          <TriggerSection category="BASIC" triggers={grouped.BASIC} reportToken={token} />
-          <TriggerSection category="CONTENT" triggers={grouped.CONTENT} reportToken={token} />
-          <TriggerSection category="TECHNICAL" triggers={grouped.TECHNICAL} reportToken={token} />
-          <TriggerSection category="TIMING" triggers={grouped.TIMING} reportToken={token} />
-          <TriggerSection category="SHARING" triggers={grouped.SHARING} reportToken={token} />
-          <TriggerSection
-            category="PAGE_SETTINGS"
-            triggers={grouped.PAGE_SETTINGS}
-            reportToken={token}
-          />
-        </div>
+          {/* Trigger Sections */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Detailní analýza</h2>
 
-        {/* Top Recommendations - moved after trigger sections */}
-        <TopRecommendations triggers={triggers} maxRecommendations={5} />
-
-        {/* Disclaimer */}
-        <ReportDisclaimer
-          expiresAt={analysis.expires_at}
-          postsAnalyzed={postsAnalyzed}
-          daysOfData={daysOfData}
-          insightsStatus={{
-            available: insightsAvailable,
-            errorCode: insightsError,
-            errorMessage: insightsErrorMessage,
-          }}
-        />
-
-        {/* Email Form - hidden in print mode */}
-        {!isPrintMode && (
-          <div className="no-print bg-card rounded-lg border p-6">
-            <EmailForm analysisToken={token} />
+            <TriggerSection category="BASIC" triggers={grouped.BASIC} reportToken={token} />
+            <TriggerSection category="CONTENT" triggers={grouped.CONTENT} reportToken={token} />
+            <TriggerSection category="TECHNICAL" triggers={grouped.TECHNICAL} reportToken={token} />
+            <TriggerSection category="TIMING" triggers={grouped.TIMING} reportToken={token} />
+            <TriggerSection category="SHARING" triggers={grouped.SHARING} reportToken={token} />
+            <TriggerSection
+              category="PAGE_SETTINGS"
+              triggers={grouped.PAGE_SETTINGS}
+              reportToken={token}
+            />
           </div>
-        )}
 
-        {/* Footer */}
-        {!shouldHideBranding && (
-          <footer className="text-muted-foreground border-t pt-6 text-center text-sm">
-            <p>
-              Vygenerováno nástrojem{' '}
-              <span className="text-foreground font-medium">Orchideo FB Triggers</span>
-            </p>
-          </footer>
-        )}
+          {/* Top Recommendations - moved after trigger sections */}
+          <TopRecommendations triggers={triggers} maxRecommendations={5} />
+
+          {/* Disclaimer */}
+          <ReportDisclaimer
+            expiresAt={analysis.expires_at}
+            postsAnalyzed={postsAnalyzed}
+            daysOfData={daysOfData}
+            insightsStatus={{
+              available: insightsAvailable,
+              errorCode: insightsError,
+              errorMessage: insightsErrorMessage,
+            }}
+          />
+
+          {/* Email Form - hidden in print mode */}
+          {!isPrintMode && (
+            <div className="no-print bg-card rounded-lg border p-6">
+              <EmailForm analysisToken={token} />
+            </div>
+          )}
+
+          {/* Footer */}
+          {!shouldHideBranding && (
+            <footer className="text-muted-foreground border-t pt-6 text-center text-sm">
+              <p>
+                Vygenerováno nástrojem{' '}
+                <span className="text-foreground font-medium">Orchideo FB Triggers</span>
+              </p>
+            </footer>
+          )}
         </div>
       </div>
     </ReportClientWrapper>

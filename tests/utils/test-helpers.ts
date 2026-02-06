@@ -289,9 +289,7 @@ import type { PageInsights } from '@/lib/integrations/facebook/insights'
 /**
  * Create a Facebook post for testing
  */
-export function createMockFacebookPost(
-  overrides: Partial<FacebookPost> = {}
-): FacebookPost {
+export function createMockFacebookPost(overrides: Partial<FacebookPost> = {}): FacebookPost {
   return {
     id: 'post_123',
     created_time: new Date().toISOString(),
@@ -408,9 +406,7 @@ export function createMockFetchFeedResult(
 /**
  * Create a mock PageInsights
  */
-export function createMockPageInsights(
-  overrides: Partial<PageInsights> = {}
-): PageInsights {
+export function createMockPageInsights(overrides: Partial<PageInsights> = {}): PageInsights {
   const now = new Date()
   const periodStart = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
 

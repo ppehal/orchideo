@@ -38,10 +38,10 @@ export function BenchmarkContextCard({ context }: { context: BenchmarkContext })
       </CardHeader>
       {isExpanded && (
         <CardContent className="space-y-4">
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
             <div className="space-y-1">
               <dt className="text-muted-foreground text-xs">Obor:</dt>
-              <dd className="font-medium truncate" title={context.industryName}>
+              <dd className="truncate font-medium" title={context.industryName}>
                 {context.industryName}
               </dd>
             </div>
@@ -63,11 +63,11 @@ export function BenchmarkContextCard({ context }: { context: BenchmarkContext })
 
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Hodnoty benchmarku:</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {Object.entries(context.values).map(([key, value]) => (
-                <div key={key} className="flex justify-between items-center gap-2 text-sm">
+                <div key={key} className="flex items-center justify-between gap-2 text-sm">
                   <span className="text-muted-foreground truncate">{key}</span>
-                  <span className="font-mono font-medium flex-shrink-0">
+                  <span className="flex-shrink-0 font-mono font-medium">
                     {typeof value === 'number' ? value.toFixed(1) : value}
                   </span>
                 </div>

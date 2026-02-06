@@ -13,9 +13,7 @@ interface UseAlertsReturn {
   refresh: () => Promise<void>
 }
 
-type OptimisticAction =
-  | { type: 'MARK_AS_READ'; alertId: string }
-  | { type: 'MARK_ALL_AS_READ' }
+type OptimisticAction = { type: 'MARK_AS_READ'; alertId: string } | { type: 'MARK_ALL_AS_READ' }
 
 export function useAlerts(): UseAlertsReturn {
   const [data, setData] = React.useState<UserAlertsResponse | null>(null)
@@ -34,9 +32,7 @@ export function useAlerts(): UseAlertsReturn {
 
           return {
             ...state,
-            alerts: state.alerts.map((a) =>
-              a.id === action.alertId ? { ...a, isRead: true } : a
-            ),
+            alerts: state.alerts.map((a) => (a.id === action.alertId ? { ...a, isRead: true } : a)),
             unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
           }
         }

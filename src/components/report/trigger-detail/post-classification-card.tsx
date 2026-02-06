@@ -57,24 +57,24 @@ export function PostClassificationCard({
             {isExpanded ? 'Skrýt' : 'Zobrazit'}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 text-xs">
           Zobrazuje, které klíčová slova byla nalezena v každém postu
         </p>
       </CardHeader>
       {isExpanded && (
         <CardContent className="space-y-4">
           {/* Summary - always visible */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="h-2 w-2 rounded-full bg-red-500" />
               {salesCount} SALES
             </Badge>
             <Badge variant="outline" className="gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
               {brandCount} BRAND
             </Badge>
             <Badge variant="outline" className="gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="h-2 w-2 rounded-full bg-green-500" />
               {engagementCount} ENGAGEMENT
             </Badge>
           </div>
@@ -82,9 +82,9 @@ export function PostClassificationCard({
           {/* Post list */}
           <div className="space-y-2">
             {displayedPosts.map((post) => (
-              <Collapsible key={post.postId} className="border rounded-lg">
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Collapsible key={post.postId} className="rounded-lg border">
+                <CollapsibleTrigger className="hover:bg-muted/50 flex w-full items-center justify-between p-3 transition-colors">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
                     <Badge
                       variant={
                         post.classification === 'SALES'
@@ -97,13 +97,13 @@ export function PostClassificationCard({
                     >
                       {post.classification}
                     </Badge>
-                    <span className="text-sm text-muted-foreground line-clamp-1 text-left">
+                    <span className="text-muted-foreground line-clamp-1 text-left text-sm">
                       Post ID: {post.postId}
                     </span>
                   </div>
-                  <ChevronDown className="h-4 w-4 flex-shrink-0 ml-2" />
+                  <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="px-3 py-3 bg-muted/30 space-y-3">
+                <CollapsibleContent className="bg-muted/30 space-y-3 px-3 py-3">
                   {/* Sales keywords */}
                   {post.matchedKeywords.sales.length > 0 && (
                     <div className="space-y-1.5">
@@ -149,15 +149,15 @@ export function PostClassificationCard({
                   {/* No keywords */}
                   {post.matchedKeywords.sales.length === 0 &&
                     post.matchedKeywords.brand.length === 0 && (
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         Žádná klíčová slova nenalezena
                       </div>
                     )}
 
                   {/* Reasoning */}
-                  <div className="pt-2 border-t">
+                  <div className="border-t pt-2">
                     <span className="text-xs font-medium">Zdůvodnění:</span>
-                    <p className="text-xs text-muted-foreground mt-1">{post.reasoning}</p>
+                    <p className="text-muted-foreground mt-1 text-xs">{post.reasoning}</p>
                   </div>
                 </CollapsibleContent>
               </Collapsible>
@@ -166,7 +166,12 @@ export function PostClassificationCard({
 
           {/* Show more button */}
           {classifications.length > INITIAL_DISPLAY && (
-            <Button variant="ghost" size="sm" onClick={() => setShowAll(!showAll)} className="w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAll(!showAll)}
+              className="w-full"
+            >
               {showAll ? 'Zobrazit méně' : `Zobrazit všech ${classifications.length} postů`}
             </Button>
           )}

@@ -45,21 +45,21 @@ export function CalculationStepsCard({ steps }: CalculationStepsCardProps) {
           {steps.map((step, i) => (
             <div key={i} className="flex gap-3">
               {/* Step number badge */}
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-xs font-medium text-amber-700 dark:text-amber-300">
+              <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-medium text-amber-700 dark:bg-amber-900 dark:text-amber-300">
                 {step.step}
               </span>
 
               {/* Step content */}
-              <div className="flex-1 min-w-0 space-y-2">
+              <div className="min-w-0 flex-1 space-y-2">
                 <p className="text-sm font-medium">{step.description}</p>
 
                 {step.formula && (
-                  <pre className="bg-muted/50 rounded px-2 py-1.5 text-xs font-mono overflow-x-auto">
+                  <pre className="bg-muted/50 overflow-x-auto rounded px-2 py-1.5 font-mono text-xs">
                     {step.formula}
                   </pre>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+                <div className="text-muted-foreground grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
                   {Object.entries(step.inputs).map(([key, value]) => (
                     <div key={key} className="flex justify-between gap-2">
                       <span className="font-medium">{key}:</span>

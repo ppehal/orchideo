@@ -49,18 +49,14 @@ export function AnalysisFilters({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       {/* Loading indicator during transition */}
       {isPending && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
           <span>Načítání...</span>
         </div>
       )}
       {/* Page filter */}
       {pages.length > 0 && (
-        <Select
-          value={selectedPageId || 'ALL'}
-          onValueChange={onPageChange}
-          disabled={isPending}
-        >
+        <Select value={selectedPageId || 'ALL'} onValueChange={onPageChange} disabled={isPending}>
           <SelectTrigger className={cn('w-full sm:w-[200px]', isPending && 'opacity-50')}>
             <SelectValue placeholder="Vyberte stránku" />
           </SelectTrigger>
@@ -76,11 +72,7 @@ export function AnalysisFilters({
       )}
 
       {/* Status filter */}
-      <Select
-        value={selectedStatus || 'ALL'}
-        onValueChange={onStatusChange}
-        disabled={isPending}
-      >
+      <Select value={selectedStatus || 'ALL'} onValueChange={onStatusChange} disabled={isPending}>
         <SelectTrigger className={cn('w-full sm:w-[180px]', isPending && 'opacity-50')}>
           <SelectValue placeholder="Stav" />
         </SelectTrigger>
@@ -94,11 +86,7 @@ export function AnalysisFilters({
       </Select>
 
       {/* Sort */}
-      <Select
-        value={selectedSort || 'newest'}
-        onValueChange={onSortChange}
-        disabled={isPending}
-      >
+      <Select value={selectedSort || 'newest'} onValueChange={onSortChange} disabled={isPending}>
         <SelectTrigger className={cn('w-full sm:w-[180px]', isPending && 'opacity-50')}>
           <SelectValue placeholder="Řazení" />
         </SelectTrigger>

@@ -22,7 +22,7 @@ export function AnalysisStickyActionBar({
   if (!selectedPage) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur">
       <div className="container py-4">
         <div className="mx-auto max-w-2xl">
           <form action={formAction}>
@@ -32,8 +32,8 @@ export function AnalysisStickyActionBar({
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {/* Left: Page summary */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="bg-muted relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
                   {selectedPage.picture_url ? (
                     <Image
                       src={selectedPage.picture_url}
@@ -49,7 +49,7 @@ export function AnalysisStickyActionBar({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-sm">{selectedPage.name}</p>
+                  <p className="truncate text-sm font-medium">{selectedPage.name}</p>
                   <p className="text-muted-foreground text-xs">
                     {INDUSTRIES[selectedIndustry].name}
                   </p>
@@ -62,7 +62,7 @@ export function AnalysisStickyActionBar({
                 loading={isPending}
                 loadingText="Spouštím..."
                 size="lg"
-                className="w-full sm:w-auto shrink-0"
+                className="w-full shrink-0 sm:w-auto"
               >
                 Spustit analýzu
               </LoadingButton>

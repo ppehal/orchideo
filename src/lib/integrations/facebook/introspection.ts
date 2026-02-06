@@ -22,17 +22,13 @@ export interface TokenDebugInfo {
  * Get list of permissions granted to a token
  * API: GET /me/permissions
  */
-export async function getGrantedPermissions(
-  accessToken: string
-): Promise<PermissionStatus[]> {
+export async function getGrantedPermissions(accessToken: string): Promise<PermissionStatus[]> {
   const url = `${GRAPH_API_BASE_URL}/me/permissions`
 
   try {
-    const response = await makeRequest<{ data: PermissionStatus[] }>(
-      url,
-      accessToken,
-      { timeoutMs: 10000 }
-    )
+    const response = await makeRequest<{ data: PermissionStatus[] }>(url, accessToken, {
+      timeoutMs: 10000,
+    })
 
     log.info(
       {
@@ -61,11 +57,9 @@ export async function debugToken(accessToken: string): Promise<TokenDebugInfo> {
   const url = `${GRAPH_API_BASE_URL}/debug_token?input_token=${accessToken}&access_token=${appAccessToken}`
 
   try {
-    const response = await makeRequest<{ data: TokenDebugInfo }>(
-      url,
-      appAccessToken,
-      { timeoutMs: 10000 }
-    )
+    const response = await makeRequest<{ data: TokenDebugInfo }>(url, appAccessToken, {
+      timeoutMs: 10000,
+    })
 
     return response.data
   } catch (error) {
@@ -77,10 +71,7 @@ export async function debugToken(accessToken: string): Promise<TokenDebugInfo> {
 /**
  * Check if token has specific permission
  */
-export async function hasPermission(
-  accessToken: string,
-  permission: string
-): Promise<boolean> {
+export async function hasPermission(accessToken: string, permission: string): Promise<boolean> {
   const permissions = await getGrantedPermissions(accessToken)
   const found = permissions.find((p) => p.permission === permission)
   return found?.status === 'granted'

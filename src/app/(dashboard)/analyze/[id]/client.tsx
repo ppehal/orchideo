@@ -45,7 +45,9 @@ export function AnalysisProgressClient({
 
       if (response.ok) {
         setStatus(data.data.status)
-        setProgress(data.data.progress ?? ANALYSIS_STATUS_PROGRESS[data.data.status as AnalysisStatus])
+        setProgress(
+          data.data.progress ?? ANALYSIS_STATUS_PROGRESS[data.data.status as AnalysisStatus]
+        )
 
         if (data.data.status === 'COMPLETED') {
           // Redirect to report after a short delay

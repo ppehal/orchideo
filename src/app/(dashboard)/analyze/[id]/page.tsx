@@ -80,12 +80,7 @@ export default function AnalysisProgressPage() {
 
   return (
     <div className="container mx-auto max-w-2xl py-12">
-      <Breadcrumbs
-        items={[
-          { label: 'Analýza', href: '/analyze' },
-          { label: 'Detail analýzy' },
-        ]}
-      />
+      <Breadcrumbs items={[{ label: 'Analýza', href: '/analyze' }, { label: 'Detail analýzy' }]} />
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
