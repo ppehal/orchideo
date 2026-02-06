@@ -8,10 +8,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { fetchPageFeed, fetchPostInsights, fetchPostInsightsBatch } from '@/lib/integrations/facebook/feed'
 import {
-  createMockFacebookPost,
   createMockFeedResponse,
   createMockPostInsightsResponse,
-  createMockBatchResponse,
 } from '../../../utils/test-helpers'
 
 // Mock functions - declared outside to avoid hoisting issues
